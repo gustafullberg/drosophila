@@ -1,0 +1,1 @@
+xboard -fcp ./pawned -debug
