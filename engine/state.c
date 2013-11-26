@@ -137,26 +137,26 @@ int state_generate_moves(chess_state_t *s, move_t *stack)
 
     /* King-side Castling */
     if(s->flags[(int)s->player] & STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK) {
-        int king_pos = bitboard_find_bit(s->bitboard[WHITE_PIECES + KING]);
+        int king_pos = bitboard_find_bit(s->bitboard[own_index + KING]);
         if((bitboard_king_castle_empty[(int)s->player] & (s->bitboard[WHITE_PIECES + ALL] | s->bitboard[BLACK_PIECES + ALL])) == 0) {
             if(state_position_is_attacked(s, s->player, king_pos+0) == 0 && 
                state_position_is_attacked(s, s->player, king_pos+1) == 0 &&
                state_position_is_attacked(s, s->player, king_pos+2) == 0)
             {
-                num_moves += state_add_moves_to_stack(s, s->bitboard[own_index + KING] << 2, E1 << (8*7*(int)s->player), KING, 0, MOVE_KING_CASTLE, stack + num_moves);
+                num_moves += state_add_moves_to_stack(s, s->bitboard[own_index + KING] << 2, king_pos, KING, 0, MOVE_KING_CASTLE, stack + num_moves);
             }
         }
     }
     
     /* Queen-side Castling */
     if(s->flags[(int)s->player] & STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK) {
-        int king_pos = bitboard_find_bit(s->bitboard[WHITE_PIECES + KING]);
+        int king_pos = bitboard_find_bit(s->bitboard[own_index + KING]);
         if((bitboard_queen_castle_empty[(int)s->player] & (s->bitboard[WHITE_PIECES + ALL] | s->bitboard[BLACK_PIECES + ALL])) == 0) {
             if(state_position_is_attacked(s, s->player, king_pos-0) == 0 && 
                state_position_is_attacked(s, s->player, king_pos-1) == 0 &&
                state_position_is_attacked(s, s->player, king_pos-2) == 0)
             {
-                num_moves += state_add_moves_to_stack(s, s->bitboard[own_index + KING] >> 2, E1 << (8*7*(int)s->player), KING, 0, MOVE_QUEEN_CASTLE, stack + num_moves);
+                num_moves += state_add_moves_to_stack(s, s->bitboard[own_index + KING] >> 2, king_pos, KING, 0, MOVE_QUEEN_CASTLE, stack + num_moves);
             }
         }
     }
