@@ -32,6 +32,7 @@ void state_reset(chess_state_t *s);
 int state_generate_moves(chess_state_t *s, move_t *stack, int *checkmate);
 void state_clone(chess_state_t *s_dst, const chess_state_t *s_src);
 int state_apply_move(chess_state_t *s, const move_t move);
+int state_position_is_attacked(const chess_state_t *s, const int color, const int pos);
 int state_evaluate(chess_state_t *s);
 
 #endif

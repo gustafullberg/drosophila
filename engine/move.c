@@ -34,7 +34,7 @@ static void move_knight(const int color, const int position, const bitboard_t ow
     *moves = bitboard_knight[position] & ~(own | opponent);
 }
 
-static void move_bishop(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
+void move_bishop(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
     bitboard_t occupied;
     bitboard_t ul_moves, ur_moves, dl_moves, dr_moves;
@@ -96,7 +96,7 @@ static void move_bishop(const int color, const int position, const bitboard_t ow
     *captures = bishop_moves & opponent;
 }
 
-static void move_rook(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
+void move_rook(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
     bitboard_t occupied;
     bitboard_t left_moves, right_moves, up_moves, down_moves;

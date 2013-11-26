@@ -38,6 +38,9 @@ typedef uint32_t move_t;
 #define MOVE_PROMOTION_TYPE(move)   ((MOVE_SPECIAL(move) & 0xB)-7)
 
 void move_pawn(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *pawn_push, bitboard_t *pawn_push2, bitboard_t *pawn_capture, bitboard_t *pawn_promotion, bitboard_t *pawn_capture_promotion);
+void move_bishop(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures);
+void move_rook(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures);
+
 void move_piece(const int color, const int type, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures);
 void move_print_debug(const move_t move);
 
