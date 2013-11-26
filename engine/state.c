@@ -55,23 +55,23 @@ int state_generate_moves(chess_state_t *s, move_t *stack, int *checkmate)
 	bitboard_t pawn_push2, pawn_promotion, pawn_capture_promotion;
 	int num_moves = 0;
 	char opponent = 1 - s->player;
-	bitboard_t bitboard_player_index = NUM_TYPES*s->player;
-	bitboard_t bitboard_opponent_index = NUM_TYPES*opponent;
+	int own_index = NUM_TYPES*s->player;
+	int opponent_index = NUM_TYPES*opponent;
 	
     *checkmate = 0;
     
 	type = PAWN;
-	pieces = s->bitboard[bitboard_player_index + type];
+	pieces = s->bitboard[own_index + type];
 	while(pieces) { /* Loop through all pieces of the type */
 		pos_from = bitboard_find_bit(pieces);
 		
-		move_pawn(s->player, pos_from, s->bitboard[bitboard_player_index + ALL], s->bitboard[bitboard_opponent_index + ALL], &possible_moves, &pawn_push2, &possible_captures, &pawn_promotion, &pawn_capture_promotion);
+		move_pawn(s->player, pos_from, s->bitboard[own_index + ALL], s->bitboard[opponent_index + ALL], &possible_moves, &pawn_push2, &possible_captures, &pawn_promotion, &pawn_capture_promotion);
 		
 		num_moves += state_add_moves_to_stack(s, possible_moves, pos_from, type, 0, MOVE_QUIET, stack + num_moves);
 		num_moves += state_add_moves_to_stack(s, pawn_push2, pos_from, type, 0, MOVE_DOUBLE_PAWN_PUSH, stack + num_moves);
 
 		for(opponent_type = 0; opponent_type < NUM_TYPES - 1; opponent_type++) {
-			num_moves += state_add_moves_to_stack(s, possible_captures & s->bitboard[bitboard_opponent_index + opponent_type], pos_from, type, opponent_type, MOVE_CAPTURE, stack + num_moves);
+			num_moves += state_add_moves_to_stack(s, possible_captures & s->bitboard[opponent_index + opponent_type], pos_from, type, opponent_type, MOVE_CAPTURE, stack + num_moves);
 		}
 		
 		num_moves += state_add_moves_to_stack(s, pawn_promotion, pos_from, type, 0, MOVE_KNIGHT_PROMOTION, stack + num_moves);
@@ -80,37 +80,37 @@ int state_generate_moves(chess_state_t *s, move_t *stack, int *checkmate)
 		num_moves += state_add_moves_to_stack(s, pawn_promotion, pos_from, type, 0, MOVE_QUEEN_PROMOTION, stack + num_moves);
 		
 		for(opponent_type = 0; opponent_type < NUM_TYPES - 1; opponent_type++) {
-			num_moves += state_add_moves_to_stack(s, pawn_capture_promotion & s->bitboard[bitboard_opponent_index + opponent_type], pos_from, type, opponent_type, MOVE_KNIGHT_PROMOTION_CAPTURE, stack + num_moves);
-			num_moves += state_add_moves_to_stack(s, pawn_capture_promotion & s->bitboard[bitboard_opponent_index + opponent_type], pos_from, type, opponent_type, MOVE_BISHOP_PROMOTION_CAPTURE, stack + num_moves);
-			num_moves += state_add_moves_to_stack(s, pawn_capture_promotion & s->bitboard[bitboard_opponent_index + opponent_type], pos_from, type, opponent_type, MOVE_ROOK_PROMOTION_CAPTURE, stack + num_moves);
-			num_moves += state_add_moves_to_stack(s, pawn_capture_promotion & s->bitboard[bitboard_opponent_index + opponent_type], pos_from, type, opponent_type, MOVE_QUEEN_PROMOTION_CAPTURE, stack + num_moves);
+			num_moves += state_add_moves_to_stack(s, pawn_capture_promotion & s->bitboard[opponent_index + opponent_type], pos_from, type, opponent_type, MOVE_KNIGHT_PROMOTION_CAPTURE, stack + num_moves);
+			num_moves += state_add_moves_to_stack(s, pawn_capture_promotion & s->bitboard[opponent_index + opponent_type], pos_from, type, opponent_type, MOVE_BISHOP_PROMOTION_CAPTURE, stack + num_moves);
+			num_moves += state_add_moves_to_stack(s, pawn_capture_promotion & s->bitboard[opponent_index + opponent_type], pos_from, type, opponent_type, MOVE_ROOK_PROMOTION_CAPTURE, stack + num_moves);
+			num_moves += state_add_moves_to_stack(s, pawn_capture_promotion & s->bitboard[opponent_index + opponent_type], pos_from, type, opponent_type, MOVE_QUEEN_PROMOTION_CAPTURE, stack + num_moves);
 		}
         
         /* Check if the king can be captured */
-        *checkmate |= ((possible_captures | pawn_capture_promotion) & s->bitboard[bitboard_opponent_index + KING]) != 0;
+        *checkmate |= ((possible_captures | pawn_capture_promotion) & s->bitboard[opponent_index + KING]) != 0;
 		
 		pieces ^= BITBOARD_POSITION(pos_from);
 	}
 	
 	for(type = KNIGHT; type < NUM_TYPES - 1; type++) { /* Loop through all types of pieces */
-		pieces = s->bitboard[bitboard_player_index + type];
+		pieces = s->bitboard[own_index + type];
 
 		while(pieces) { /* Loop through all pieces of the type */
 			/* Get one position from the bitboard */
 			pos_from = bitboard_find_bit(pieces);
 
 			/* Get all possible moves for this piece */
-			move_piece(s->player, type, pos_from, s->bitboard[bitboard_player_index + ALL], s->bitboard[bitboard_opponent_index + ALL], &possible_moves, &possible_captures);
+			move_piece(s->player, type, pos_from, s->bitboard[own_index + ALL], s->bitboard[opponent_index + ALL], &possible_moves, &possible_captures);
 			
 			/* Extract possible captures */
 			for(opponent_type = 0; opponent_type < NUM_TYPES - 1; opponent_type++) {
-				num_moves += state_add_moves_to_stack(s, possible_captures & s->bitboard[bitboard_opponent_index + opponent_type], pos_from, type, opponent_type, MOVE_CAPTURE, stack + num_moves);
+				num_moves += state_add_moves_to_stack(s, possible_captures & s->bitboard[opponent_index + opponent_type], pos_from, type, opponent_type, MOVE_CAPTURE, stack + num_moves);
 			}
 
 			num_moves += state_add_moves_to_stack(s, possible_moves, pos_from, type, 0, MOVE_QUIET, stack + num_moves);
 
             /* Check if the king can be captured */
-            *checkmate |= (possible_captures & s->bitboard[bitboard_opponent_index + KING]) != 0;
+            *checkmate |= (possible_captures & s->bitboard[opponent_index + KING]) != 0;
             
 			/* Clear position from bitboard */
 			pieces ^= BITBOARD_POSITION(pos_from);
@@ -127,7 +127,7 @@ int state_generate_moves(chess_state_t *s, move_t *stack, int *checkmate)
         attack_file = BITBOARD_FILE << file;
         
         /* Find pawns that can make the capture */
-        pieces = bitboard_ep_capturers[(int)s->player][file] & s->bitboard[bitboard_player_index+PAWN];
+        pieces = bitboard_ep_capturers[(int)s->player][file] & s->bitboard[own_index+PAWN];
         
         /* Loop through the found pawns */
         while(pieces) {
@@ -140,6 +140,32 @@ int state_generate_moves(chess_state_t *s, move_t *stack, int *checkmate)
             
             /* Clear position from bitboard */
 			pieces ^= BITBOARD_POSITION(pos_from);
+        }
+    }
+
+    /* King-side Castling */
+    if(s->flags[(int)s->player] & STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK) {
+        int king_pos = bitboard_find_bit(s->bitboard[WHITE_PIECES + KING]);
+        if((bitboard_king_castle_empty[(int)s->player] & (s->bitboard[WHITE_PIECES + ALL] | s->bitboard[BLACK_PIECES + ALL])) == 0) {
+            if(state_position_is_attacked(s, s->player, king_pos+0) == 0 && 
+               state_position_is_attacked(s, s->player, king_pos+1) == 0 &&
+               state_position_is_attacked(s, s->player, king_pos+2) == 0)
+            {
+                num_moves += state_add_moves_to_stack(s, s->bitboard[own_index + KING] << 2, E1 << (8*7*(int)s->player), KING, 0, MOVE_KING_CASTLE, stack + num_moves);
+            }
+        }
+    }
+    
+    /* Queen-side Castling */
+    if(s->flags[(int)s->player] & STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK) {
+        int king_pos = bitboard_find_bit(s->bitboard[WHITE_PIECES + KING]);
+        if((bitboard_queen_castle_empty[(int)s->player] & (s->bitboard[WHITE_PIECES + ALL] | s->bitboard[BLACK_PIECES + ALL])) == 0) {
+            if(state_position_is_attacked(s, s->player, king_pos-0) == 0 && 
+               state_position_is_attacked(s, s->player, king_pos-1) == 0 &&
+               state_position_is_attacked(s, s->player, king_pos-2) == 0)
+            {
+                num_moves += state_add_moves_to_stack(s, s->bitboard[own_index + KING] >> 2, E1 << (8*7*(int)s->player), KING, 0, MOVE_QUEEN_CASTLE, stack + num_moves);
+            }
         }
     }
 
@@ -198,6 +224,47 @@ int state_apply_move(chess_state_t *s, const move_t move)
         int promotion_type = MOVE_PROMOTION_TYPE(move);
         BITBOARD_CLEAR(s->bitboard[own_index + type], pos_to);
         BITBOARD_SET(s->bitboard[own_index + promotion_type], pos_to);
+    }
+    
+    /* Castling */
+    if(special == MOVE_KING_CASTLE) {
+        /* Move rook */
+        s->bitboard[own_index + ALL] ^= s->bitboard[own_index + ROOK];
+        s->bitboard[own_index + ROOK] ^= s->bitboard[own_index + KING] << 1;
+        s->bitboard[own_index + ROOK] ^= s->bitboard[own_index + KING] >> 1;
+        s->bitboard[own_index + ALL] ^= s->bitboard[own_index + ROOK];
+    }
+    if(special == MOVE_QUEEN_CASTLE) {
+        /* Move rook */
+        s->bitboard[own_index + ALL] ^= s->bitboard[own_index + ROOK];
+        s->bitboard[own_index + ROOK] ^= s->bitboard[own_index + KING] >> 2;
+        s->bitboard[own_index + ROOK] ^= s->bitboard[own_index + KING] << 1;
+        s->bitboard[own_index + ALL] ^= s->bitboard[own_index + ROOK];
+    }
+    
+    if(type == KING) {
+        /* Disable castling */
+        s->flags[(int)s->player] &= ~(STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK | STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK);
+    }
+    
+    if(type == ROOK) {
+        /* The rank number of the rook */
+        int rank_number = BITBOARD_GET_RANK(pos_from);
+        
+        /* A bitboard representing the rank of the rook */
+        bitboard_t rank = BITBOARD_RANK << (rank_number << 3);
+        
+        /* Check if this is the rank of the king */
+        if(rank & s->bitboard[own_index + KING]) {
+            int file = BITBOARD_GET_FILE(pos_from);
+            if(file == 0) {
+                /* Disable queen side castling */
+                s->flags[(int)s->player] &= ~STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
+            } else if(file == 7) {
+                /* Disable king side castling */
+                s->flags[(int)s->player] &= ~STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK;
+            }
+        }
     }
 
 	/* Occupied by piece of any color */

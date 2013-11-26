@@ -22,6 +22,8 @@ bitboard_t bitboard_pawn_move2[NUM_COLORS][NUM_POSITIONS];
 bitboard_t bitboard_pawn_capture[NUM_COLORS][NUM_POSITIONS];
 bitboard_t bitboard_ep_capture[NUM_POSITIONS];
 bitboard_t bitboard_ep_capturers[NUM_COLORS][NUM_FILES];
+bitboard_t bitboard_king_castle_empty[NUM_COLORS];
+bitboard_t bitboard_queen_castle_empty[NUM_COLORS];
 
 void bitboard_init()
 {
@@ -180,6 +182,12 @@ void bitboard_init()
             }
         }
     }
+    
+    /* CASTLING */
+    bitboard_king_castle_empty[WHITE]  = 0x0000000000000060;
+    bitboard_king_castle_empty[BLACK]  = 0x6000000000000000;
+    bitboard_queen_castle_empty[WHITE] = 0x000000000000000E;
+    bitboard_queen_castle_empty[BLACK] = 0x0E00000000000000;
 }
 
 void bitboard_print_debug(bitboard_t bitboard)

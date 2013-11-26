@@ -203,5 +203,5 @@ void move_print_debug(const move_t move)
 {
 	int pos_from = (move & 0x3F);
 	int pos_to   = ((move >> 6) & 0x3F);
-    fprintf(stdout, "#%c%c -> %c%c", BITBOARD_GET_FILE(pos_from)+'A', BITBOARD_GET_RANK(pos_from)+'1', BITBOARD_GET_FILE(pos_to)+'A', BITBOARD_GET_RANK(pos_to)+'1');
+    fprintf(stdout, "#%c%c -> %c%c\n", BITBOARD_GET_FILE(pos_from)+'A', BITBOARD_GET_RANK(pos_from)+'1', BITBOARD_GET_FILE(pos_to)+'A', BITBOARD_GET_RANK(pos_to)+'1');
 }
