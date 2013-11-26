@@ -47,10 +47,9 @@ int engine_opponent_move(engine_state_t *state, int pos_from, int pos_to, int pr
 {
     int num_moves;
     int i;
-    int checkmate;
     
     /* Generate all possible moves */
-    num_moves = state_generate_moves(state->chess_state, state->move_stack, &checkmate);
+    num_moves = state_generate_moves(state->chess_state, state->move_stack);
     
     /* Loop through all generated moves to find the right one */
     for(i = 0; i < num_moves; i++) {
@@ -61,11 +60,12 @@ int engine_opponent_move(engine_state_t *state, int pos_from, int pos_to, int pr
         
         /* Valid move found: Apply to state */
         state_apply_move(state->chess_state, move);
-        return 0;
+        
+        return engine_result(state);
     }
     
     /* No valid move found: Illegal move */
-    return -1;
+    return ENGINE_RESULT_ILLEGAL_MOVE;
 }
 
 int engine_ai_move(engine_state_t *state, int *pos_from, int *pos_to, int *promotion_type)
@@ -75,6 +75,7 @@ int engine_ai_move(engine_state_t *state, int *pos_from, int *pos_to, int *promo
     int score;
 
     move = minimax_search(state->chess_state, state->move_stack, 4, &score);
+
     *pos_from = MOVE_POS_FROM(move);
     *pos_to = MOVE_POS_TO(move);
     special = MOVE_SPECIAL(move);
@@ -105,31 +106,25 @@ int engine_ai_move(engine_state_t *state, int *pos_from, int *pos_to, int *promo
         *promotion_type = 0;
         break;
     }
-    
+        
     state_apply_move(state->chess_state, move);
     
-    return 0;
+    return engine_result(state);
 }
 
 int engine_result(engine_state_t *state)
 {
-    /*
-    int check, mate;
-    
-    check = search_is_check(state->chess_state, state->move_stack);
-    mate  = search_is_mate(state->chess_state, state->move_stack);
-    
-    if(mate) {
-        if(!check) {
+    if(search_is_mate(state->chess_state, state->move_stack)) {
+        if(search_is_check(state->chess_state, state->chess_state->player)) {
             if(state->chess_state->player == WHITE) {
-                return ENGINE_RESULT_WHITE_MATES;
-            } else {
                 return ENGINE_RESULT_BLACK_MATES;
+            } else {
+                return ENGINE_RESULT_WHITE_MATES;
             }
         } else {
             return ENGINE_RESULT_STALE_MATE;
         }
     }
-    */
+    
     return ENGINE_RESULT_NONE;
 }

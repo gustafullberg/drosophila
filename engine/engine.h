@@ -5,6 +5,7 @@
 #define ENGINE_RESULT_WHITE_MATES   1
 #define ENGINE_RESULT_BLACK_MATES   2
 #define ENGINE_RESULT_STALE_MATE    3
+#define ENGINE_RESULT_ILLEGAL_MOVE -1
 
 typedef struct engine_state engine_state_t;
 

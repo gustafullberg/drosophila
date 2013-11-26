@@ -92,6 +92,7 @@ void process_commands(engine_state_t *engine)
             
             /* usermove */
             else if(strncmp(input_buffer, "usermove ", 9) == 0) {
+                int result;
                 int pos_from, pos_to, promotion_type;
                 pos_from = input_buffer[9]-'a' + 8 * (input_buffer[10]-'1');
                 pos_to = input_buffer[11]-'a' + 8 * (input_buffer[12]-'1');
@@ -114,9 +115,10 @@ void process_commands(engine_state_t *engine)
                         break;
                 }
                 /* Move piece */
-                if(engine_opponent_move(engine, pos_from, pos_to, promotion_type) == 0) {
+                result = engine_opponent_move(engine, pos_from, pos_to, promotion_type);
+                if( result == ENGINE_RESULT_NONE) {
                     int pos_from, pos_to, promotion_type;
-                    engine_ai_move(engine, &pos_from, &pos_to, &promotion_type);
+                    result = engine_ai_move(engine, &pos_from, &pos_to, &promotion_type);
                     if(promotion_type) {
                         char pt = 0;
                         if(promotion_type == 1) pt = 'n';
@@ -128,7 +130,7 @@ void process_commands(engine_state_t *engine)
                         fprintf(stdout, "move %c%c%c%c\n", (pos_from%8)+'a', (pos_from/8)+'1', (pos_to%8)+'a', (pos_to/8)+'1');
                     }
                     
-                    switch(engine_result(engine)) {
+                    switch(result) {
                     case ENGINE_RESULT_WHITE_MATES:
                         fprintf(stdout, "1-0 {White mates}\n");
                         break;
@@ -142,9 +144,24 @@ void process_commands(engine_state_t *engine)
                         break;
                     }
                     
-                } else {
+                } else if(result == ENGINE_RESULT_ILLEGAL_MOVE) {
                     /* Illegal move */
                     fprintf(stdout, "Illegal move: %s", input_buffer+9);
+                    
+                } else {
+                    switch(result) {
+                    case ENGINE_RESULT_WHITE_MATES:
+                        fprintf(stdout, "1-0 {White mates}\n");
+                        break;
+                    case ENGINE_RESULT_BLACK_MATES:
+                        fprintf(stdout, "0-1 {Black mates}\n");
+                        break;
+                    case ENGINE_RESULT_STALE_MATE:
+                        fprintf(stdout, "1/2-1/2 {Stalemate}\n");
+                        break;
+                    default:
+                        break;
+                    }
                 }
             }
             
@@ -176,6 +193,9 @@ void process_commands(engine_state_t *engine)
             
             /* level */
             else if(strncmp(input_buffer, "level ", 6) == 0) {}
+            
+            /* result */
+            else if(strncmp(input_buffer, "result ", 7) == 0) {}
 
             
             /* Errors */
