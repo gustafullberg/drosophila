@@ -51,6 +51,41 @@ void send_features()
     }
 }
 
+void send_result(int result)
+{
+    switch(result) {
+    case ENGINE_RESULT_WHITE_MATES:
+        fprintf(stdout, "1-0 {White mates}\n");
+        break;
+    case ENGINE_RESULT_BLACK_MATES:
+        fprintf(stdout, "0-1 {Black mates}\n");
+        break;
+    case ENGINE_RESULT_STALE_MATE:
+        fprintf(stdout, "1/2-1/2 {Stalemate}\n");
+        break;
+    default:
+        break;
+    }
+}
+
+void make_move(engine_state_t *engine)
+{
+    int pos_from, pos_to, promotion_type, result;
+    result = engine_ai_move(engine, &pos_from, &pos_to, &promotion_type);
+    if(promotion_type) {
+        char pt = 0;
+        if(promotion_type == 1) pt = 'n';
+        else if(promotion_type == 2) pt = 'b';
+        else if(promotion_type == 3) pt = 'r';
+        else if(promotion_type == 4) pt = 'q';
+        fprintf(stdout, "move %c%c%c%c%c\n", (pos_from%8)+'a', (pos_from/8)+'1', (pos_to%8)+'a', (pos_to/8)+'1', pt);
+    } else {
+        fprintf(stdout, "move %c%c%c%c\n", (pos_from%8)+'a', (pos_from/8)+'1', (pos_to%8)+'a', (pos_to/8)+'1');
+    }
+    
+    send_result(result);
+}
+
 void str_remove_newline(char *p)
 {
     /* Find newline */
@@ -117,52 +152,19 @@ void process_commands(engine_state_t *engine)
                 /* Move piece */
                 result = engine_opponent_move(engine, pos_from, pos_to, promotion_type);
                 if( result == ENGINE_RESULT_NONE) {
-                    int pos_from, pos_to, promotion_type;
-                    result = engine_ai_move(engine, &pos_from, &pos_to, &promotion_type);
-                    if(promotion_type) {
-                        char pt = 0;
-                        if(promotion_type == 1) pt = 'n';
-                        else if(promotion_type == 2) pt = 'b';
-                        else if(promotion_type == 3) pt = 'r';
-                        else if(promotion_type == 4) pt = 'q';
-                        fprintf(stdout, "move %c%c%c%c%c\n", (pos_from%8)+'a', (pos_from/8)+'1', (pos_to%8)+'a', (pos_to/8)+'1', pt);
-                    } else {
-                        fprintf(stdout, "move %c%c%c%c\n", (pos_from%8)+'a', (pos_from/8)+'1', (pos_to%8)+'a', (pos_to/8)+'1');
-                    }
-                    
-                    switch(result) {
-                    case ENGINE_RESULT_WHITE_MATES:
-                        fprintf(stdout, "1-0 {White mates}\n");
-                        break;
-                    case ENGINE_RESULT_BLACK_MATES:
-                        fprintf(stdout, "0-1 {Black mates}\n");
-                        break;
-                    case ENGINE_RESULT_STALE_MATE:
-                        fprintf(stdout, "1/2-1/2 {Stalemate}\n");
-                        break;
-                    default:
-                        break;
-                    }
-                    
+                    make_move(engine);
                 } else if(result == ENGINE_RESULT_ILLEGAL_MOVE) {
                     /* Illegal move */
                     fprintf(stdout, "Illegal move: %s", input_buffer+9);
                     
                 } else {
-                    switch(result) {
-                    case ENGINE_RESULT_WHITE_MATES:
-                        fprintf(stdout, "1-0 {White mates}\n");
-                        break;
-                    case ENGINE_RESULT_BLACK_MATES:
-                        fprintf(stdout, "0-1 {Black mates}\n");
-                        break;
-                    case ENGINE_RESULT_STALE_MATE:
-                        fprintf(stdout, "1/2-1/2 {Stalemate}\n");
-                        break;
-                    default:
-                        break;
-                    }
+                    send_result(result);
                 }
+            }
+            
+            /* go */
+            else if(strcmp(input_buffer, "go\n") == 0) {
+                make_move(engine);
             }
             
             /*  quit */
@@ -196,6 +198,9 @@ void process_commands(engine_state_t *engine)
             
             /* result */
             else if(strncmp(input_buffer, "result ", 7) == 0) {}
+            
+            /* computer */
+            else if(strcmp(input_buffer, "computer\n") == 0) {}
 
             
             /* Errors */
