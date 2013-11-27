@@ -24,7 +24,7 @@ static int minimax_min(chess_state_t *s1, move_t *stack, int depth, move_t *move
     int num_moves;
     int num_legal_moves;
     int i;
-    int min_score = INT_MAX;
+    int min_score = SHRT_MAX + depth;
     int score;
     move_t next_move;
     chess_state_t s2;
@@ -64,7 +64,7 @@ static int minimax_max(chess_state_t *s1, move_t *stack, int depth, move_t *move
     int num_moves;
     int num_legal_moves;
     int i;
-    int max_score = INT_MIN;
+    int max_score = SHRT_MIN - depth;
     int score;
     move_t next_move;
     chess_state_t s2;
