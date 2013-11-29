@@ -1,44 +1,11 @@
 #include <stdio.h>
-#include <sys/select.h>
 #include <string.h>
 #include "cecp_features.h"
+#include "io.h"
 #include "engine.h"
 #include "state.h"
 
-#define STDIN 0
-#define INPUT_BUFFER_SIZE 40
-
-int read_line_blocking(char *input_buffer, int max_size)
-{
-    /* Read from STDIN */
-    if(fgets(input_buffer, max_size, stdin)) {
-        return strlen(input_buffer);
-    }
-    
-    return 0;
-}
-
-int read_line_nonblocking(char *input_buffer, int max_size)
-{
-    fd_set read_set;
-    
-    /* Clear set of file descriptors */
-    FD_ZERO(&read_set);
-    
-    /* Add STDIN to set of file descriptors */
-    FD_SET(STDIN, &read_set);
-    
-    /* Poll if there is a command to read */
-    if(select(STDIN+1, &read_set, NULL, NULL, NULL) > 0)
-    {
-        /* Read from STDIN */
-        if(fgets(input_buffer, max_size, stdin)) {
-            return strlen(input_buffer);
-        }
-    }
-    
-    return 0;
-}
+#define INPUT_BUFFER_SIZE 1024
 
 void send_features()
 {
@@ -97,147 +64,151 @@ void str_remove_newline(char *p)
     }
 }
 
-void process_commands(engine_state_t *engine)
+static int process_command(engine_state_t *engine, char *command)
 {
-    char input_buffer[INPUT_BUFFER_SIZE];
-
-    while(1) {
-        if(read_line_blocking(input_buffer, INPUT_BUFFER_SIZE)) {
-            /* Commands that do reqire action from the engine */
-            
-            /* protover */
-            if(strncmp(input_buffer, "protover ", 9) == 0) {
-                /* Get protocol version number */
-                int protocol_version = 0;
-                sscanf(input_buffer+9, "%d\n", &protocol_version);
-                
-                if(protocol_version >= 2) {
-                    send_features();
-                } else {
-                    fprintf(stdout, "# Chess Engine Communication Protocol version must be >= 2. Aborting.\n");
-                    break;
-                }
-            }
-            
-            /* new */
-            else if(strcmp(input_buffer, "new\n") == 0) {
-                /* Reset board */
-                engine_reset(engine);
-            }
-            
-            /* usermove */
-            else if(strncmp(input_buffer, "usermove ", 9) == 0) {
-                int result;
-                int pos_from, pos_to, promotion_type;
-                pos_from = input_buffer[9]-'a' + 8 * (input_buffer[10]-'1');
-                pos_to = input_buffer[11]-'a' + 8 * (input_buffer[12]-'1');
-                switch(input_buffer[13])
-                {
-                    case 'n':
-                        promotion_type = MOVE_KNIGHT_PROMOTION;
-                        break;
-                    case 'b':
-                        promotion_type = MOVE_BISHOP_PROMOTION;
-                        break;
-                    case 'r':
-                        promotion_type = MOVE_ROOK_PROMOTION;
-                        break;
-                    case 'q':
-                        promotion_type = MOVE_QUEEN_PROMOTION;
-                        break;
-                    default:
-                        promotion_type = 0;
-                        break;
-                }
-                /* Move piece */
-                result = engine_opponent_move(engine, pos_from, pos_to, promotion_type);
-                if( result == ENGINE_RESULT_NONE) {
-                    make_move(engine);
-                } else if(result == ENGINE_RESULT_ILLEGAL_MOVE) {
-                    /* Illegal move */
-                    fprintf(stdout, "Illegal move: %s", input_buffer+9);
-                    
-                } else {
-                    send_result(result);
-                }
-            }
-            
-            /* go */
-            else if(strcmp(input_buffer, "go\n") == 0) {
-                make_move(engine);
-            }
-            
-            /*  quit */
-            else if(strcmp(input_buffer, "quit\n") == 0) {
-                break;
-            }
-
-            
-            /* Commands that do not reqire action from the engine (or not implemented) */
-            
-            /* xboard */
-            else if(strcmp(input_buffer, "xboard\n") == 0) {}
-            
-            /* accepted */
-            else if(strncmp(input_buffer, "accepted ", 9) == 0) {}
-            
-            /* random */
-            else if(strcmp(input_buffer, "random\n") == 0) {}
-            
-            /* post */
-            else if(strcmp(input_buffer, "post\n") == 0) {}
-            
-            /* hard */
-            else if(strcmp(input_buffer, "hard\n") == 0) {}
-            
-            /* cores */
-            else if(strncmp(input_buffer, "cores ", 6) == 0) {}
-            
-            /* level */
-            else if(strncmp(input_buffer, "level ", 6) == 0) {}
-            
-            /* result */
-            else if(strncmp(input_buffer, "result ", 7) == 0) {}
-            
-            /* computer */
-            else if(strcmp(input_buffer, "computer\n") == 0) {}
-
-            
-            /* Errors */
-            
-            /* rejected */
-            else if(strncmp(input_buffer, "rejected ", 9) == 0) {
-                str_remove_newline(input_buffer);
-                fprintf(stdout, "# Feature rejected \"%s\"\n", input_buffer+9);
-            }
-            
-            /* unknown command */
-            else {
-                fprintf(stdout, "Error (unknown command): %s", input_buffer);
-            }
-            
+    /* Commands that do reqire action from the engine */
+    
+    /* protover */
+    if(strncmp(command, "protover ", 9) == 0) {
+        /* Get protocol version number */
+        int protocol_version = 0;
+        sscanf(command+9, "%d\n", &protocol_version);
+        
+        if(protocol_version >= 2) {
+            send_features();
+        } else {
+            fprintf(stdout, "# Chess Engine Communication Protocol version must be >= 2. Aborting.\n");
+            return -1;
         }
     }
+    
+    /* new */
+    else if(strcmp(command, "new\n") == 0) {
+        /* Reset board */
+        engine_reset(engine);
+    }
+    
+    /* usermove */
+    else if(strncmp(command, "usermove ", 9) == 0) {
+        int result;
+        int pos_from, pos_to, promotion_type;
+        pos_from = command[9]-'a' + 8 * (command[10]-'1');
+        pos_to = command[11]-'a' + 8 * (command[12]-'1');
+        switch(command[13])
+        {
+            case 'n':
+                promotion_type = MOVE_KNIGHT_PROMOTION;
+                break;
+            case 'b':
+                promotion_type = MOVE_BISHOP_PROMOTION;
+                break;
+            case 'r':
+                promotion_type = MOVE_ROOK_PROMOTION;
+                break;
+            case 'q':
+                promotion_type = MOVE_QUEEN_PROMOTION;
+                break;
+            default:
+                promotion_type = 0;
+                break;
+        }
+        /* Move piece */
+        result = engine_opponent_move(engine, pos_from, pos_to, promotion_type);
+        if( result == ENGINE_RESULT_NONE) {
+            make_move(engine);
+        } else if(result == ENGINE_RESULT_ILLEGAL_MOVE) {
+            /* Illegal move */
+            fprintf(stdout, "Illegal move: %s", command+9);
+            
+        } else {
+            send_result(result);
+        }
+    }
+    
+    /* go */
+    else if(strcmp(command, "go\n") == 0) {
+        make_move(engine);
+    }
+    
+    /*  quit */
+    else if(strcmp(command, "quit\n") == 0) {
+        return 1;
+    }
+
+    
+    /* Commands that do not reqire action from the engine (or not implemented) */
+    
+    /* xboard */
+    else if(strcmp(command, "xboard\n") == 0) {}
+    
+    /* accepted */
+    else if(strncmp(command, "accepted ", 9) == 0) {}
+    
+    /* random */
+    else if(strcmp(command, "random\n") == 0) {}
+    
+    /* post */
+    else if(strcmp(command, "post\n") == 0) {}
+    
+    /* hard */
+    else if(strcmp(command, "hard\n") == 0) {}
+    
+    /* cores */
+    else if(strncmp(command, "cores ", 6) == 0) {}
+    
+    /* level */
+    else if(strncmp(command, "level ", 6) == 0) {}
+    
+    /* result */
+    else if(strncmp(command, "result ", 7) == 0) {}
+    
+    /* computer */
+    else if(strcmp(command, "computer\n") == 0) {}
+
+    
+    /* Errors */
+    
+    /* rejected */
+    else if(strncmp(command, "rejected ", 9) == 0) {
+        str_remove_newline(command);
+        fprintf(stdout, "# Feature rejected \"%s\"\n", command+9);
+    }
+    
+    /* unknown command */
+    else {
+        fprintf(stdout, "Error (unknown command): %s", command);
+    }
+    
+    return 0;
 }
 
 
 int main(int argc, char **argv)
 {
     engine_state_t *engine;
+    char input_buffer[INPUT_BUFFER_SIZE];
+    
+    IO_init();
     
     /* Create engine instance */
     engine_create(&engine);
-    
-    /* Disable buffering for stdout */
-    setbuf(stdout, NULL);
 
     /* Welcome */
     fprintf(stdout, "# Welcome to Pawned\n");
     fprintf(stdout, "# This program supports the Chess Engine Communication Protocol\n");
     fprintf(stdout, "# and should be run from XBoard or similar\n");
     
-    /* Accept commands from xboard */
-    process_commands(engine);
+    /* Main loop */
+    while(1) {
+        /* Check if a command is sent from Xboard */
+        if(IO_read_input(input_buffer, INPUT_BUFFER_SIZE)) {
+            /* Take proper action */
+            if(process_command(engine, input_buffer)) {
+                /* Shutdown if we get the 'quit' command etc */
+                break;
+            }
+        }
+    }
 
     /* Free engine instance */
     engine_destroy(engine);
