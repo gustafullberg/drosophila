@@ -3,7 +3,6 @@
 #include "cecp_features.h"
 #include "io.h"
 #include "engine.h"
-#include "state.h"
 
 #define INPUT_BUFFER_SIZE 1024
 
@@ -38,7 +37,7 @@ void send_result(int result)
 void make_move(engine_state_t *engine)
 {
     int pos_from, pos_to, promotion_type, result;
-    result = engine_ai_move(engine, &pos_from, &pos_to, &promotion_type);
+    result = ENGINE_think_and_move(engine, &pos_from, &pos_to, &promotion_type);
     if(promotion_type) {
         char pt = 0;
         if(promotion_type == 1) pt = 'n';
@@ -64,65 +63,67 @@ void str_remove_newline(char *p)
     }
 }
 
+void parse_move(const char *move_str, int *pos_from, int *pos_to, int *promotion_type)
+{
+    *pos_from = move_str[0]-'a' + 8 * (move_str[1]-'1');
+    *pos_to = move_str[2]-'a' + 8 * (move_str[3]-'1');
+    switch(move_str[4])
+    {
+        case 'n':
+            *promotion_type = ENGINE_PROMOTION_KNIGHT;
+            break;
+        case 'b':
+            *promotion_type = ENGINE_PROMOTION_BISHOP;
+            break;
+        case 'r':
+            *promotion_type = ENGINE_PROMOTION_ROOK;
+            break;
+        case 'q':
+            *promotion_type = ENGINE_PROMOTION_QUEEN;
+            break;
+        default:
+            *promotion_type = 0;
+            break;
+    }
+}
+
+void user_move(engine_state_t *engine, const char *move_str)
+{
+    int result;
+    int pos_from, pos_to, promotion_type;
+    parse_move(move_str, &pos_from, &pos_to, &promotion_type);
+
+    /* Move piece */
+    result = ENGINE_apply_move(engine, pos_from, pos_to, promotion_type);
+    if( result == ENGINE_RESULT_NONE) {
+        make_move(engine);
+    } else if(result == ENGINE_RESULT_ILLEGAL_MOVE) {
+        /* Illegal move */
+        fprintf(stdout, "Illegal move: %s", move_str);
+        
+    } else {
+        send_result(result);
+    }
+}
+
 static int process_command(engine_state_t *engine, char *command)
 {
     /* Commands that do reqire action from the engine */
     
     /* protover */
     if(strncmp(command, "protover ", 9) == 0) {
-        /* Get protocol version number */
-        int protocol_version = 0;
-        sscanf(command+9, "%d\n", &protocol_version);
-        
-        if(protocol_version >= 2) {
-            send_features();
-        } else {
-            fprintf(stdout, "# Chess Engine Communication Protocol version must be >= 2. Aborting.\n");
-            return -1;
-        }
+        send_features();
     }
     
     /* new */
     else if(strcmp(command, "new\n") == 0) {
         /* Reset board */
-        engine_reset(engine);
+        ENGINE_reset(engine);
     }
     
     /* usermove */
     else if(strncmp(command, "usermove ", 9) == 0) {
-        int result;
-        int pos_from, pos_to, promotion_type;
-        pos_from = command[9]-'a' + 8 * (command[10]-'1');
-        pos_to = command[11]-'a' + 8 * (command[12]-'1');
-        switch(command[13])
-        {
-            case 'n':
-                promotion_type = MOVE_KNIGHT_PROMOTION;
-                break;
-            case 'b':
-                promotion_type = MOVE_BISHOP_PROMOTION;
-                break;
-            case 'r':
-                promotion_type = MOVE_ROOK_PROMOTION;
-                break;
-            case 'q':
-                promotion_type = MOVE_QUEEN_PROMOTION;
-                break;
-            default:
-                promotion_type = 0;
-                break;
-        }
-        /* Move piece */
-        result = engine_opponent_move(engine, pos_from, pos_to, promotion_type);
-        if( result == ENGINE_RESULT_NONE) {
-            make_move(engine);
-        } else if(result == ENGINE_RESULT_ILLEGAL_MOVE) {
-            /* Illegal move */
-            fprintf(stdout, "Illegal move: %s", command+9);
-            
-        } else {
-            send_result(result);
-        }
+        user_move(engine, command + 9);
     }
     
     /* go */
@@ -191,7 +192,7 @@ int main(int argc, char **argv)
     IO_init();
     
     /* Create engine instance */
-    engine_create(&engine);
+    ENGINE_create(&engine);
 
     /* Welcome */
     fprintf(stdout, "# Welcome to Pawned\n");
@@ -211,7 +212,7 @@ int main(int argc, char **argv)
     }
 
     /* Free engine instance */
-    engine_destroy(engine);
+    ENGINE_destroy(engine);
     
     return 0;
 }

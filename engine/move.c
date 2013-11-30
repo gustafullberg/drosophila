@@ -36,6 +36,8 @@ static void move_knight(const int color, const int position, const bitboard_t ow
 
 void move_bishop(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
+    /* The move generation of bishops and rooks is inspired by Nagaskaki */
+    /* http://www.mayothi.com/nagaskakichess6.html                       */
     bitboard_t occupied;
     bitboard_t ul_moves, ur_moves, dl_moves, dr_moves;
     bitboard_t bishop_moves;
@@ -98,6 +100,8 @@ void move_bishop(const int color, const int position, const bitboard_t own, cons
 
 void move_rook(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
+    /* The move generation of bishops and rooks is inspired by Nagaskaki */
+    /* http://www.mayothi.com/nagaskakichess6.html                       */
     bitboard_t occupied;
     bitboard_t left_moves, right_moves, up_moves, down_moves;
     bitboard_t rook_moves;

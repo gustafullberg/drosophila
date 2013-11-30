@@ -14,7 +14,7 @@ struct engine_state {
     move_t          *move_stack;
 };
 
-static void engine_init()
+static void ENGINE_init()
 {
     static int first_run = 1;
     if(first_run) {
@@ -22,28 +22,28 @@ static void engine_init()
         first_run = 0;
     }
 }
-void engine_create(engine_state_t **state)
+void ENGINE_create(engine_state_t **state)
 {
-    engine_init();
+    ENGINE_init();
     *state = malloc(sizeof(engine_state_t));
     (*state)->chess_state = malloc(sizeof(chess_state_t));
     (*state)->move_stack = malloc(sizeof(int) * MOVE_STACK_SIZE);
-    engine_reset(*state);
+    ENGINE_reset(*state);
 }
 
-void engine_destroy(engine_state_t *state)
+void ENGINE_destroy(engine_state_t *state)
 {
     free(state->move_stack);
     free(state->chess_state);
     free(state);
 }
 
-void engine_reset(engine_state_t *state)
+void ENGINE_reset(engine_state_t *state)
 {
     state_reset(state->chess_state);
 }
 
-int engine_opponent_move(engine_state_t *state, int pos_from, int pos_to, int promotion_type)
+int ENGINE_apply_move(engine_state_t *state, int pos_from, int pos_to, int promotion_type)
 {
     int num_moves;
     int i;
@@ -61,14 +61,14 @@ int engine_opponent_move(engine_state_t *state, int pos_from, int pos_to, int pr
         /* Valid move found: Apply to state */
         state_apply_move(state->chess_state, move);
         
-        return engine_result(state);
+        return ENGINE_result(state);
     }
     
     /* No valid move found: Illegal move */
     return ENGINE_RESULT_ILLEGAL_MOVE;
 }
 
-int engine_ai_move(engine_state_t *state, int *pos_from, int *pos_to, int *promotion_type)
+int ENGINE_think_and_move(engine_state_t *state, int *pos_from, int *pos_to, int *promotion_type)
 {
     int move;
     int special;
@@ -84,35 +84,35 @@ int engine_ai_move(engine_state_t *state, int *pos_from, int *pos_to, int *promo
     {
         case MOVE_KNIGHT_PROMOTION:
         case MOVE_KNIGHT_PROMOTION_CAPTURE:
-        *promotion_type = 1;
+        *promotion_type = ENGINE_PROMOTION_KNIGHT;
         break;
         
         case MOVE_BISHOP_PROMOTION:
         case MOVE_BISHOP_PROMOTION_CAPTURE:
-        *promotion_type = 2;
+        *promotion_type = ENGINE_PROMOTION_BISHOP;
         break;
         
         case MOVE_ROOK_PROMOTION:
         case MOVE_ROOK_PROMOTION_CAPTURE:
-        *promotion_type = 3;
+        *promotion_type = ENGINE_PROMOTION_ROOK;
         break;
         
         case MOVE_QUEEN_PROMOTION:
         case MOVE_QUEEN_PROMOTION_CAPTURE:
-        *promotion_type = 4;
+        *promotion_type = ENGINE_PROMOTION_QUEEN;
         break;
         
         default:
-        *promotion_type = 0;
+        *promotion_type = ENGINE_PROMOTION_NONE;
         break;
     }
         
     state_apply_move(state->chess_state, move);
     
-    return engine_result(state);
+    return ENGINE_result(state);
 }
 
-int engine_result(engine_state_t *state)
+int ENGINE_result(engine_state_t *state)
 {
     if(search_is_mate(state->chess_state, state->move_stack)) {
         if(search_is_check(state->chess_state, state->chess_state->player)) {
