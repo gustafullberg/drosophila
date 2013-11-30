@@ -9,6 +9,8 @@ set(files
     move.h
     search.c
     search.h
+    search_alphabeta.c
+    search_alphabeta.h
     state.c
     state.h
 )
