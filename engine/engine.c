@@ -74,7 +74,7 @@ int ENGINE_think_and_move(engine_state_t *state, int *pos_from, int *pos_to, int
     int special;
     int score;
 
-    move = search(state->chess_state, state->move_stack, 6, &score);
+    move = search(state->chess_state, state->move_stack, 4, &score);
 
     *pos_from = MOVE_POS_FROM(move);
     *pos_to = MOVE_POS_TO(move);

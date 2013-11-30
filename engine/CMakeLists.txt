@@ -11,6 +11,8 @@ set(files
     search.h
     search_alphabeta.c
     search_alphabeta.h
+    search_quiescence.c
+    search_quiescence.h
     state.c
     state.h
 )

@@ -14,7 +14,6 @@ int search(chess_state_t *s, move_t *stack, int depth, int *score)
         /* White player moving */
         *score = alphabeta_min(s, stack, depth, &move, INT_MIN, INT_MAX);
     }
-    printf("#SCORE: %d\n", *score);
     return move;
 }
 

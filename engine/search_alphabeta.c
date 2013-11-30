@@ -1,5 +1,6 @@
 #include <limits.h>
 #include "search_alphabeta.h"
+#include "search_quiescence.h"
 #include "search.h"
 
 int alphabeta_min(chess_state_t *s1, move_t *stack, int depth, move_t *move, int alpha, int beta)
@@ -12,8 +13,8 @@ int alphabeta_min(chess_state_t *s1, move_t *stack, int depth, move_t *move, int
     chess_state_t s2;
 
     if(depth <= 0) {
-        /* return quiescence_max(s1, stack); */
-        return state_evaluate(s1);
+        return quiescence_min(s1, stack, alpha, beta);
+        /* return state_evaluate(s1); */
     }
     
     num_moves = state_generate_moves(s1, stack);
@@ -61,8 +62,8 @@ int alphabeta_max(chess_state_t *s1, move_t *stack, int depth, move_t *move, int
     chess_state_t s2;
 
     if(depth <= 0) {
-        /* return quiescence_max(s1, stack); */
-        return state_evaluate(s1);
+        return quiescence_max(s1, stack, alpha, beta);
+        /* return state_evaluate(s1); */
     }
     
     num_moves = state_generate_moves(s1, stack);
