@@ -44,6 +44,9 @@ extern bitboard_t bitboard_ep_capture[NUM_POSITIONS];
 extern bitboard_t bitboard_ep_capturers[NUM_COLORS][NUM_FILES];
 extern bitboard_t bitboard_king_castle_empty[NUM_COLORS];
 extern bitboard_t bitboard_queen_castle_empty[NUM_COLORS];
+extern bitboard_t bitboard_bad_pawn[NUM_COLORS];
+extern bitboard_t bitboard_bad_knight[NUM_COLORS];
+extern bitboard_t bitboard_bad_bishop[NUM_COLORS];
 
 void bitboard_init();
 void bitboard_print_debug(bitboard_t bitboard);

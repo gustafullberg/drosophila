@@ -3,6 +3,8 @@
 #include "search_quiescence.h"
 #include "search.h"
 
+#define ENABLE_QUIESCENCE
+
 int alphabeta_min(chess_state_t *s1, move_t *stack, int depth, move_t *move, int alpha, int beta)
 {
     int num_moves;
@@ -13,8 +15,11 @@ int alphabeta_min(chess_state_t *s1, move_t *stack, int depth, move_t *move, int
     chess_state_t s2;
 
     if(depth <= 0) {
+#ifdef ENABLE_QUIESCENCE
         return quiescence_min(s1, stack, alpha, beta);
-        /* return state_evaluate(s1); */
+#else
+        return state_evaluate(s1);
+#endif
     }
     
     num_moves = state_generate_moves(s1, stack);
@@ -62,8 +67,11 @@ int alphabeta_max(chess_state_t *s1, move_t *stack, int depth, move_t *move, int
     chess_state_t s2;
 
     if(depth <= 0) {
+#ifdef ENABLE_QUIESCENCE
         return quiescence_max(s1, stack, alpha, beta);
-        /* return state_evaluate(s1); */
+#else
+        return state_evaluate(s1);
+#endif
     }
     
     num_moves = state_generate_moves(s1, stack);

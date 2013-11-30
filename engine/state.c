@@ -323,5 +323,12 @@ int state_evaluate(chess_state_t *s)
     score +=    300 * (bitboard_count_bits(s->bitboard[WHITE_PIECES+BISHOP]) - bitboard_count_bits(s->bitboard[BLACK_PIECES+BISHOP]));
     score +=    300 * (bitboard_count_bits(s->bitboard[WHITE_PIECES+KNIGHT]) - bitboard_count_bits(s->bitboard[BLACK_PIECES+KNIGHT]));
     score +=    100 * (bitboard_count_bits(s->bitboard[WHITE_PIECES+PAWN])   - bitboard_count_bits(s->bitboard[BLACK_PIECES+PAWN]));
+    
+    score -=      5 * (bitboard_count_bits(bitboard_bad_pawn[WHITE] & s->bitboard[WHITE_PIECES+PAWN]) - 
+                        bitboard_count_bits(bitboard_bad_pawn[BLACK] & s->bitboard[BLACK_PIECES+PAWN]));
+    score -=      5 * (bitboard_count_bits(bitboard_bad_knight[WHITE] & s->bitboard[WHITE_PIECES+KNIGHT]) - 
+                        bitboard_count_bits(bitboard_bad_knight[BLACK] & s->bitboard[BLACK_PIECES+KNIGHT]));
+    score -=      5 * (bitboard_count_bits(bitboard_bad_bishop[WHITE] & s->bitboard[WHITE_PIECES+BISHOP]) - 
+                        bitboard_count_bits(bitboard_bad_bishop[BLACK] & s->bitboard[BLACK_PIECES+BISHOP]));
     return score;
 }
