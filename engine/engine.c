@@ -7,7 +7,7 @@
 #include "search.h"
 #include "defines.h"
 
-#define MOVE_STACK_SIZE 500
+#define MOVE_STACK_SIZE 5000
 
 struct engine_state {
     chess_state_t   *chess_state;
