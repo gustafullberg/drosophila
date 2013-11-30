@@ -47,6 +47,7 @@ int ENGINE_apply_move(engine_state_t *state, int pos_from, int pos_to, int promo
 {
     int num_moves;
     int i;
+    chess_state_t temporary_state;
     
     /* Generate all possible moves */
     num_moves = state_generate_moves(state->chess_state, state->move_stack);
@@ -58,9 +59,18 @@ int ENGINE_apply_move(engine_state_t *state, int pos_from, int pos_to, int promo
         if(MOVE_POS_TO(move) != pos_to) continue;
         if((MOVE_SPECIAL(move) & promotion_type) != promotion_type) continue;
         
-        /* Valid move found: Apply to state */
-        state_apply_move(state->chess_state, move);
+        /* Pseudo legal move found: Apply to state */
+        state_clone(&temporary_state, state->chess_state);
+        state_apply_move(&temporary_state, move);
         
+        /* Check if the move is legal */
+        if(search_is_check(&temporary_state, state->chess_state->player)) {
+            /* Not legal */
+            break;
+        }
+        
+        /* Legal */
+        state_clone(state->chess_state, &temporary_state);
         return ENGINE_result(state);
     }
     

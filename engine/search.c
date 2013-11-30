@@ -26,13 +26,20 @@ int search_is_check(chess_state_t *s, int color)
 
 int search_is_mate(chess_state_t *state, move_t *stack)
 {
-    int score;
-    int move = search(state, stack, 1, &score);
-    if(move == 0) {
-        /* No legal moves => mate */
-        return 1;
+    int num_moves;
+    int i;
+    chess_state_t s2;
+
+    num_moves = state_generate_moves(state, stack);
+    for(i = 0; i < num_moves; i++) {
+        state_clone(&s2, state);
+        state_apply_move(&s2, stack[i]);
+        if(!search_is_check(&s2, state->player)) {
+            /* A legal move is found => not in mate */
+            return 0;
+        }
     }
     
-    /* Not in mate */
-    return 0;
+    /* No legal moves => mate */
+    return 1;
 }
