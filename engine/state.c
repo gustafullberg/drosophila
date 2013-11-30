@@ -251,10 +251,10 @@ int state_apply_move(chess_state_t *s, const move_t move)
             int file = BITBOARD_GET_FILE(pos_from);
             if(file == 0) {
                 /* Disable queen side castling */
-                s->flags[(int)s->player] &= ~STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
+                s->flags[(int)s->player] &= ~STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK;
             } else if(file == 7) {
                 /* Disable king side castling */
-                s->flags[(int)s->player] &= ~STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK;
+                s->flags[(int)s->player] &= ~STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
             }
         }
     }
