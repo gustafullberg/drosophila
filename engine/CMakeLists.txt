@@ -5,6 +5,8 @@ set(files
     defines.h
     engine.c
     engine.h
+    eval.c
+    eval.h
     move.c
     move.h
     search.c

@@ -64,7 +64,7 @@ int ENGINE_apply_move(engine_state_t *state, int pos_from, int pos_to, int promo
         state_apply_move(&temporary_state, move);
         
         /* Check if the move is legal */
-        if(search_is_check(&temporary_state, state->chess_state->player)) {
+        if(SEARCH_is_check(&temporary_state, state->chess_state->player)) {
             /* Not legal */
             break;
         }
@@ -84,7 +84,7 @@ int ENGINE_think_and_move(engine_state_t *state, int *pos_from, int *pos_to, int
     int special;
     int score;
 
-    move = search(state->chess_state, state->move_stack, 4, &score);
+    move = SEARCH_perform_search(state->chess_state, state->move_stack, 4, &score);
 
     *pos_from = MOVE_POS_FROM(move);
     *pos_to = MOVE_POS_TO(move);
@@ -124,8 +124,8 @@ int ENGINE_think_and_move(engine_state_t *state, int *pos_from, int *pos_to, int
 
 int ENGINE_result(engine_state_t *state)
 {
-    if(search_is_mate(state->chess_state, state->move_stack)) {
-        if(search_is_check(state->chess_state, state->chess_state->player)) {
+    if(SEARCH_is_mate(state->chess_state, state->move_stack)) {
+        if(SEARCH_is_check(state->chess_state, state->chess_state->player)) {
             if(state->chess_state->player == WHITE) {
                 return ENGINE_RESULT_BLACK_MATES;
             } else {
