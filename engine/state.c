@@ -237,7 +237,7 @@ int state_apply_move(chess_state_t *s, const move_t move)
     
     if(type == KING) {
         /* Disable castling */
-        s->flags[(int)s->player] &= ~(STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK | STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK);
+        s->flags[(int)s->player] &= ~(STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK | STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK);
     }
     
     if(type == ROOK) {
