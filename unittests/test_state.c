@@ -12,7 +12,7 @@ void test_position_is_attacked()
     chess_state_t s;
     
     /* Start out with fresh state */
-    state_reset(&s);
+    STATE_reset(&s);
     
     /* Move white pawn B2->B4 */
     s.bitboard[WHITE_PIECES+ALL] ^= s.bitboard[WHITE_PIECES+PAWN];

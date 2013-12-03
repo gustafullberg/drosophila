@@ -7,14 +7,12 @@ set(files
     engine.h
     eval.c
     eval.h
-    move.c
-    move.h
+    movegen.c
+    movegen.h
     search.c
     search.h
     search_alphabeta.c
     search_alphabeta.h
-    search_quiescence.c
-    search_quiescence.h
     state.c
     state.h
 )

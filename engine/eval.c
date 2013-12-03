@@ -1,4 +1,5 @@
 #include "eval.h"
+#include "movegen.h"
 
 int EVAL_evaluate_board(chess_state_t *s)
 {
@@ -42,14 +43,14 @@ int EVAL_position_is_attacked(const chess_state_t *s, const int color, const int
     }
     
     /* Is attacked by diagonal sliders (bishop, queen)? */
-    move_bishop(player, pos, s->bitboard[own_index + ALL], s->bitboard[opponent_index + ALL], &dummy, &attackers);
+    MOVEGEN_bishop(player, pos, s->bitboard[own_index + ALL], s->bitboard[opponent_index + ALL], &dummy, &attackers);
     attackers &= (s->bitboard[opponent_index + BISHOP] | s->bitboard[opponent_index + QUEEN]);
     if(attackers) {
         return 1;
     }
 
     /* Is attacked by straight sliders (rook, queen)? */
-    move_rook(player, pos, s->bitboard[own_index + ALL], s->bitboard[opponent_index + ALL], &dummy, &attackers);
+    MOVEGEN_rook(player, pos, s->bitboard[own_index + ALL], s->bitboard[opponent_index + ALL], &dummy, &attackers);
     attackers &= (s->bitboard[opponent_index + ROOK] | s->bitboard[opponent_index + QUEEN]);
     if(attackers) {
         return 1;

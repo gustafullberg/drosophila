@@ -24,10 +24,10 @@ int SEARCH_is_mate(chess_state_t *state, move_t *stack)
     int i;
     chess_state_t s2;
 
-    num_moves = state_generate_moves(state, stack);
+    num_moves = STATE_generate_moves(state, stack);
     for(i = 0; i < num_moves; i++) {
-        state_clone(&s2, state);
-        state_apply_move(&s2, stack[i]);
+        STATE_clone(&s2, state);
+        STATE_apply_move(&s2, stack[i]);
         if(!SEARCH_is_check(&s2, state->player)) {
             /* A legal move is found => not in mate */
             return 0;

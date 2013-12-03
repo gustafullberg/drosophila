@@ -1,10 +1,9 @@
 #include <assert.h>
 #include <stdio.h>
 #include "defines.h"
-#include "bitboard.h"
-#include "move.h"
+#include "movegen.h"
 
-void move_pawn(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *pawn_push, bitboard_t *pawn_push2, bitboard_t *pawn_capture, bitboard_t *pawn_promotion, bitboard_t *pawn_capture_promotion)
+void MOVEGEN_pawn(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *pawn_push, bitboard_t *pawn_push2, bitboard_t *pawn_capture, bitboard_t *pawn_promotion, bitboard_t *pawn_capture_promotion)
 {
     bitboard_t empty;
     
@@ -28,13 +27,13 @@ void move_pawn(const int color, const int position, const bitboard_t own, const 
     *pawn_capture &= ~BITBOARD_PROMOTION;
 }
 
-static void move_knight(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
+void MOVEGEN_knight(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
 	*captures = bitboard_knight[position] & opponent;
     *moves = bitboard_knight[position] & ~(own | opponent);
 }
 
-void move_bishop(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
+void MOVEGEN_bishop(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
     /* The move generation of bishops and rooks is inspired by Nagaskaki */
     /* http://www.mayothi.com/nagaskakichess6.html                       */
@@ -98,7 +97,7 @@ void move_bishop(const int color, const int position, const bitboard_t own, cons
     *captures = bishop_moves & opponent;
 }
 
-void move_rook(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
+void MOVEGEN_rook(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
     /* The move generation of bishops and rooks is inspired by Nagaskaki */
     /* http://www.mayothi.com/nagaskakichess6.html                       */
@@ -161,51 +160,44 @@ void move_rook(const int color, const int position, const bitboard_t own, const 
     *captures = rook_moves & opponent;
 }
 
-static void move_queen(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
+void MOVEGEN_queen(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
 	bitboard_t moves_tmp, captures_tmp;
-    move_bishop(color, position, own, opponent, moves, captures);
-    move_rook(color, position, own, opponent, &moves_tmp, &captures_tmp);
+    MOVEGEN_bishop(color, position, own, opponent, moves, captures);
+    MOVEGEN_rook(color, position, own, opponent, &moves_tmp, &captures_tmp);
     *moves |= moves_tmp;
     *captures |= captures_tmp;
 }
 
-static void move_king(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
+void MOVEGEN_king(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
 	*moves = bitboard_king[position] & ~own & ~opponent;
 	*captures = bitboard_king[position] & opponent;
 }
 
-void move_piece(const int color, const int type, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
+void MOVEGEN_piece(const int color, const int type, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
     switch(type) {
     case PAWN:
-        /* move_pawn should be used instead */
+        /* MOVEGEN_pawn should be used instead */
         assert(0);
         break;
     case KNIGHT:
-        move_knight(color, position, own, opponent, moves, captures);
+        MOVEGEN_knight(color, position, own, opponent, moves, captures);
         break;
     case BISHOP:
-        move_bishop(color, position, own, opponent, moves, captures);
+        MOVEGEN_bishop(color, position, own, opponent, moves, captures);
         break;
     case ROOK:
-        move_rook(color, position, own, opponent, moves, captures);
+        MOVEGEN_rook(color, position, own, opponent, moves, captures);
         break;
     case QUEEN:
-        move_queen(color, position, own, opponent, moves, captures);
+        MOVEGEN_queen(color, position, own, opponent, moves, captures);
         break;
     case KING:
-        move_king(color, position, own, opponent, moves, captures);
+        MOVEGEN_king(color, position, own, opponent, moves, captures);
         break;
     default:
     	break;
     }
-}
-
-void move_print_debug(const move_t move)
-{
-	int pos_from = (move & 0x3F);
-	int pos_to   = ((move >> 6) & 0x3F);
-    fprintf(stdout, "#%c%c -> %c%c\n", BITBOARD_GET_FILE(pos_from)+'A', BITBOARD_GET_RANK(pos_from)+'1', BITBOARD_GET_FILE(pos_to)+'A', BITBOARD_GET_RANK(pos_to)+'1');
 }

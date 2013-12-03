@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include "engine.h"
 #include "state.h"
-#include "move.h"
 #include "search.h"
 #include "defines.h"
 
@@ -40,7 +39,7 @@ void ENGINE_destroy(engine_state_t *state)
 
 void ENGINE_reset(engine_state_t *state)
 {
-    state_reset(state->chess_state);
+    STATE_reset(state->chess_state);
 }
 
 int ENGINE_apply_move(engine_state_t *state, int pos_from, int pos_to, int promotion_type)
@@ -50,7 +49,7 @@ int ENGINE_apply_move(engine_state_t *state, int pos_from, int pos_to, int promo
     chess_state_t temporary_state;
     
     /* Generate all possible moves */
-    num_moves = state_generate_moves(state->chess_state, state->move_stack);
+    num_moves = STATE_generate_moves(state->chess_state, state->move_stack);
     
     /* Loop through all generated moves to find the right one */
     for(i = 0; i < num_moves; i++) {
@@ -60,8 +59,8 @@ int ENGINE_apply_move(engine_state_t *state, int pos_from, int pos_to, int promo
         if((MOVE_SPECIAL(move) & promotion_type) != promotion_type) continue;
         
         /* Pseudo legal move found: Apply to state */
-        state_clone(&temporary_state, state->chess_state);
-        state_apply_move(&temporary_state, move);
+        STATE_clone(&temporary_state, state->chess_state);
+        STATE_apply_move(&temporary_state, move);
         
         /* Check if the move is legal */
         if(SEARCH_is_check(&temporary_state, state->chess_state->player)) {
@@ -70,7 +69,7 @@ int ENGINE_apply_move(engine_state_t *state, int pos_from, int pos_to, int promo
         }
         
         /* Legal */
-        state_clone(state->chess_state, &temporary_state);
+        STATE_clone(state->chess_state, &temporary_state);
         return ENGINE_result(state);
     }
     
@@ -117,7 +116,7 @@ int ENGINE_think_and_move(engine_state_t *state, int *pos_from, int *pos_to, int
         break;
     }
         
-    state_apply_move(state->chess_state, move);
+    STATE_apply_move(state->chess_state, move);
     
     return ENGINE_result(state);
 }
