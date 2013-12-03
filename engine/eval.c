@@ -16,7 +16,9 @@ int EVAL_evaluate_board(chess_state_t *s)
                         bitboard_count_bits(bitboard_bad_knight[BLACK] & s->bitboard[BLACK_PIECES+KNIGHT]));
     score -=      5 * (bitboard_count_bits(bitboard_bad_bishop[WHITE] & s->bitboard[WHITE_PIECES+BISHOP]) - 
                         bitboard_count_bits(bitboard_bad_bishop[BLACK] & s->bitboard[BLACK_PIECES+BISHOP]));
-    return score;
+    
+    /* Switch sign of evaluation if it is black's turn */
+    return score - 2 * score * (int)(s->player);
 }
 
 int EVAL_position_is_attacked(const chess_state_t *s, const int color, const int pos)

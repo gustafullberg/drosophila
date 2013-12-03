@@ -7,14 +7,7 @@
 int SEARCH_perform_search(chess_state_t *s, move_t *stack, int depth, int *score)
 {
     move_t move = 0;
-
-    if(s->player) {
-        /* Black player moving */
-        *score = SEARCH_alphabeta_min(s, stack, depth, &move, INT_MIN, INT_MAX);
-    } else {
-        /* White player moving */
-        *score = SEARCH_alphabeta_max(s, stack, depth, &move, INT_MIN, INT_MAX);
-    }
+    *score = SEARCH_alphabeta(s, stack, depth, &move, -SHRT_MAX-depth, SHRT_MAX+depth);
     return move;
 }
 
