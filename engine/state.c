@@ -173,11 +173,11 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
 {
     int own_index, opponent_index;
     
-	int pos_from        = (move & 0x3F);
-	int pos_to          = ((move >> 6) & 0x3F);
-	int type            = ((move >> 12) & 0x7);
-    int opponent_type   = ((move >> 15) & 0x7);
-	int special         = ((move >> 18) & 0xF);
+	int pos_from        = MOVE_GET_POS_FROM(move);
+	int pos_to          = MOVE_GET_POS_TO(move);
+	int type            = MOVE_GET_TYPE(move);
+    int opponent_type   = MOVE_GET_CAPTURE_TYPE(move);
+	int special         = MOVE_GET_SPECIAL_FLAGS(move);
 
     own_index = s->player * NUM_TYPES;
     opponent_index = NUM_TYPES - own_index;
