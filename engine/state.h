@@ -36,45 +36,45 @@ typedef uint32_t move_t;
 /* Bits 11 -  6 pos_to       */
 /* Bits  5 -  0 pos_from     */
 
-#define MOVE_POS_FROM_SHIFT     0
-#define MOVE_POS_FROM_MASK      (0x3F<<(MOVE_POS_FROM_SHIFT))
+#define MOVE_POS_FROM_SHIFT             0
+#define MOVE_POS_FROM_MASK              (0x3F<<(MOVE_POS_FROM_SHIFT))
 
-#define MOVE_POS_TO_SHIFT       6
-#define MOVE_POS_TO_MASK        (0x3F<<(MOVE_POS_TO_SHIFT))
+#define MOVE_POS_TO_SHIFT               6
+#define MOVE_POS_TO_MASK                (0x3F<<(MOVE_POS_TO_SHIFT))
 
-#define MOVE_TYPE_SHIFT         12
-#define MOVE_TYPE_MASK          (0x7<<(MOVE_TYPE_SHIFT))
+#define MOVE_TYPE_SHIFT                 12
+#define MOVE_TYPE_MASK                  (0x7<<(MOVE_TYPE_SHIFT))
 
-#define MOVE_CAPTURE_TYPE_SHIFT 15
-#define MOVE_CAPTURE_TYPE_MASK  (0x7<<(MOVE_CAPTURE_TYPE_SHIFT))
+#define MOVE_CAPTURE_TYPE_SHIFT         15
+#define MOVE_CAPTURE_TYPE_MASK          (0x7<<(MOVE_CAPTURE_TYPE_SHIFT))
 
-#define MOVE_SPECIAL_SHIFT      18
-#define MOVE_SPECIAL_MASK       (0xF<<(MOVE_SPECIAL_SHIFT))
+#define MOVE_SPECIAL_FLAGS_SHIFT        18
+#define MOVE_SPECIAL_FLAGS_MASK         (0xF<<(MOVE_SPECIAL_FLAGS_SHIFT))
 
 /* Move "special" flags */
-#define MOVE_QUIET						0x0
-#define MOVE_DOUBLE_PAWN_PUSH			0x1
-#define MOVE_KING_CASTLE				0x2
-#define MOVE_QUEEN_CASTLE				0x3
-#define MOVE_CAPTURE					0x4
-#define MOVE_EP_CAPTURE					0x5
-#define MOVE_KNIGHT_PROMOTION			0x8
-#define MOVE_BISHOP_PROMOTION			0x9
-#define MOVE_ROOK_PROMOTION				0xA
-#define MOVE_QUEEN_PROMOTION			0xB
-#define MOVE_KNIGHT_PROMOTION_CAPTURE	0xC
-#define MOVE_BISHOP_PROMOTION_CAPTURE	0xD
-#define MOVE_ROOK_PROMOTION_CAPTURE		0xE
-#define MOVE_QUEEN_PROMOTION_CAPTURE	0xF
+#define MOVE_QUIET                      0x0
+#define MOVE_DOUBLE_PAWN_PUSH           0x1
+#define MOVE_KING_CASTLE                0x2
+#define MOVE_QUEEN_CASTLE               0x3
+#define MOVE_CAPTURE                    0x4
+#define MOVE_EP_CAPTURE                 0x5
+#define MOVE_KNIGHT_PROMOTION           0x8
+#define MOVE_BISHOP_PROMOTION           0x9
+#define MOVE_ROOK_PROMOTION             0xA
+#define MOVE_QUEEN_PROMOTION            0xB
+#define MOVE_KNIGHT_PROMOTION_CAPTURE   0xC
+#define MOVE_BISHOP_PROMOTION_CAPTURE   0xD
+#define MOVE_ROOK_PROMOTION_CAPTURE     0xE
+#define MOVE_QUEEN_PROMOTION_CAPTURE    0xF
 
-#define MOVE_POS_FROM(move) ((move) & 0x3F)
-#define MOVE_POS_TO(move)   (((move) >> 6) & 0x3F)
-#define MOVE_TYPE(move)     (((move) >> 12) & 0x7)
-#define MOVE_OPPONENT_TYPE(move)     (((move) >> 15) & 0x7)
-#define MOVE_SPECIAL(move)  (((move) >> 18) & 0xF)
+#define MOVE_GET_POS_FROM(move)         (((move) & MOVE_POS_FROM_MASK) >> MOVE_POS_FROM_SHIFT)
+#define MOVE_GET_POS_TO(move)           (((move) & MOVE_POS_TO_MASK) >> MOVE_POS_TO_SHIFT)
+#define MOVE_GET_TYPE(move)             (((move) & MOVE_TYPE_MASK) >> MOVE_TYPE_SHIFT)
+#define MOVE_GET_CAPTURE_TYPE(move)     (((move) & MOVE_CAPTURE_TYPE_MASK) >> MOVE_CAPTURE_TYPE_SHIFT)
+#define MOVE_GET_SPECIAL_FLAGS(move)    (((move) & MOVE_SPECIAL_FLAGS_MASK) >> MOVE_SPECIAL_FLAGS_SHIFT)
 
-#define MOVE_IS_PROMOTION(move)     (MOVE_SPECIAL(move) & 0x8)
-#define MOVE_PROMOTION_TYPE(move)   ((MOVE_SPECIAL(move) & 0xB)-7)
+#define MOVE_IS_PROMOTION(move)         ((move) & (MOVE_KNIGHT_PROMOTION << MOVE_SPECIAL_FLAGS_SHIFT))
+#define MOVE_PROMOTION_TYPE(move)       ((MOVE_GET_SPECIAL_FLAGS(move) & 0xB)-7)
 
 void STATE_reset(chess_state_t *s);
 int  STATE_generate_moves(chess_state_t *s, move_t *stack);

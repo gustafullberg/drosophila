@@ -54,9 +54,9 @@ int ENGINE_apply_move(engine_state_t *state, int pos_from, int pos_to, int promo
     /* Loop through all generated moves to find the right one */
     for(i = 0; i < num_moves; i++) {
         int move = state->move_stack[i];
-        if(MOVE_POS_FROM(move) != pos_from) continue;
-        if(MOVE_POS_TO(move) != pos_to) continue;
-        if((MOVE_SPECIAL(move) & promotion_type) != promotion_type) continue;
+        if(MOVE_GET_POS_FROM(move) != pos_from) continue;
+        if(MOVE_GET_POS_TO(move) != pos_to) continue;
+        if((MOVE_GET_SPECIAL_FLAGS(move) & promotion_type) != promotion_type) continue;
         
         /* Pseudo legal move found: Apply to state */
         STATE_clone(&temporary_state, state->chess_state);
@@ -85,9 +85,9 @@ int ENGINE_think_and_move(engine_state_t *state, int *pos_from, int *pos_to, int
 
     move = SEARCH_perform_search(state->chess_state, state->move_stack, 4, &score);
 
-    *pos_from = MOVE_POS_FROM(move);
-    *pos_to = MOVE_POS_TO(move);
-    special = MOVE_SPECIAL(move);
+    *pos_from = MOVE_GET_POS_FROM(move);
+    *pos_to = MOVE_GET_POS_TO(move);
+    special = MOVE_GET_SPECIAL_FLAGS(move);
     
     switch(special)
     {
