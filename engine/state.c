@@ -202,6 +202,19 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
         if(special == MOVE_EP_CAPTURE) {
             s->bitboard[opponent_index + PAWN] ^= bitboard_ep_capture[pos_to];
         }
+        
+        /* Rook capture disables castling */
+        if(opponent_type == ROOK) {
+            /* Same rank as opponent king? */
+            if(s->bitboard[opponent_index + KING] & bitboard_rank[pos_to]) {
+                int file = BITBOARD_GET_FILE(pos_to);
+                if(file == 0) {
+                    s->flags[(int)s->player^1] &= ~STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK;
+                } else if(file == 7) {
+                    s->flags[(int)s->player^1] &= ~STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
+                }
+            }
+        }
     }
     
     /* Pushing pawn 2 squares opens for en passant */
