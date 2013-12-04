@@ -6,23 +6,16 @@
 
 void STATE_reset(chess_state_t *s)
 {
-    s->bitboard[WHITE_PIECES+PAWN]      = 0x000000000000FF00;
-    s->bitboard[WHITE_PIECES+KNIGHT]    = 0x0000000000000042;
-    s->bitboard[WHITE_PIECES+BISHOP]    = 0x0000000000000024;
-    s->bitboard[WHITE_PIECES+ROOK]      = 0x0000000000000081;
-    s->bitboard[WHITE_PIECES+QUEEN]     = 0x0000000000000008;
-    s->bitboard[WHITE_PIECES+KING]      = 0x0000000000000010;
-    s->bitboard[WHITE_PIECES+ALL]       = 0x000000000000FFFF;
-    
-    s->bitboard[BLACK_PIECES+PAWN]      = 0x00FF000000000000;
-    s->bitboard[BLACK_PIECES+KNIGHT]    = 0x4200000000000000;
-    s->bitboard[BLACK_PIECES+BISHOP]    = 0x2400000000000000;
-    s->bitboard[BLACK_PIECES+ROOK]      = 0x8100000000000000;
-    s->bitboard[BLACK_PIECES+QUEEN]     = 0x0800000000000000;
-    s->bitboard[BLACK_PIECES+KING]      = 0x1000000000000000;
-    s->bitboard[BLACK_PIECES+ALL]       = 0xFFFF000000000000;
-    
-    s->bitboard[OCCUPIED]               = 0xFFFF00000000FFFF;
+    int color;
+    int piece;
+    for(color = WHITE; color <= BLACK; color++) {
+        s->bitboard[color*NUM_TYPES + ALL] = 0;
+        for(piece = PAWN; piece <= KING; piece++) {
+            s->bitboard[color*NUM_TYPES + piece] = bitboard_start_position[color][piece];
+            s->bitboard[color*NUM_TYPES + ALL] |= bitboard_start_position[color][piece];
+        }
+    }
+    s->bitboard[OCCUPIED] = s->bitboard[WHITE_PIECES + ALL] | s->bitboard[BLACK_PIECES + ALL];
     
     s->flags[WHITE] = STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK | STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
     s->flags[BLACK] = STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK | STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;

@@ -24,6 +24,7 @@ bitboard_t bitboard_ep_capture[NUM_POSITIONS];
 bitboard_t bitboard_ep_capturers[NUM_COLORS][NUM_FILES];
 bitboard_t bitboard_king_castle_empty[NUM_COLORS];
 bitboard_t bitboard_queen_castle_empty[NUM_COLORS];
+bitboard_t bitboard_start_position[NUM_COLORS][NUM_TYPES-1];
 bitboard_t bitboard_bad_pawn[NUM_COLORS];
 bitboard_t bitboard_bad_knight[NUM_COLORS];
 bitboard_t bitboard_bad_bishop[NUM_COLORS];
@@ -191,6 +192,20 @@ void bitboard_init()
     bitboard_king_castle_empty[BLACK]  = 0x6000000000000000;
     bitboard_queen_castle_empty[WHITE] = 0x000000000000000E;
     bitboard_queen_castle_empty[BLACK] = 0x0E00000000000000;
+    
+    /* START POSITIONS */
+    bitboard_start_position[WHITE][PAWN]    = 0x000000000000FF00;
+    bitboard_start_position[WHITE][KNIGHT]  = 0x0000000000000042;
+    bitboard_start_position[WHITE][BISHOP]  = 0x0000000000000024;
+    bitboard_start_position[WHITE][ROOK]    = 0x0000000000000081;
+    bitboard_start_position[WHITE][QUEEN]   = 0x0000000000000008;
+    bitboard_start_position[WHITE][KING]    = 0x0000000000000010;
+    bitboard_start_position[BLACK][PAWN]    = 0x00FF000000000000;
+    bitboard_start_position[BLACK][KNIGHT]  = 0x4200000000000000;
+    bitboard_start_position[BLACK][BISHOP]  = 0x2400000000000000;
+    bitboard_start_position[BLACK][ROOK]    = 0x8100000000000000;
+    bitboard_start_position[BLACK][QUEEN]   = 0x0800000000000000;
+    bitboard_start_position[BLACK][KING]    = 0x1000000000000000;
     
     /* EVALUATION BITBOARDS */
     bitboard_bad_pawn[WHITE] = 0x0000000000001800;
