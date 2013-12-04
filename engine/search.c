@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "search.h"
 #include "search_alphabeta.h"
+#include "search_minimax.h"
 #include "eval.h"
 
 int SEARCH_perform_search(chess_state_t *s, move_t *stack, int depth, int *score)

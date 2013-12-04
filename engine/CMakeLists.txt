@@ -13,6 +13,8 @@ set(files
     search.h
     search_alphabeta.c
     search_alphabeta.h
+    search_minimax.c
+    search_minimax.h
     state.c
     state.h
 )
