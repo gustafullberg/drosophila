@@ -68,7 +68,7 @@ int SEARCH_minimax_quiescence(chess_state_t *s1, move_t *stack)
     num_legal_moves = 0;
     for(i = 0; i < num_moves; i++) {
         /* Only look for captures in quiescence search */
-        if(!(stack[i] & (MOVE_CAPTURE << 18))) {
+        if(!(MOVE_IS_CAPTURE(stack[i]))) {
             continue;
         }
         

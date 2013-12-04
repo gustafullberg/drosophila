@@ -73,6 +73,7 @@ typedef uint32_t move_t;
 #define MOVE_GET_CAPTURE_TYPE(move)     (((move) & MOVE_CAPTURE_TYPE_MASK) >> MOVE_CAPTURE_TYPE_SHIFT)
 #define MOVE_GET_SPECIAL_FLAGS(move)    (((move) & MOVE_SPECIAL_FLAGS_MASK) >> MOVE_SPECIAL_FLAGS_SHIFT)
 
+#define MOVE_IS_CAPTURE(move)           ((move) & (MOVE_CAPTURE << MOVE_SPECIAL_FLAGS_SHIFT))
 #define MOVE_IS_PROMOTION(move)         ((move) & (MOVE_KNIGHT_PROMOTION << MOVE_SPECIAL_FLAGS_SHIFT))
 #define MOVE_PROMOTION_TYPE(move)       ((MOVE_GET_SPECIAL_FLAGS(move) & 0xB)-7)
 

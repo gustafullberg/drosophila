@@ -273,7 +273,7 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
 
 void STATE_move_print_debug(const move_t move)
 {
-	int pos_from = (move & 0x3F);
-	int pos_to   = ((move >> 6) & 0x3F);
+	int pos_from = MOVE_GET_POS_FROM(move);
+	int pos_to   = MOVE_GET_POS_TO(move);
     fprintf(stdout, "#%c%c -> %c%c\n", BITBOARD_GET_FILE(pos_from)+'A', BITBOARD_GET_RANK(pos_from)+'1', BITBOARD_GET_FILE(pos_to)+'A', BITBOARD_GET_RANK(pos_to)+'1');
 }
