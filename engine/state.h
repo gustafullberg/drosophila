@@ -8,7 +8,7 @@
 typedef struct chess_state_t {
     bitboard_t  bitboard[NUM_COLORS*NUM_TYPES+1];
     int         flags[2];
-    char	    player;
+    char        player;
 } chess_state_t;
 
 #define WHITE_PIECES    0

@@ -29,7 +29,7 @@ void MOVEGEN_pawn(const int color, const int position, const bitboard_t own, con
 
 void MOVEGEN_knight(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
-	*captures = bitboard_knight[position] & opponent;
+    *captures = bitboard_knight[position] & opponent;
     *moves = bitboard_knight[position] & ~(own | opponent);
 }
 
@@ -162,7 +162,7 @@ void MOVEGEN_rook(const int color, const int position, const bitboard_t own, con
 
 void MOVEGEN_queen(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
-	bitboard_t moves_tmp, captures_tmp;
+    bitboard_t moves_tmp, captures_tmp;
     MOVEGEN_bishop(color, position, own, opponent, moves, captures);
     MOVEGEN_rook(color, position, own, opponent, &moves_tmp, &captures_tmp);
     *moves |= moves_tmp;
@@ -171,8 +171,8 @@ void MOVEGEN_queen(const int color, const int position, const bitboard_t own, co
 
 void MOVEGEN_king(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
-	*moves = bitboard_king[position] & ~own & ~opponent;
-	*captures = bitboard_king[position] & opponent;
+    *moves = bitboard_king[position] & ~own & ~opponent;
+    *captures = bitboard_king[position] & opponent;
 }
 
 void MOVEGEN_piece(const int color, const int type, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
@@ -198,6 +198,6 @@ void MOVEGEN_piece(const int color, const int type, const int position, const bi
         MOVEGEN_king(color, position, own, opponent, moves, captures);
         break;
     default:
-    	break;
+        break;
     }
 }
