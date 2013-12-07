@@ -56,7 +56,7 @@ int ENGINE_apply_move(engine_state_t *state, int pos_from, int pos_to, int promo
         int move = state->move_stack[i];
         if(MOVE_GET_POS_FROM(move) != pos_from) continue;
         if(MOVE_GET_POS_TO(move) != pos_to) continue;
-        if((MOVE_GET_SPECIAL_FLAGS(move) & promotion_type) != promotion_type) continue;
+        if(MOVE_PROMOTION_TYPE(move) != promotion_type) continue;
         
         /* Pseudo legal move found: Apply to state */
         STATE_clone(&temporary_state, state->chess_state);

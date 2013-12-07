@@ -75,7 +75,7 @@ typedef uint32_t move_t;
 
 #define MOVE_IS_CAPTURE(move)           ((move) & (MOVE_CAPTURE << MOVE_SPECIAL_FLAGS_SHIFT))
 #define MOVE_IS_PROMOTION(move)         ((move) & (MOVE_KNIGHT_PROMOTION << MOVE_SPECIAL_FLAGS_SHIFT))
-#define MOVE_PROMOTION_TYPE(move)       ((MOVE_GET_SPECIAL_FLAGS(move) & 0xB)-7)
+#define MOVE_PROMOTION_TYPE(move)       ((MOVE_GET_SPECIAL_FLAGS(move) & 0x8) ? ((MOVE_GET_SPECIAL_FLAGS(move) & 0xB)-7) : (0))
 
 void STATE_reset(chess_state_t *s);
 int  STATE_generate_moves(chess_state_t *s, move_t *stack);

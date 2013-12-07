@@ -5,6 +5,12 @@ add_executable(
 target_link_libraries(unittest_bitboard pawnedengine)
 
 add_executable(
+    unittest_moves
+    test_moves.c
+)
+target_link_libraries(unittest_moves pawnedengine)
+
+add_executable(
     unittest_state
     test_state.c
 )
