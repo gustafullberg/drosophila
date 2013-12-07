@@ -82,5 +82,6 @@ int  STATE_generate_moves(chess_state_t *s, move_t *stack);
 void STATE_clone(chess_state_t *s_dst, const chess_state_t *s_src);
 int  STATE_apply_move(chess_state_t *s, const move_t move);
 void STATE_move_print_debug(const move_t move);
+void STATE_board_print_debug(const chess_state_t *s);
 
 #endif

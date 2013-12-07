@@ -196,6 +196,7 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
         /* En passant capture */
         if(special == MOVE_EP_CAPTURE) {
             s->bitboard[opponent_index + PAWN] ^= bitboard_ep_capture[pos_to];
+            s->bitboard[opponent_index + ALL] ^= bitboard_ep_capture[pos_to];
         }
         
         /* Rook capture disables castling */
@@ -271,4 +272,29 @@ void STATE_move_print_debug(const move_t move)
     int pos_from = MOVE_GET_POS_FROM(move);
     int pos_to   = MOVE_GET_POS_TO(move);
     fprintf(stdout, "#%c%c -> %c%c\n", BITBOARD_GET_FILE(pos_from)+'A', BITBOARD_GET_RANK(pos_from)+'1', BITBOARD_GET_FILE(pos_to)+'A', BITBOARD_GET_RANK(pos_to)+'1');
+}
+
+void STATE_board_print_debug(const chess_state_t *s)
+{
+    int rank, file, color;
+    for(rank = 7; rank >= 0; rank--) {
+        fprintf(stdout, "#%c ", rank + '1');
+        for(file = 0; file < 8; file++) {
+            char c = '-';
+            for(color = WHITE; color <= BLACK; color++) {
+                if(s->bitboard[color*NUM_TYPES+ALL] & BITBOARD_RANK_FILE(rank, file)) {
+                    if(s->bitboard[color*NUM_TYPES+PAWN] & BITBOARD_RANK_FILE(rank, file)) c = 'P';
+                    if(s->bitboard[color*NUM_TYPES+KNIGHT] & BITBOARD_RANK_FILE(rank, file)) c = 'N';
+                    if(s->bitboard[color*NUM_TYPES+BISHOP] & BITBOARD_RANK_FILE(rank, file)) c = 'B';
+                    if(s->bitboard[color*NUM_TYPES+ROOK] & BITBOARD_RANK_FILE(rank, file)) c = 'R';
+                    if(s->bitboard[color*NUM_TYPES+QUEEN] & BITBOARD_RANK_FILE(rank, file)) c = 'Q';
+                    if(s->bitboard[color*NUM_TYPES+KING] & BITBOARD_RANK_FILE(rank, file)) c = 'K';
+                    if(color == BLACK) c += 32;
+                }
+            }
+            fprintf(stdout, "%c ", c);
+        }
+        fprintf(stdout, "\n");
+    }
+    fprintf(stdout, "   A B C D E F G H\n");
 }

@@ -220,11 +220,12 @@ void bitboard_print_debug(bitboard_t bitboard)
 {
     int rank, file;
     for(rank = 7; rank >= 0; rank--) {
+        fprintf(stdout, "#%c ", rank + '1');
         for(file = 0; file < 8; file++) {
             fprintf(stdout, "%d ", (bitboard & BITBOARD_RANK_FILE(rank, file)) ? 1 : 0);
         }
         fprintf(stdout, "\n");
     }
-    fprintf(stdout, "\n");
+    fprintf(stdout, "   A B C D E F G H\n");
 }
 
