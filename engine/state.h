@@ -67,15 +67,16 @@ typedef uint32_t move_t;
 #define MOVE_ROOK_PROMOTION_CAPTURE     0xE
 #define MOVE_QUEEN_PROMOTION_CAPTURE    0xF
 
-#define MOVE_GET_POS_FROM(move)         (((move) & MOVE_POS_FROM_MASK) >> MOVE_POS_FROM_SHIFT)
-#define MOVE_GET_POS_TO(move)           (((move) & MOVE_POS_TO_MASK) >> MOVE_POS_TO_SHIFT)
-#define MOVE_GET_TYPE(move)             (((move) & MOVE_TYPE_MASK) >> MOVE_TYPE_SHIFT)
-#define MOVE_GET_CAPTURE_TYPE(move)     (((move) & MOVE_CAPTURE_TYPE_MASK) >> MOVE_CAPTURE_TYPE_SHIFT)
-#define MOVE_GET_SPECIAL_FLAGS(move)    (((move) & MOVE_SPECIAL_FLAGS_MASK) >> MOVE_SPECIAL_FLAGS_SHIFT)
+#define MOVE_GET_POS_FROM(move)             (((move) & MOVE_POS_FROM_MASK) >> MOVE_POS_FROM_SHIFT)
+#define MOVE_GET_POS_TO(move)               (((move) & MOVE_POS_TO_MASK) >> MOVE_POS_TO_SHIFT)
+#define MOVE_GET_TYPE(move)                 (((move) & MOVE_TYPE_MASK) >> MOVE_TYPE_SHIFT)
+#define MOVE_GET_CAPTURE_TYPE(move)         (((move) & MOVE_CAPTURE_TYPE_MASK) >> MOVE_CAPTURE_TYPE_SHIFT)
+#define MOVE_GET_SPECIAL_FLAGS(move)        (((move) & MOVE_SPECIAL_FLAGS_MASK) >> MOVE_SPECIAL_FLAGS_SHIFT)
 
-#define MOVE_IS_CAPTURE(move)           ((move) & (MOVE_CAPTURE << MOVE_SPECIAL_FLAGS_SHIFT))
-#define MOVE_IS_PROMOTION(move)         ((move) & (MOVE_KNIGHT_PROMOTION << MOVE_SPECIAL_FLAGS_SHIFT))
-#define MOVE_PROMOTION_TYPE(move)       ((MOVE_GET_SPECIAL_FLAGS(move) & 0x8) ? ((MOVE_GET_SPECIAL_FLAGS(move) & 0xB)-7) : (0))
+#define MOVE_IS_CAPTURE(move)               ((move) & (MOVE_CAPTURE << MOVE_SPECIAL_FLAGS_SHIFT))
+#define MOVE_IS_PROMOTION(move)             ((move) & (MOVE_KNIGHT_PROMOTION << MOVE_SPECIAL_FLAGS_SHIFT))
+#define MOVE_IS_CAPTURE_OR_PROMOTION(move)  ((move) & ((MOVE_CAPTURE | MOVE_KNIGHT_PROMOTION) << MOVE_SPECIAL_FLAGS_SHIFT))
+#define MOVE_PROMOTION_TYPE(move)           ((MOVE_GET_SPECIAL_FLAGS(move) & 0x8) ? ((MOVE_GET_SPECIAL_FLAGS(move) & 0xB)-7) : (0))
 
 void STATE_reset(chess_state_t *s);
 int  STATE_generate_moves(chess_state_t *s, move_t *stack);
