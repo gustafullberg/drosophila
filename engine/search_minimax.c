@@ -3,8 +3,6 @@
 #include "search.h"
 #include "eval.h"
 
-#define ENABLE_QUIESCENCE
-
 /* Minimax search with Nega Max - For testing only, too slow to be useful */
 int SEARCH_minimax(chess_state_t *s1, move_t *stack, int depth, move_t *move)
 {
@@ -17,7 +15,7 @@ int SEARCH_minimax(chess_state_t *s1, move_t *stack, int depth, move_t *move)
     int best_score = -SHRT_MAX - depth;
 
     if(depth <= 0) {
-#ifdef ENABLE_QUIESCENCE
+#if USE_QUIESCENCE
         return SEARCH_minimax_quiescence(s1, stack);
 #else
         return EVAL_evaluate_board(s1);

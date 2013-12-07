@@ -3,8 +3,6 @@
 #include "search.h"
 #include "eval.h"
 
-#define ENABLE_QUIESCENCE
-
 /* Alpha-Beta search with Nega Max */
 int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, int depth, move_t *move, int alpha, int beta)
 {
@@ -16,7 +14,7 @@ int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, int depth, move_t *move, 
     chess_state_t s2;
 
     if(depth <= 0) {
-#ifdef ENABLE_QUIESCENCE
+#if USE_QUIESCENCE
         return SEARCH_alphabeta_quiescence(s1, stack, alpha, beta);
 #else
         return EVAL_evaluate_board(s1);
