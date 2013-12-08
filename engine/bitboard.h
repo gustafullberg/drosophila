@@ -48,6 +48,7 @@ extern bitboard_t bitboard_start_position[NUM_COLORS][NUM_TYPES-1];
 extern bitboard_t bitboard_bad_pawn[NUM_COLORS];
 extern bitboard_t bitboard_bad_knight[NUM_COLORS];
 extern bitboard_t bitboard_bad_bishop[NUM_COLORS];
+extern bitboard_t bitboard_zobrist[NUM_COLORS][NUM_TYPES-1][NUM_POSITIONS];
 
 void bitboard_init();
 void bitboard_print_debug(bitboard_t bitboard);

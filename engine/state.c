@@ -21,6 +21,8 @@ void STATE_reset(chess_state_t *s)
     s->flags[BLACK] = STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK | STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
     
     s->player = WHITE;
+    
+    STATE_compute_hash(s);
 }
 
 static int STATE_add_moves_to_stack(chess_state_t *s, bitboard_t bitboard_to, int pos_from, int type, int captured_type, int special, move_t *stack)
@@ -187,25 +189,36 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
     /* Update the "ALL bitboard" */
     s->bitboard[player_index + ALL] ^= s->bitboard[player_index + type];
     
+    /* Update hash with normal move */
+    s->hash ^= bitboard_zobrist[player][type][pos_from];
+    s->hash ^= bitboard_zobrist[player][type][pos_to];
+    
     /* Remove captured piece from the other side */
     if(special & MOVE_CAPTURE) {
-        /* Normal capture */
-        BITBOARD_CLEAR(s->bitboard[opponent_index + opponent_type], pos_to);
-        BITBOARD_CLEAR(s->bitboard[opponent_index + ALL], pos_to);
-        
-        /* En passant capture */
         if(special == MOVE_EP_CAPTURE) {
+            /* En passant capture */
             s->bitboard[opponent_index + PAWN] ^= bitboard_ep_capture[pos_to];
             s->bitboard[opponent_index + ALL] ^= bitboard_ep_capture[pos_to];
-        }
+            
+            /* Update hash with EP capture */
+            s->hash ^= bitboard_zobrist[opponent][opponent_type][bitboard_find_bit(bitboard_ep_capture[pos_to])];
+        } else {
+            /* Normal capture */
+            BITBOARD_CLEAR(s->bitboard[opponent_index + opponent_type], pos_to);
+            BITBOARD_CLEAR(s->bitboard[opponent_index + ALL], pos_to);
         
-        /* Rook capture disables castling */
-        if((opponent_type == ROOK) && (BITBOARD_POSITION(pos_to) & bitboard_start_position[opponent][ROOK])) {
-            if(bitboard_file[pos_to] == bitboard_file[0]) {
-                s->flags[opponent] &= ~STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK;
-            } else {
-                s->flags[opponent] &= ~STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
+        
+            /* Rook capture disables castling */
+            if((opponent_type == ROOK) && (BITBOARD_POSITION(pos_to) & bitboard_start_position[opponent][ROOK])) {
+                if(bitboard_file[pos_to] == bitboard_file[0]) {
+                    s->flags[opponent] &= ~STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK;
+                } else {
+                    s->flags[opponent] &= ~STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
+                }
             }
+            
+            /* Update hash with normal capture */
+            s->hash ^= bitboard_zobrist[opponent][opponent_type][pos_to];
         }
     }
     
@@ -221,6 +234,10 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
         int promotion_type = MOVE_PROMOTION_TYPE(move);
         BITBOARD_CLEAR(s->bitboard[player_index + type], pos_to);
         BITBOARD_SET(s->bitboard[player_index + promotion_type], pos_to);
+        
+        /* Update hash with promotion */
+        s->hash ^= bitboard_zobrist[player][PAWN][pos_to];
+        s->hash ^= bitboard_zobrist[player][promotion_type][pos_to];
     }
     
     /* Castling */
@@ -230,6 +247,10 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
         s->bitboard[player_index + ROOK] ^= s->bitboard[player_index + KING] << 1;
         s->bitboard[player_index + ROOK] ^= s->bitboard[player_index + KING] >> 1;
         s->bitboard[player_index + ALL] ^= s->bitboard[player_index + ROOK];
+        
+        /* Update hash with king-side castling */
+        s->hash ^= bitboard_zobrist[player][ROOK][pos_to+1];
+        s->hash ^= bitboard_zobrist[player][ROOK][pos_to-1];
     }
     if(special == MOVE_QUEEN_CASTLE) {
         /* Move rook */
@@ -237,6 +258,10 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
         s->bitboard[player_index + ROOK] ^= s->bitboard[player_index + KING] >> 2;
         s->bitboard[player_index + ROOK] ^= s->bitboard[player_index + KING] << 1;
         s->bitboard[player_index + ALL] ^= s->bitboard[player_index + ROOK];
+        
+        /* Update hash with king-side castling */
+        s->hash ^= bitboard_zobrist[player][ROOK][pos_to-2];
+        s->hash ^= bitboard_zobrist[player][ROOK][pos_to+1];
     }
     
     if(type == KING) {
@@ -265,6 +290,31 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
     s->player = opponent;
 
     return 0;
+}
+
+void STATE_compute_hash(chess_state_t *s)
+{
+    int color;
+    int type;
+    int pos;
+    bitboard_t pieces;
+    
+    s->hash = 0;
+    
+    for(color = 0; color < NUM_COLORS; color++) {
+        for(type = 0; type < NUM_TYPES - 1; type++) {
+            pieces = s->bitboard[color*NUM_TYPES + type];
+
+            while(pieces) {
+                pos = bitboard_find_bit(pieces);
+
+                /* Update the hash for each piece on the board */
+                s->hash ^= bitboard_zobrist[color][type][pos];
+                
+                pieces ^= BITBOARD_POSITION(pos);
+            }
+        }
+    }
 }
 
 void STATE_move_print_debug(const move_t move)

@@ -1,4 +1,5 @@
 #include "bitboard.h"
+#include <stdlib.h>
 #include <stdio.h>
 
 bitboard_t bitboard_less_than[NUM_POSITIONS];
@@ -28,6 +29,9 @@ bitboard_t bitboard_start_position[NUM_COLORS][NUM_TYPES-1];
 bitboard_t bitboard_bad_pawn[NUM_COLORS];
 bitboard_t bitboard_bad_knight[NUM_COLORS];
 bitboard_t bitboard_bad_bishop[NUM_COLORS];
+bitboard_t bitboard_zobrist[NUM_COLORS][NUM_TYPES-1][NUM_POSITIONS];
+
+static bitboard_t bitboard_random();
 
 void bitboard_init()
 {
@@ -214,6 +218,27 @@ void bitboard_init()
     bitboard_bad_knight[BLACK] = 0x4200000000000000;
     bitboard_bad_bishop[WHITE] = 0x0000000000000024;
     bitboard_bad_bishop[BLACK] = 0x2400000000000000;
+    
+    /* ZOBRIST KEYS */
+    for(color = 0; color < NUM_COLORS; color++) {
+        int type;
+        for(type = 0; type < NUM_TYPES - 1; type++) {
+            for(i = 0; i < NUM_POSITIONS; i++) {
+                bitboard_zobrist[color][type][i] = bitboard_random();
+            }
+        }
+    }
+}
+
+static bitboard_t bitboard_random()
+{
+    bitboard_t b = 0;
+    int i;
+    for(i = 0; i < 4; i++) {
+        b <<= 16;
+        b |= (bitboard_t)(rand() & 0xFFFF);
+    }
+    return b;
 }
 
 void bitboard_print_debug(bitboard_t bitboard)

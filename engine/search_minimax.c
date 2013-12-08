@@ -4,7 +4,7 @@
 #include "eval.h"
 
 /* Minimax search with Nega Max - For testing only, too slow to be useful */
-int SEARCH_minimax(chess_state_t *s1, move_t *stack, int depth, move_t *move)
+int SEARCH_minimax(chess_state_t *s1, move_t *stack, short depth, move_t *move)
 {
     int num_moves;
     int num_legal_moves;

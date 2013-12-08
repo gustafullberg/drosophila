@@ -5,10 +5,10 @@
 #include "search_minimax.h"
 #include "eval.h"
 
-int SEARCH_perform_search(chess_state_t *s, move_t *stack, int depth, int *score)
+int SEARCH_perform_search(chess_state_t *s, move_t *stack, ttable_t *ttable, short depth, int *score)
 {
     move_t move = 0;
-    *score = SEARCH_alphabeta(s, stack, depth, &move, -SHRT_MAX-depth, SHRT_MAX+depth);
+    *score = SEARCH_alphabeta(s, stack, ttable, depth, &move, -SHRT_MAX-depth, SHRT_MAX+depth);
     return move;
 }
 

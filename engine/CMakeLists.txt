@@ -17,6 +17,8 @@ set(files
     search_minimax.h
     state.c
     state.h
+    ttable.c
+    ttable.h
 )
 
 add_library(

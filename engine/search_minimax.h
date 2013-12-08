@@ -3,7 +3,7 @@
 
 #include "state.h"
 
-int SEARCH_minimax(chess_state_t *s1, move_t *stack, int depth, move_t *move);
+int SEARCH_minimax(chess_state_t *s1, move_t *stack, short depth, move_t *move);
 int SEARCH_minimax_quiescence(chess_state_t *s1, move_t *stack);
 
 #endif

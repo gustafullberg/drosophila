@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "engine.h"
 #include "state.h"
+#include "ttable.h"
 #include "search.h"
 #include "defines.h"
 
@@ -11,6 +12,7 @@
 struct engine_state {
     chess_state_t   *chess_state;
     move_t          *move_stack;
+    ttable_t        *ttable;
 };
 
 static void ENGINE_init()
@@ -27,11 +29,13 @@ void ENGINE_create(engine_state_t **state)
     *state = malloc(sizeof(engine_state_t));
     (*state)->chess_state = malloc(sizeof(chess_state_t));
     (*state)->move_stack = malloc(sizeof(int) * MOVE_STACK_SIZE);
+    (*state)->ttable = TTABLE_create(22);
     ENGINE_reset(*state);
 }
 
 void ENGINE_destroy(engine_state_t *state)
 {
+    TTABLE_destroy(state->ttable);
     free(state->move_stack);
     free(state->chess_state);
     free(state);
@@ -83,7 +87,7 @@ int ENGINE_think_and_move(engine_state_t *state, int *pos_from, int *pos_to, int
     int special;
     int score;
 
-    move = SEARCH_perform_search(state->chess_state, state->move_stack, 4, &score);
+    move = SEARCH_perform_search(state->chess_state, state->move_stack, state->ttable, 4, &score);
 
     *pos_from = MOVE_GET_POS_FROM(move);
     *pos_to = MOVE_GET_POS_TO(move);
