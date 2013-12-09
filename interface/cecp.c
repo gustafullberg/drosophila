@@ -6,6 +6,8 @@
 
 #define INPUT_BUFFER_SIZE 1024
 
+enum state_t { STATE_NORMAL, STATE_FORCE, STATE_QUIT };
+
 void send_features()
 {
     const char **feature;
@@ -87,7 +89,7 @@ void parse_move(const char *move_str, int *pos_from, int *pos_to, int *promotion
     }
 }
 
-void user_move(engine_state_t *engine, const char *move_str)
+void user_move(engine_state_t *engine, const char *move_str, int respond_to_move)
 {
     int result;
     int pos_from, pos_to, promotion_type;
@@ -95,8 +97,10 @@ void user_move(engine_state_t *engine, const char *move_str)
 
     /* Move piece */
     result = ENGINE_apply_move(engine, pos_from, pos_to, promotion_type);
-    if( result == ENGINE_RESULT_NONE) {
-        make_move(engine);
+    if(result == ENGINE_RESULT_NONE) {
+        if(respond_to_move) {
+            make_move(engine);
+        }
     } else if(result == ENGINE_RESULT_ILLEGAL_MOVE) {
         /* Illegal move */
         fprintf(stdout, "Illegal move: %s", move_str);
@@ -106,7 +110,7 @@ void user_move(engine_state_t *engine, const char *move_str)
     }
 }
 
-static int process_command(engine_state_t *engine, char *command)
+static int process_command(engine_state_t *engine, char *command, enum state_t state)
 {
     /* Commands that do reqire action from the engine */
     
@@ -123,19 +127,24 @@ static int process_command(engine_state_t *engine, char *command)
     
     /* usermove */
     else if(strncmp(command, "usermove ", 9) == 0) {
-        user_move(engine, command + 9);
+        user_move(engine, command + 9, state == STATE_NORMAL);
     }
     
     /* go */
     else if(strcmp(command, "go\n") == 0) {
+        state = STATE_NORMAL;
         make_move(engine);
     }
     
     /*  quit */
     else if(strcmp(command, "quit\n") == 0) {
-        return 1;
+        return STATE_QUIT;
     }
-
+    
+    /* force */
+    else if(strcmp(command, "force\n") == 0) {
+        state = STATE_FORCE;
+    }
     
     /* Commands that do not reqire action from the engine (or not implemented) */
     
@@ -180,12 +189,13 @@ static int process_command(engine_state_t *engine, char *command)
         fprintf(stdout, "Error (unknown command): %s", command);
     }
     
-    return 0;
+    return state;
 }
 
 
 int main(int argc, char **argv)
 {
+    enum state_t state = STATE_NORMAL;
     engine_state_t *engine;
     char input_buffer[INPUT_BUFFER_SIZE];
     
@@ -204,7 +214,8 @@ int main(int argc, char **argv)
         /* Check if a command is sent from Xboard */
         if(IO_read_input(input_buffer, INPUT_BUFFER_SIZE)) {
             /* Take proper action */
-            if(process_command(engine, input_buffer)) {
+            state = process_command(engine, input_buffer, state);
+            if(state == STATE_QUIT) {
                 /* Shutdown if we get the 'quit' command etc */
                 break;
             }
