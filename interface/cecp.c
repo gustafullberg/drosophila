@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include "cecp_features.h"
 #include "io.h"
 #include "engine.h"
@@ -220,6 +221,9 @@ int main(int argc, char **argv)
                 break;
             }
         }
+        
+        /* Sleep a little */
+        usleep(1);
     }
 
     /* Free engine instance */
