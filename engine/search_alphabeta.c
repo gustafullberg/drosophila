@@ -162,5 +162,5 @@ int SEARCH_alphabeta_quiescence(chess_state_t *s1, move_t *stack, ttable_t *ttab
     }
 #endif
     
-    return alpha;
+    return best_score;
 }
