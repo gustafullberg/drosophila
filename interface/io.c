@@ -15,7 +15,6 @@ void IO_init(void)
     
     /* Terminate input buffer */
     input_buffer[0] = '\0';
-    /*fcntl(STDIN, F_SETFL, fcntl(STDIN, F_GETFL, 0) | O_NONBLOCK);*/
 }
 
 int IO_read_input(char *command_buffer, int max_size)
