@@ -8,7 +8,7 @@
 
 static char input_buffer[INPUT_BUFFER_SIZE];
 
-void IO_init()
+void IO_init(void)
 {
     /* Disable buffering for stdout */
     setbuf(stdout, NULL);
