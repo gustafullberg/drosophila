@@ -5,7 +5,7 @@
 #include "io.h"
 #include "engine.h"
 
-#define INPUT_BUFFER_SIZE 1024
+#define COMMAND_BUFFER_SIZE 512
 
 enum state_t { STATE_NORMAL, STATE_FORCE, STATE_QUIT };
 
@@ -198,7 +198,7 @@ int main(int argc, char **argv)
 {
     enum state_t state = STATE_NORMAL;
     engine_state_t *engine;
-    char input_buffer[INPUT_BUFFER_SIZE];
+    char command_buffer[COMMAND_BUFFER_SIZE];
     
     IO_init();
     
@@ -213,9 +213,9 @@ int main(int argc, char **argv)
     /* Main loop */
     while(1) {
         /* Check if a command is sent from Xboard */
-        if(IO_read_input(input_buffer, INPUT_BUFFER_SIZE)) {
+        if(IO_read_input(command_buffer, COMMAND_BUFFER_SIZE)) {
             /* Take proper action */
-            state = process_command(engine, input_buffer, state);
+            state = process_command(engine, command_buffer, state);
             if(state == STATE_QUIT) {
                 /* Shutdown if we get the 'quit' command etc */
                 break;
