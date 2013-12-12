@@ -8,7 +8,8 @@
 #include "search_alphabeta.h"
 #include "search_mtdf.h"
 
-ttable_t *ttable;
+ttable_t *ttable1;
+ttable_t *ttable2;
 move_t stack[5000];
 
 void test_alphabeta()
@@ -24,10 +25,10 @@ void test_alphabeta()
 
     for(ply = 0; ply < 20; ply++) {
         printf("\nPly: %d\n", ply);
-        s_mtdf = SEARCH_mtdf(&s, stack, ttable, 4, &move_mtdf, 0);
+        s_mtdf = SEARCH_mtdf(&s, stack, ttable1, depth, &move_mtdf, 0);
         printf("MTD(f): %d ", s_mtdf);
         STATE_move_print_debug(move_mtdf);
-        s_ab   = SEARCH_alphabeta(&s, stack, ttable, 4, &move_ab, -SHRT_MAX-depth, SHRT_MAX+depth);
+        s_ab   = SEARCH_alphabeta(&s, stack, ttable2, depth, &move_ab, -SHRT_MAX-depth, SHRT_MAX+depth);
         printf("AB:     %d ", s_ab);
         STATE_move_print_debug(move_ab);
 
@@ -41,8 +42,10 @@ void test_alphabeta()
 int main()
 {
     bitboard_init();
-    ttable = TTABLE_create(20);
+    ttable1 = TTABLE_create(20);
+    ttable2 = TTABLE_create(20);
     test_alphabeta();
-    TTABLE_destroy(ttable);
+    TTABLE_destroy(ttable1);
+    TTABLE_destroy(ttable2);
     return 0;
 }

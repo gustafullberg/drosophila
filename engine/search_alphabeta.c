@@ -4,7 +4,7 @@
 #include "eval.h"
 
 /* Alpha-Beta search with Nega Max */
-int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short depth, move_t *move, int alpha, int beta)
+int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short depth, move_t *move, int inalpha, int inbeta)
 {
     int num_moves;
     int num_legal_moves;
@@ -17,6 +17,9 @@ int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short d
     ttable_entry_t *ttentry;
 #endif
 
+    int alpha = inalpha;
+    int beta = inbeta;
+    
     if(depth <= 0) {
 #if USE_QUIESCENCE
         return SEARCH_alphabeta_quiescence(s1, stack, ttable, alpha, beta);
@@ -32,11 +35,12 @@ int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short d
             return ttentry->score;
         } else if(ttentry->type == TTABLE_TYPE_LOWER_BOUND && ttentry->score > alpha) {
             alpha = ttentry->score;
-            if(alpha >= beta) {
-                return ttentry->score;
-            }
+            
         } else if(ttentry->type == TTABLE_TYPE_UPPER_BOUND && ttentry->score < beta) {
             beta = ttentry->score;
+        }
+        if(alpha >= beta) {
+            return ttentry->score;
         }
     }
 #endif
@@ -54,12 +58,12 @@ int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short d
         if(score > best_score) {
             best_score = score;
             *move = stack[i];
-            if(best_score > alpha) {
-                alpha = best_score;
-            }
             if(best_score >= beta) {
                 /* Beta-cuttoff */
                 break;
+            }
+            if(best_score > alpha) {
+                alpha = best_score;
             }
         }
     }
@@ -75,10 +79,10 @@ int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short d
     }
     
 #if USE_TRANSPOSITION_TABLE
-    if(best_score <= alpha) {
-        TTABLE_store(ttable, s1->hash, depth, TTABLE_TYPE_LOWER_BOUND, best_score);
-    } else if(best_score >= beta) {
+    if(best_score <= inalpha) {
         TTABLE_store(ttable, s1->hash, depth, TTABLE_TYPE_UPPER_BOUND, best_score);
+    } else if(best_score >= inbeta) {
+        TTABLE_store(ttable, s1->hash, depth, TTABLE_TYPE_LOWER_BOUND, best_score);
     } else {
         TTABLE_store(ttable, s1->hash, depth, TTABLE_TYPE_EXACT, best_score);
     }
@@ -88,7 +92,7 @@ int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short d
 }
 
 /* Alpha-Beta quiescence search with Nega Max */
-int SEARCH_alphabeta_quiescence(chess_state_t *s1, move_t *stack, ttable_t *ttable, int alpha, int beta)
+int SEARCH_alphabeta_quiescence(chess_state_t *s1, move_t *stack, ttable_t *ttable, int inalpha, int inbeta)
 {
     int num_moves;
     int num_legal_moves;
@@ -99,6 +103,9 @@ int SEARCH_alphabeta_quiescence(chess_state_t *s1, move_t *stack, ttable_t *ttab
 #if USE_TRANSPOSITION_TABLE
     ttable_entry_t *ttentry;
 #endif
+
+    int alpha = inalpha;
+    int beta = inbeta;
 
     /* Stand-pat */
     best_score = EVAL_evaluate_board(s1);
@@ -116,11 +123,11 @@ int SEARCH_alphabeta_quiescence(chess_state_t *s1, move_t *stack, ttable_t *ttab
             return ttentry->score;
         } else if(ttentry->type == TTABLE_TYPE_LOWER_BOUND && ttentry->score > alpha) {
             alpha = ttentry->score;
-            if(alpha >= beta) {
-                return ttentry->score;
-            }
         } else if(ttentry->type == TTABLE_TYPE_UPPER_BOUND && ttentry->score < beta) {
             beta = ttentry->score;
+        }
+        if(alpha >= beta) {
+            return ttentry->score;
         }
     }
 #endif
@@ -142,21 +149,21 @@ int SEARCH_alphabeta_quiescence(chess_state_t *s1, move_t *stack, ttable_t *ttab
         score = -SEARCH_alphabeta_quiescence(&s2, &stack[num_moves], ttable, -beta, -alpha);
         if(score > best_score) {
             best_score = score;
-            if(best_score > alpha) {
-                alpha = best_score;
-            }
             if(best_score >= beta) {
                 /* Beta-cuttoff */
                 break;
+            }
+            if(best_score > alpha) {
+                alpha = best_score;
             }
         }
     }
     
 #if USE_TRANSPOSITION_TABLE
-    if(best_score <= alpha) {
-        TTABLE_store(ttable, s1->hash, 0, TTABLE_TYPE_LOWER_BOUND, best_score);
-    } else if(best_score >= beta) {
+    if(best_score <= inalpha) {
         TTABLE_store(ttable, s1->hash, 0, TTABLE_TYPE_UPPER_BOUND, best_score);
+    } else if(best_score >= inbeta) {
+        TTABLE_store(ttable, s1->hash, 0, TTABLE_TYPE_LOWER_BOUND, best_score);
     } else {
         TTABLE_store(ttable, s1->hash, 0, TTABLE_TYPE_EXACT, best_score);
     }
