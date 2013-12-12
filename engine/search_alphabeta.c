@@ -53,6 +53,7 @@ int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short d
         score = -SEARCH_alphabeta(&s2, &stack[num_moves], ttable, depth-1, &next_move, -beta, -alpha);
         if(score > best_score) {
             best_score = score;
+            *move = stack[i];
             if(best_score > alpha) {
                 alpha = best_score;
             }
@@ -60,7 +61,6 @@ int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short d
                 /* Beta-cuttoff */
                 break;
             }
-            *move = stack[i];
         }
     }
     

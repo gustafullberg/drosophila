@@ -15,6 +15,8 @@ set(files
     search_alphabeta.h
     search_minimax.c
     search_minimax.h
+    search_mtdf.c
+    search_mtdf.h
     state.c
     state.h
     ttable.c
