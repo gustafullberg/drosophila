@@ -1,4 +1,3 @@
-#include <limits.h>
 #include "search_alphabeta.h"
 #include "search.h"
 #include "eval.h"
@@ -10,7 +9,7 @@ int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short d
     int num_legal_moves;
     int i;
     int score;
-    int best_score = -SHRT_MAX - depth;
+    int best_score = SEARCH_MIN_RESULT(depth);
     move_t next_move;
     chess_state_t s2;
 #if USE_TRANSPOSITION_TABLE
@@ -19,7 +18,7 @@ int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short d
 
     int alpha = inalpha;
     int beta = inbeta;
-    
+
     if(depth <= 0) {
 #if USE_QUIESCENCE
         return SEARCH_alphabeta_quiescence(s1, stack, ttable, alpha, beta);
@@ -31,16 +30,16 @@ int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short d
 #if USE_TRANSPOSITION_TABLE
     ttentry = TTABLE_get(ttable, s1->hash, depth);
     if(ttentry) {
+        int tt_score = SEARCH_clamp_score_to_valid_range(ttentry->score, depth);
         if(ttentry->type == TTABLE_TYPE_EXACT) {
-            return ttentry->score;
-        } else if(ttentry->type == TTABLE_TYPE_LOWER_BOUND && ttentry->score > alpha) {
-            alpha = ttentry->score;
-            
-        } else if(ttentry->type == TTABLE_TYPE_UPPER_BOUND && ttentry->score < beta) {
-            beta = ttentry->score;
+            return tt_score;
+        } else if(ttentry->type == TTABLE_TYPE_LOWER_BOUND && tt_score > alpha) {
+            alpha = tt_score;
+        } else if(ttentry->type == TTABLE_TYPE_UPPER_BOUND && tt_score < beta) {
+            beta = tt_score;
         }
         if(alpha >= beta) {
-            return ttentry->score;
+            return tt_score;
         }
     }
 #endif
@@ -87,7 +86,6 @@ int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short d
         TTABLE_store(ttable, s1->hash, depth, TTABLE_TYPE_EXACT, best_score);
     }
 #endif
-    
     return best_score;
 }
 
@@ -119,15 +117,16 @@ int SEARCH_alphabeta_quiescence(chess_state_t *s1, move_t *stack, ttable_t *ttab
 #if USE_TRANSPOSITION_TABLE
     ttentry = TTABLE_get(ttable, s1->hash, 0);
     if(ttentry) {
+        int tt_score = SEARCH_clamp_score_to_valid_range(ttentry->score, 0);
         if(ttentry->type == TTABLE_TYPE_EXACT) {
-            return ttentry->score;
-        } else if(ttentry->type == TTABLE_TYPE_LOWER_BOUND && ttentry->score > alpha) {
-            alpha = ttentry->score;
-        } else if(ttentry->type == TTABLE_TYPE_UPPER_BOUND && ttentry->score < beta) {
-            beta = ttentry->score;
+            return tt_score;
+        } else if(ttentry->type == TTABLE_TYPE_LOWER_BOUND && tt_score > alpha) {
+            alpha = tt_score;
+        } else if(ttentry->type == TTABLE_TYPE_UPPER_BOUND && tt_score < beta) {
+            beta = tt_score;
         }
         if(alpha >= beta) {
-            return ttentry->score;
+            return tt_score;
         }
     }
 #endif

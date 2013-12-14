@@ -288,6 +288,7 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
         
     /* Switch side to play */
     s->player = opponent;
+    s->hash ^= bitboard_zorbist_color;
 
     return 0;
 }
@@ -314,6 +315,10 @@ void STATE_compute_hash(chess_state_t *s)
                 pieces ^= BITBOARD_POSITION(pos);
             }
         }
+    }
+    
+    if(s->player) {
+        s->hash ^= bitboard_zorbist_color;
     }
 }
 

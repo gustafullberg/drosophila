@@ -30,6 +30,7 @@ bitboard_t bitboard_bad_pawn[NUM_COLORS];
 bitboard_t bitboard_bad_knight[NUM_COLORS];
 bitboard_t bitboard_bad_bishop[NUM_COLORS];
 bitboard_t bitboard_zobrist[NUM_COLORS][NUM_TYPES-1][NUM_POSITIONS];
+bitboard_t bitboard_zorbist_color;
 
 static bitboard_t bitboard_random();
 
@@ -228,6 +229,7 @@ void bitboard_init()
             }
         }
     }
+    bitboard_zorbist_color = bitboard_random();
 }
 
 static bitboard_t bitboard_random()

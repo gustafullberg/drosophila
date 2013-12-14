@@ -1,6 +1,6 @@
-#include <limits.h>
 #include "search_mtdf.h"
 #include "search_alphabeta.h"
+#include "search.h"
 
 int SEARCH_mtdf(chess_state_t *s, move_t *stack, ttable_t *ttable, short depth, move_t *move, int guess)
 {
@@ -8,8 +8,8 @@ int SEARCH_mtdf(chess_state_t *s, move_t *stack, ttable_t *ttable, short depth, 
     int beta;
     move_t movetemp;
     
-    bounds[0] = -SHRT_MAX-depth;
-    bounds[1] =  SHRT_MAX+depth;
+    bounds[0] = SEARCH_MIN_RESULT(depth+1);
+    bounds[1] = SEARCH_MAX_RESULT(depth+1);
     
     while(bounds[0] < bounds[1]) {
         if(guess == bounds[0]) {

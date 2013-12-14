@@ -1,4 +1,3 @@
-#include <limits.h>
 #include "search_minimax.h"
 #include "search.h"
 #include "eval.h"
@@ -12,7 +11,7 @@ int SEARCH_minimax(chess_state_t *s1, move_t *stack, short depth, move_t *move)
     int score;
     move_t next_move;
     chess_state_t s2;
-    int best_score = -SHRT_MAX - depth;
+    int best_score = SEARCH_MIN_RESULT(depth);
 
     if(depth <= 0) {
 #if USE_QUIESCENCE
