@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include "search.h"
 #include "search_alphabeta.h"
+#include "search_mtdf.h"
 #include "search_minimax.h"
 #include "eval.h"
 
 int SEARCH_perform_search(chess_state_t *s, move_t *stack, ttable_t *ttable, short depth, int *score)
 {
     move_t move = 0;
-    *score = SEARCH_alphabeta(s, stack, ttable, depth, &move, SEARCH_MIN_RESULT(depth), SEARCH_MAX_RESULT(depth));
+    *score = SEARCH_mtdf(s, stack, ttable, depth, &move, 0);
     return move;
 }
 
