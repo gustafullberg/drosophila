@@ -32,6 +32,7 @@ int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short d
     if(ttentry) {
         int tt_score = SEARCH_clamp_score_to_valid_range(ttentry->score, depth);
         if(ttentry->type == TTABLE_TYPE_EXACT) {
+            *move = ttentry->best_move;
             return tt_score;
         } else if(ttentry->type == TTABLE_TYPE_LOWER_BOUND && tt_score > alpha) {
             alpha = tt_score;
@@ -39,6 +40,7 @@ int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short d
             beta = tt_score;
         }
         if(alpha >= beta) {
+            *move = ttentry->best_move;
             return tt_score;
         }
     }
@@ -79,11 +81,11 @@ int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short d
     
 #if USE_TRANSPOSITION_TABLE
     if(best_score <= inalpha) {
-        TTABLE_store(ttable, s1->hash, depth, TTABLE_TYPE_UPPER_BOUND, best_score);
+        TTABLE_store(ttable, s1->hash, depth, TTABLE_TYPE_UPPER_BOUND, best_score, *move);
     } else if(best_score >= inbeta) {
-        TTABLE_store(ttable, s1->hash, depth, TTABLE_TYPE_LOWER_BOUND, best_score);
+        TTABLE_store(ttable, s1->hash, depth, TTABLE_TYPE_LOWER_BOUND, best_score, *move);
     } else {
-        TTABLE_store(ttable, s1->hash, depth, TTABLE_TYPE_EXACT, best_score);
+        TTABLE_store(ttable, s1->hash, depth, TTABLE_TYPE_EXACT, best_score, *move);
     }
 #endif
     return best_score;
@@ -160,11 +162,11 @@ int SEARCH_alphabeta_quiescence(chess_state_t *s1, move_t *stack, ttable_t *ttab
     
 #if USE_TRANSPOSITION_TABLE
     if(best_score <= inalpha) {
-        TTABLE_store(ttable, s1->hash, 0, TTABLE_TYPE_UPPER_BOUND, best_score);
+        TTABLE_store(ttable, s1->hash, 0, TTABLE_TYPE_UPPER_BOUND, best_score, 0);
     } else if(best_score >= inbeta) {
-        TTABLE_store(ttable, s1->hash, 0, TTABLE_TYPE_LOWER_BOUND, best_score);
+        TTABLE_store(ttable, s1->hash, 0, TTABLE_TYPE_LOWER_BOUND, best_score, 0);
     } else {
-        TTABLE_store(ttable, s1->hash, 0, TTABLE_TYPE_EXACT, best_score);
+        TTABLE_store(ttable, s1->hash, 0, TTABLE_TYPE_EXACT, best_score, 0);
     }
 #endif
     
