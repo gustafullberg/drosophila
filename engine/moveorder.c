@@ -1,5 +1,15 @@
 #include "moveorder.h"
 
+/* MVV-LVA: Capture bonus + Value of captured piece - Value of own piece */
+static int capture_score[6][6] = {
+    { 10 + 1 - 1, 10 + 3 - 1, 10 + 3 - 1, 10 + 5 - 1, 10 + 9 - 1, 10 + 10 - 1 },
+    { 10 + 1 - 3, 10 + 3 - 3, 10 + 3 - 3, 10 + 5 - 3, 10 + 9 - 3, 10 + 10 - 3 },
+    { 10 + 1 - 3, 10 + 3 - 3, 10 + 3 - 3, 10 + 5 - 3, 10 + 9 - 3, 10 + 10 - 3 },
+    { 10 + 1 - 5, 10 + 3 - 5, 10 + 3 - 5, 10 + 5 - 5, 10 + 9 - 5, 10 + 10 - 5 },
+    { 10 + 1 - 9, 10 + 3 - 9, 10 + 3 - 9, 10 + 5 - 9, 10 + 9 - 9, 10 + 10 - 9 },
+    { 10 + 1 -10, 10 + 3 -10, 10 + 3 -10, 10 + 5 -10, 10 + 9 -10, 10 + 10 -10 }
+};
+
 static int MOVEORDER_compute_score(move_t move)
 {
     int score;
@@ -9,11 +19,13 @@ static int MOVEORDER_compute_score(move_t move)
     max = MOVE_SCORE_MASK >> MOVE_SCORE_SHIFT;
     
     if(MOVE_IS_PROMOTION(move)) {
-        score += 1;
+        score += 20;
     }
     
     if(MOVE_IS_CAPTURE(move)) {
-        score += 1;
+        int own_type      = MOVE_GET_TYPE(move);
+        int captured_type = MOVE_GET_CAPTURE_TYPE(move);
+        score += capture_score[own_type][captured_type];
     }
     
     if(score > max) {
