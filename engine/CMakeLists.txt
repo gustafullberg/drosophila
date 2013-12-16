@@ -9,6 +9,8 @@ set(files
     eval.h
     movegen.c
     movegen.h
+    moveorder.c
+    moveorder.h
     search.c
     search.h
     search_alphabeta.c

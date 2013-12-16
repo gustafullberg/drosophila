@@ -31,6 +31,7 @@ typedef struct chess_state_t {
 
 /* Type describing a single move */
 typedef uint32_t move_t;
+/* Bits 32 - 22 special      */
 /* Bits 21 - 18 special      */
 /* Bits 17 - 15 capture_type */
 /* Bits 14 - 12 type         */
@@ -51,6 +52,9 @@ typedef uint32_t move_t;
 
 #define MOVE_SPECIAL_FLAGS_SHIFT        18
 #define MOVE_SPECIAL_FLAGS_MASK         (0xF<<(MOVE_SPECIAL_FLAGS_SHIFT))
+
+#define MOVE_SCORE_SHIFT                22
+#define MOVE_SCORE_MASK                 (0x7FF<<(MOVE_SCORE_SHIFT))
 
 /* Move "special" flags */
 #define MOVE_QUIET                      0x0

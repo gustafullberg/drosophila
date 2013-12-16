@@ -1,19 +1,27 @@
 cmake_minimum_required(VERSION 2.8)
 
 project(pawned)
+
 option(USE_QUIESCENCE "Use quiscence search" ON)
 if(USE_QUIESCENCE)
-add_definitions(-DUSE_QUIESCENCE=1)
-else(USE_QUIESCENCE)
-add_definitions(-DUSE_QUIESCENCE=0)
-endif(USE_QUIESCENCE)
+    add_definitions(-DUSE_QUIESCENCE=1)
+else()
+    add_definitions(-DUSE_QUIESCENCE=0)
+endif()
 
 option(USE_TRANSPOSITION_TABLE "Use transposition table" ON)
 if(USE_TRANSPOSITION_TABLE)
-add_definitions(-DUSE_TRANSPOSITION_TABLE=1)
-else(USE_TRANSPOSITION_TABLE)
-add_definitions(-DUSE_TRANSPOSITION_TABLE=0)
-endif(USE_TRANSPOSITION_TABLE)
+    add_definitions(-DUSE_TRANSPOSITION_TABLE=1)
+else()
+    add_definitions(-DUSE_TRANSPOSITION_TABLE=0)
+endif()
+
+option(USE_MOVE_ORDERING "Use move ordering" ON)
+if(USE_MOVE_ORDERING)
+    add_definitions(-DUSE_MOVE_ORDERING=1)
+else()
+    add_definitions(-DUSE_MOVE_ORDERING=0)
+endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 

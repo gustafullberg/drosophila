@@ -1,6 +1,7 @@
 #include "search_alphabeta.h"
 #include "search.h"
 #include "eval.h"
+#include "moveorder.h"
 
 /* Alpha-Beta search with Nega Max */
 int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short depth, move_t *move, int inalpha, int inbeta)
@@ -47,6 +48,11 @@ int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short d
 #endif
 
     num_moves = STATE_generate_moves(s1, stack);
+    
+#if USE_MOVE_ORDERING
+    MOVEORDER_order_moves(stack, num_moves);
+#endif
+
     num_legal_moves = 0;
     for(i = 0; i < num_moves; i++) {
         STATE_clone(&s2, s1);
