@@ -179,6 +179,7 @@ static inline ttable_entry_t *SEARCH_transpositiontable_retrieve(ttable_t *ttabl
 
 static inline void SEARCH_transpositiontable_store(ttable_t *ttable, bitboard_t hash, int depth, int best_score, move_t best_move, int alpha, int beta)
 {
+    best_move &= ~MOVE_SCORE_MASK;
     if(best_score <= alpha) {
         TTABLE_store(ttable, hash, depth, TTABLE_TYPE_UPPER_BOUND, best_score, best_move);
     } else if(best_score >= beta) {
