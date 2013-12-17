@@ -1,6 +1,7 @@
 #include "search_mtdf.h"
 #include "search_alphabeta.h"
 #include "search.h"
+#include "eval.h"
 
 int SEARCH_mtdf(chess_state_t *s, move_t *stack, ttable_t *ttable, short depth, move_t *move, int guess)
 {
@@ -29,4 +30,21 @@ int SEARCH_mtdf(chess_state_t *s, move_t *stack, ttable_t *ttable, short depth, 
     }
     
     return guess;
+}
+
+int SEARCH_mtdf_iterative(chess_state_t *s, move_t *stack, ttable_t *ttable, short max_depth, move_t *move)
+{
+    short depth;
+    int result;
+    move_t m;
+    
+    result = EVAL_evaluate_board(s);
+    m = 0;
+    
+    for(depth = 1; depth <= max_depth; depth++) {
+        result = SEARCH_mtdf(s, stack, ttable, depth, &m, result);
+        *move = m;
+    }
+    
+    return result;
 }
