@@ -3,7 +3,7 @@
 
 #include "state.h"
 
-void MOVEORDER_order_moves(move_t moves[], int num_moves);
+void MOVEORDER_order_moves(move_t moves[], int num_moves, move_t best_guess);
 
 #endif
 

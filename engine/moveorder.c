@@ -10,13 +10,17 @@ static int capture_score[6][6] = {
     { 10 + 1 -10, 10 + 3 -10, 10 + 3 -10, 10 + 5 -10, 10 + 9 -10, 10 + 10 -10 }
 };
 
-static int MOVEORDER_compute_score(move_t move)
+static int MOVEORDER_compute_score(move_t move, move_t best_guess)
 {
     int score;
     int max;
     
     score = 0;
     max = MOVE_SCORE_MASK >> MOVE_SCORE_SHIFT;
+    
+    if(move == best_guess) {
+        score = 1000;
+    }
     
     if(MOVE_IS_PROMOTION(move)) {
         score += 20;
@@ -54,13 +58,13 @@ static void MOVERORDER_sort(move_t moves[], int num_moves)
     }
 }
 
-void MOVEORDER_order_moves(move_t moves[], int num_moves)
+void MOVEORDER_order_moves(move_t moves[], int num_moves, move_t best_guess)
 {
     int i;
     
     /* Get score for each move */
     for(i = 0; i < num_moves; i++) {
-        int score = MOVEORDER_compute_score(moves[i]);
+        int score = MOVEORDER_compute_score(moves[i], best_guess);
         moves[i] |= score << MOVE_SCORE_SHIFT;
     }
     

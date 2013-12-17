@@ -24,7 +24,7 @@ typedef struct {
 ttable_t *TTABLE_create(int log2_num_entries);
 void TTABLE_destroy(ttable_t *t);
 void TTABLE_store(ttable_t *t, bitboard_t hash, short depth, short type, int score, move_t best_move);
-ttable_entry_t *TTABLE_get(ttable_t *t, bitboard_t hash, short depth);
+ttable_entry_t *TTABLE_retrieve(ttable_t *t, bitboard_t hash);
 
 #endif
 

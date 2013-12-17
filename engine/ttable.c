@@ -3,7 +3,6 @@
 /*
 int tt_total=0;
 int tt_hit=0;
-int tt_shallow=0;
 #include <stdio.h>
 */
 
@@ -36,22 +35,17 @@ void TTABLE_store(ttable_t *t, bitboard_t hash, short depth, short type, int sco
     entry->best_move = best_move;
 }
 
-ttable_entry_t *TTABLE_get(ttable_t *t, bitboard_t hash, short depth)
+ttable_entry_t *TTABLE_retrieve(ttable_t *t, bitboard_t hash)
 {
     int index = (int)(hash & t->key_mask);
     /*tt_total++;*/
-    if((t->entries[index].hash == hash) && (t->entries[index].depth >= depth)) {
+    if((t->entries[index].hash == hash)) {
         /*
         tt_hit++;
-        printf("#TTABLE GETS %d, HITS: %d, TOO SHALLOW %d, HITRATE %f, SHALLOWRATE %f\n", tt_total, tt_hit, tt_shallow, ((float)tt_hit) / ((float)(tt_total)), ((float)tt_shallow) / ((float)(tt_total)));
+        printf("#TTABLE GETS %d, HITS: %d, HITRATE %f\n", tt_total, tt_hit, ((float)tt_hit) / ((float)(tt_total)));
         */
         return &t->entries[index];
     }
-    /*
-    else if((t->entries[index].hash == hash)) {
-        tt_shallow++;
-    }
-    */
 
     return NULL;
 }
