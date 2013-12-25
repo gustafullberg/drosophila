@@ -12,14 +12,14 @@ static int capture_score[6][6] = {
 
 static int MOVEORDER_compute_score(move_t move, move_t best_guess)
 {
-    int score;
-    int max;
+    unsigned int score;
+    unsigned int max;
     
     score = 0;
     max = MOVE_SCORE_MASK >> MOVE_SCORE_SHIFT;
     
     if(move == best_guess) {
-        score = 1000;
+        score += 1000;
     }
     
     if(MOVE_IS_PROMOTION(move)) {
