@@ -6,10 +6,9 @@
 
 typedef struct {
     bitboard_t  hash;
-    short       depth;
-    short       type;
-    int         score;
+    int         score[2];
     move_t      best_move;
+    short       depth;
 } ttable_entry_t;
 
 typedef struct {

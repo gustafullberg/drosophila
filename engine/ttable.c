@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include "ttable.h"
+#include "search.h"
+
 /*
 int tt_total=0;
 int tt_hit=0;
@@ -28,11 +30,29 @@ void TTABLE_store(ttable_t *t, bitboard_t hash, short depth, short type, int sco
     int index = (int)(hash & t->key_mask);
     ttable_entry_t *entry = &t->entries[index];
 
-    entry->hash = hash;
-    entry->depth = depth;
-    entry->type = type;
-    entry->score = score;
-    entry->best_move = best_move;
+    if(entry->hash == hash && entry->depth == depth) {
+        if(type == TTABLE_TYPE_EXACT) {
+            entry->score[0] = entry->score[1] = score;
+        } else if(type == TTABLE_TYPE_LOWER_BOUND) {
+            entry->score[0] = score;
+        } else {
+            entry->score[1] = score;
+        }
+        entry->best_move = best_move;
+    } else {
+        entry->hash = hash;
+        entry->depth = depth;
+        entry->score[0] = SEARCH_MIN_RESULT(depth);
+        entry->score[1] = SEARCH_MAX_RESULT(depth);
+        if(type == TTABLE_TYPE_EXACT) {
+            entry->score[0] = entry->score[1] = score;
+        } else if(type == TTABLE_TYPE_LOWER_BOUND) {
+            entry->score[0] = score;
+        } else {
+            entry->score[1] = score;
+        }
+        entry->best_move = best_move;
+    }
 }
 
 ttable_entry_t *TTABLE_retrieve(ttable_t *t, bitboard_t hash)
