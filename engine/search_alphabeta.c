@@ -31,6 +31,8 @@ int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short d
     
 #if USE_TRANSPOSITION_TABLE
     SEARCH_transpositiontable_retrieve(ttable, s1->hash, depth, &alpha, &beta, move);
+    if(alpha >= inbeta) return alpha;
+    if(beta <= inalpha) return beta;
     if(alpha >= beta) {
         return alpha;
     }
@@ -106,6 +108,8 @@ int SEARCH_alphabeta_quiescence(chess_state_t *s1, move_t *stack, ttable_t *ttab
     
 #if USE_TRANSPOSITION_TABLE
     SEARCH_transpositiontable_retrieve(ttable, s1->hash, 0, &alpha, &beta, &move);
+    if(alpha >= inbeta) return alpha;
+    if(beta <= inalpha) return beta;
     if(alpha >= beta) {
         return alpha;
     }
