@@ -42,13 +42,14 @@ void TTABLE_store(ttable_t *t, bitboard_t hash, short depth, short type, int sco
     } else {
         entry->hash = hash;
         entry->depth = depth;
-        entry->score[0] = SEARCH_MIN_RESULT(depth);
-        entry->score[1] = SEARCH_MAX_RESULT(depth);
+
         if(type == TTABLE_TYPE_EXACT) {
             entry->score[0] = entry->score[1] = score;
         } else if(type == TTABLE_TYPE_LOWER_BOUND) {
             entry->score[0] = score;
+            entry->score[1] = SEARCH_MAX_RESULT(depth);
         } else {
+            entry->score[0] = SEARCH_MIN_RESULT(depth);
             entry->score[1] = score;
         }
         entry->best_move = best_move;
