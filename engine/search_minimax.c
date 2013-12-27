@@ -24,7 +24,7 @@ int SEARCH_minimax(chess_state_t *s1, move_t *stack, short depth, move_t *move)
     num_moves = STATE_generate_moves(s1, stack);
     num_legal_moves = 0;
     for(i = 0; i < num_moves; i++) {
-        STATE_clone(&s2, s1);
+        s2 = *s1;
         STATE_apply_move(&s2, stack[i]);
         if(SEARCH_is_check(&s2, s1->player)) {
             continue;
@@ -69,7 +69,7 @@ int SEARCH_minimax_quiescence(chess_state_t *s1, move_t *stack)
             continue;
         }
         
-        STATE_clone(&s2, s1);
+        s2 = *s1;
         STATE_apply_move(&s2, stack[i]);
         if(SEARCH_is_check(&s2, s1->player)) {
             continue;

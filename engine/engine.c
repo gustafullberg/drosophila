@@ -62,7 +62,7 @@ int ENGINE_apply_move(engine_state_t *state, int pos_from, int pos_to, int promo
         if(MOVE_PROMOTION_TYPE(move) != promotion_type) continue;
         
         /* Pseudo legal move found: Apply to state */
-        STATE_clone(&temporary_state, state->chess_state);
+        temporary_state = *state->chess_state;
         STATE_apply_move(&temporary_state, move);
         
         /* Check if the move is legal */
@@ -72,7 +72,7 @@ int ENGINE_apply_move(engine_state_t *state, int pos_from, int pos_to, int promo
         }
         
         /* Legal */
-        STATE_clone(state->chess_state, &temporary_state);
+        *state->chess_state = temporary_state;
         return ENGINE_result(state);
     }
     

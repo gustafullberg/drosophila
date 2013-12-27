@@ -2,12 +2,6 @@
 #include "ttable.h"
 #include "search.h"
 
-/*
-int tt_total=0;
-int tt_hit=0;
-#include <stdio.h>
-*/
-
 ttable_t *TTABLE_create(int log2_num_entries)
 {
     int num_entries = 1 << log2_num_entries;
@@ -59,12 +53,7 @@ void TTABLE_store(ttable_t *t, bitboard_t hash, short depth, short type, int sco
 ttable_entry_t *TTABLE_retrieve(ttable_t *t, bitboard_t hash)
 {
     int index = (int)(hash & t->key_mask);
-    /*tt_total++;*/
-    if((t->entries[index].hash == hash)) {
-        /*
-        tt_hit++;
-        printf("#TTABLE GETS %d, HITS: %d, HITRATE %f\n", tt_total, tt_hit, ((float)tt_hit) / ((float)(tt_total)));
-        */
+    if(t->entries[index].hash == hash) {
         return &t->entries[index];
     }
 

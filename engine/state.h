@@ -54,7 +54,7 @@ typedef uint32_t move_t;
 #define MOVE_SPECIAL_FLAGS_MASK         (0xF<<(MOVE_SPECIAL_FLAGS_SHIFT))
 
 #define MOVE_SCORE_SHIFT                22
-#define MOVE_SCORE_MASK                 (0x7FF<<(MOVE_SCORE_SHIFT))
+#define MOVE_SCORE_MASK                 (0x3FF<<(MOVE_SCORE_SHIFT))
 
 /* Move "special" flags */
 #define MOVE_QUIET                      0x0
@@ -85,7 +85,6 @@ typedef uint32_t move_t;
 
 void STATE_reset(chess_state_t *s);
 int  STATE_generate_moves(chess_state_t *s, move_t *stack);
-void STATE_clone(chess_state_t *s_dst, const chess_state_t *s_src);
 int  STATE_apply_move(chess_state_t *s, const move_t move);
 void STATE_compute_hash(chess_state_t *s);
 void STATE_move_print_debug(const move_t move);

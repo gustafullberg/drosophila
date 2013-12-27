@@ -2,7 +2,6 @@
 #include "movegen.h"
 #include "eval.h"
 #include <stdio.h>
-#include <string.h>
 
 void STATE_reset(chess_state_t *s)
 {
@@ -158,11 +157,6 @@ int STATE_generate_moves(chess_state_t *s, move_t *stack)
     }
 
     return num_moves;
-}
-
-void STATE_clone(chess_state_t *s_dst, const chess_state_t *s_src)
-{
-    memcpy(s_dst, s_src, sizeof(chess_state_t));
 }
 
 int STATE_apply_move(chess_state_t *s, const move_t move)
