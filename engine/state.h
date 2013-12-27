@@ -86,7 +86,7 @@ typedef struct chess_state_t {
 
 
 void STATE_reset(chess_state_t *s);
-int  STATE_generate_moves(chess_state_t *s, move_t *stack);
+int  STATE_generate_moves(const chess_state_t *s, move_t *stack);
 int  STATE_apply_move(chess_state_t *s, const move_t move);
 void STATE_compute_hash(chess_state_t *s);
 void STATE_move_print_debug(const move_t move);

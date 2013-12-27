@@ -15,18 +15,18 @@
 #define PAWN_DOUBLE_PAWN -50
 #define PAWN_TRIPLE_PAWN -100
 
-static int sign[2] = { 1, -1 };
+static const int sign[2] = { 1, -1 };
 
-static int pawn_rank_bonus[2][8] = {
+static const int pawn_rank_bonus[2][8] = {
     { PAWN_RANK0, PAWN_RANK1, PAWN_RANK2, PAWN_RANK3, PAWN_RANK4, PAWN_RANK5, PAWN_RANK6, PAWN_RANK7 },
     { PAWN_RANK7, PAWN_RANK6, PAWN_RANK5, PAWN_RANK4, PAWN_RANK3, PAWN_RANK2, PAWN_RANK1, PAWN_RANK0 }
 };
 
-static int pawn_double_pawn_penalty[8] = {
+static const int pawn_double_pawn_penalty[8] = {
     0, 0, PAWN_DOUBLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN
 };
 
-static int pawn_structure_assessment(chess_state_t *s)
+static int pawn_structure_assessment(const chess_state_t *s)
 {
     int score = 0;
     int color;
@@ -76,7 +76,7 @@ static int pawn_structure_assessment(chess_state_t *s)
     return score;
 }
 
-int EVAL_evaluate_board(chess_state_t *s)
+int EVAL_evaluate_board(const chess_state_t *s)
 {
     int score = 0;
 

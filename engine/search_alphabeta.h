@@ -4,7 +4,7 @@
 #include "state.h"
 #include "ttable.h"
 
-int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short depth, move_t *move, int alpha, int beta);
-int SEARCH_alphabeta_quiescence(chess_state_t *s1, move_t *stack, ttable_t *ttable, int alpha, int beta);
+int SEARCH_alphabeta(const chess_state_t *state, move_t *stack, ttable_t *ttable, short depth, move_t *move, int alpha, int beta);
+int SEARCH_alphabeta_quiescence(const chess_state_t *state, move_t *stack, ttable_t *ttable, int alpha, int beta);
 
 #endif

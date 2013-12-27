@@ -9,9 +9,9 @@
 #define SEARCH_MIN_RESULT(depth) (-(SHRT_MAX)-(depth))
 #define SEARCH_MAX_RESULT(depth) ((SHRT_MAX)+(depth))
 
-int SEARCH_perform_search(chess_state_t *s, move_t *stack, ttable_t *ttable, short depth, int *score);
-int SEARCH_is_check(chess_state_t *s, int color);
-int SEARCH_is_mate(chess_state_t *state, move_t *stack);
+int SEARCH_perform_search(const chess_state_t *s, move_t *stack, ttable_t *ttable, short depth, int *score);
+int SEARCH_is_check(const chess_state_t *s, int color);
+int SEARCH_is_mate(const chess_state_t *state, move_t *stack);
 
 static inline int SEARCH_clamp_score_to_valid_range(int score, int depth)
 {

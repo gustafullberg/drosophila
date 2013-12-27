@@ -26,7 +26,7 @@ void STATE_reset(chess_state_t *s)
     s->last_move = 0;
 }
 
-static int STATE_add_moves_to_stack(chess_state_t *s, bitboard_t bitboard_to, int pos_from, int type, int captured_type, int special, move_t *stack)
+static int STATE_add_moves_to_stack(const chess_state_t *s, bitboard_t bitboard_to, int pos_from, int type, int captured_type, int special, move_t *stack)
 {
     move_t move;
     int pos_to;
@@ -44,7 +44,7 @@ static int STATE_add_moves_to_stack(chess_state_t *s, bitboard_t bitboard_to, in
     return num_moves;
 }
 
-int STATE_generate_moves(chess_state_t *s, move_t *stack)
+int STATE_generate_moves(const chess_state_t *s, move_t *stack)
 {
     int type, opponent_type, pos_from;
     bitboard_t pieces, possible_moves, possible_captures;

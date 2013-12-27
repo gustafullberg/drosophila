@@ -3,34 +3,34 @@
 #include "eval.h"
 
 /* Minimax search with Nega Max - For testing only, too slow to be useful */
-int SEARCH_minimax(chess_state_t *s1, move_t *stack, short depth, move_t *move)
+int SEARCH_minimax(const chess_state_t *state, move_t *stack, short depth, move_t *move)
 {
     int num_moves;
     int num_legal_moves;
     int i;
     int score;
     move_t next_move;
-    chess_state_t s2;
+    chess_state_t next_state;
     int best_score = SEARCH_MIN_RESULT(depth);
 
     if(depth <= 0) {
 #if USE_QUIESCENCE
-        return SEARCH_minimax_quiescence(s1, stack);
+        return SEARCH_minimax_quiescence(state, stack);
 #else
-        return EVAL_evaluate_board(s1);
+        return EVAL_evaluate_board(state);
 #endif
     }
     
-    num_moves = STATE_generate_moves(s1, stack);
+    num_moves = STATE_generate_moves(state, stack);
     num_legal_moves = 0;
     for(i = 0; i < num_moves; i++) {
-        s2 = *s1;
-        STATE_apply_move(&s2, stack[i]);
-        if(SEARCH_is_check(&s2, s1->player)) {
+        next_state = *state;
+        STATE_apply_move(&next_state, stack[i]);
+        if(SEARCH_is_check(&next_state, state->player)) {
             continue;
         }
         num_legal_moves++;
-        score = -SEARCH_minimax(&s2, &stack[num_moves], depth-1, &next_move);
+        score = -SEARCH_minimax(&next_state, &stack[num_moves], depth-1, &next_move);
         if(score > best_score) {
             best_score = score;
             *move = stack[i];
@@ -39,7 +39,7 @@ int SEARCH_minimax(chess_state_t *s1, move_t *stack, short depth, move_t *move)
     
     /* Detect stalemate */
     if(num_legal_moves == 0) {
-        if(!SEARCH_is_check(s1, s1->player)) {
+        if(!SEARCH_is_check(state, state->player)) {
             /* Stalemate */
             best_score = 0;
         }
@@ -49,19 +49,19 @@ int SEARCH_minimax(chess_state_t *s1, move_t *stack, short depth, move_t *move)
 }
 
 /* Minimax quiescence search with Nega Max - For testing only, too slow to be useful */
-int SEARCH_minimax_quiescence(chess_state_t *s1, move_t *stack)
+int SEARCH_minimax_quiescence(const chess_state_t *state, move_t *stack)
 {
     int num_moves;
     int num_legal_moves;
     int i;
     int score;
-    chess_state_t s2;
+    chess_state_t next_state;
     int best_score;
 
     /* Stand-pat */
-    best_score = EVAL_evaluate_board(s1);
+    best_score = EVAL_evaluate_board(state);
     
-    num_moves = STATE_generate_moves(s1, stack);
+    num_moves = STATE_generate_moves(state, stack);
     num_legal_moves = 0;
     for(i = 0; i < num_moves; i++) {
         /* Only look for captures in quiescence search */
@@ -69,13 +69,13 @@ int SEARCH_minimax_quiescence(chess_state_t *s1, move_t *stack)
             continue;
         }
         
-        s2 = *s1;
-        STATE_apply_move(&s2, stack[i]);
-        if(SEARCH_is_check(&s2, s1->player)) {
+        next_state = *state;
+        STATE_apply_move(&next_state, stack[i]);
+        if(SEARCH_is_check(&next_state, state->player)) {
             continue;
         }
         num_legal_moves++;
-        score = -SEARCH_minimax_quiescence(&s2, &stack[num_moves]);
+        score = -SEARCH_minimax_quiescence(&next_state, &stack[num_moves]);
         if(score > best_score) {
             best_score = score;
         }
