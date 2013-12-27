@@ -14,6 +14,7 @@ int SEARCH_alphabeta(const chess_state_t *state, move_t *stack, ttable_t *ttable
     int i;
     int score;
     int best_score = SEARCH_MIN_RESULT(depth);
+    int skip_move_generation = 0;
     move_t next_move;
     chess_state_t next_state;
 
@@ -38,41 +39,55 @@ int SEARCH_alphabeta(const chess_state_t *state, move_t *stack, ttable_t *ttable
     }
 #endif
 
-    num_moves = STATE_generate_moves(state, stack);
-    
-#if USE_MOVE_ORDERING
-    MOVEORDER_order_moves(state, stack, num_moves, *move);
-#endif
-
-    num_legal_moves = 0;
-    for(i = 0; i < num_moves; i++) {
+    if(depth > 4 && state->last_move) {
         next_state = *state;
-        STATE_apply_move(&next_state, stack[i]);
-        if(SEARCH_is_check(&next_state, state->player)) {
-            continue;
-        }
-        num_legal_moves++;
-        score = -SEARCH_alphabeta(&next_state, &stack[num_moves], ttable, depth-1, &next_move, -beta, -alpha);
-        if(score > best_score) {
-            best_score = score;
-            *move = stack[i];
-            if(best_score >= beta) {
-                /* Beta-cuttoff */
-                break;
-            }
-            if(best_score > alpha) {
-                alpha = best_score;
+        STATE_apply_move(&next_state, 0);
+        if(!SEARCH_is_check(&next_state, state->player)) {
+            score = -SEARCH_alphabeta(&next_state, &stack[num_moves], ttable, depth-3, &next_move, -beta, -alpha);
+            if(score >= beta) {
+                best_score = beta;
+                skip_move_generation = 1;
             }
         }
     }
-    
-    /* Detect checkmate and stalemate */
-    if(num_legal_moves == 0) {
-        if(SEARCH_is_check(state, state->player)) {
-            /* Checkmate (worst case) */
-        } else {
-            /* Stalemate */
-            best_score = 0;
+
+    if(!skip_move_generation) {
+        num_moves = STATE_generate_moves(state, stack);
+        
+    #if USE_MOVE_ORDERING
+        MOVEORDER_order_moves(state, stack, num_moves, *move);
+    #endif
+
+        num_legal_moves = 0;
+        for(i = 0; i < num_moves; i++) {
+            next_state = *state;
+            STATE_apply_move(&next_state, stack[i]);
+            if(SEARCH_is_check(&next_state, state->player)) {
+                continue;
+            }
+            num_legal_moves++;
+            score = -SEARCH_alphabeta(&next_state, &stack[num_moves], ttable, depth-1, &next_move, -beta, -alpha);
+            if(score > best_score) {
+                best_score = score;
+                *move = stack[i];
+                if(best_score >= beta) {
+                    /* Beta-cuttoff */
+                    break;
+                }
+                if(best_score > alpha) {
+                    alpha = best_score;
+                }
+            }
+        }
+        
+        /* Detect checkmate and stalemate */
+        if(num_legal_moves == 0) {
+            if(SEARCH_is_check(state, state->player)) {
+                /* Checkmate (worst case) */
+            } else {
+                /* Stalemate */
+                best_score = 0;
+            }
         }
     }
     

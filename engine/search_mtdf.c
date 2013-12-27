@@ -8,6 +8,8 @@ int SEARCH_mtdf(const chess_state_t *s, move_t *stack, ttable_t *ttable, short d
     int bounds[2];
     int beta;
     move_t movetemp;
+    chess_state_t state = *s;
+    state.last_move = 0;
     
     bounds[0] = SEARCH_MIN_RESULT(depth+1);
     bounds[1] = SEARCH_MAX_RESULT(depth+1);
@@ -19,7 +21,7 @@ int SEARCH_mtdf(const chess_state_t *s, move_t *stack, ttable_t *ttable, short d
             beta = guess;
         }
 
-        guess = SEARCH_alphabeta(s, stack, ttable, depth, &movetemp, beta-1, beta);
+        guess = SEARCH_alphabeta(&state, stack, ttable, depth, &movetemp, beta-1, beta);
 
         if(guess < beta) {
             bounds[1] = guess;

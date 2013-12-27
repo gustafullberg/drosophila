@@ -165,123 +165,124 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
 {
     int player = s->player;
     int opponent = player ^ 1;
-    
-    int pos_from        = MOVE_GET_POS_FROM(move);
-    int pos_to          = MOVE_GET_POS_TO(move);
-    int type            = MOVE_GET_TYPE(move);
-    int opponent_type   = MOVE_GET_CAPTURE_TYPE(move);
-    int special         = MOVE_GET_SPECIAL_FLAGS(move);
 
-    int player_index = player * NUM_TYPES;
-    int opponent_index = NUM_TYPES - player_index;
-    
-    /* Remove bitboard of this type from the "ALL bitboard" */
-    s->bitboard[player_index + ALL] ^= s->bitboard[player_index + type];
+    if(move) {
+        int pos_from        = MOVE_GET_POS_FROM(move);
+        int pos_to          = MOVE_GET_POS_TO(move);
+        int type            = MOVE_GET_TYPE(move);
+        int opponent_type   = MOVE_GET_CAPTURE_TYPE(move);
+        int special         = MOVE_GET_SPECIAL_FLAGS(move);
 
-    /* Clear "from", set "to" */
-    BITBOARD_CLEAR(s->bitboard[player_index + type], pos_from);
-    BITBOARD_SET(s->bitboard[player_index + type], pos_to);
+        int player_index = player * NUM_TYPES;
+        int opponent_index = NUM_TYPES - player_index;
+        
+        /* Remove bitboard of this type from the "ALL bitboard" */
+        s->bitboard[player_index + ALL] ^= s->bitboard[player_index + type];
 
-    /* Update the "ALL bitboard" */
-    s->bitboard[player_index + ALL] ^= s->bitboard[player_index + type];
-    
-    /* Update hash with normal move */
-    s->hash ^= bitboard_zobrist[player][type][pos_from];
-    s->hash ^= bitboard_zobrist[player][type][pos_to];
-    
-    /* Remove captured piece from the other side */
-    if(special & MOVE_CAPTURE) {
-        if(special == MOVE_EP_CAPTURE) {
-            /* En passant capture */
-            s->bitboard[opponent_index + PAWN] ^= bitboard_ep_capture[pos_to];
-            s->bitboard[opponent_index + ALL] ^= bitboard_ep_capture[pos_to];
+        /* Clear "from", set "to" */
+        BITBOARD_CLEAR(s->bitboard[player_index + type], pos_from);
+        BITBOARD_SET(s->bitboard[player_index + type], pos_to);
+
+        /* Update the "ALL bitboard" */
+        s->bitboard[player_index + ALL] ^= s->bitboard[player_index + type];
+        
+        /* Update hash with normal move */
+        s->hash ^= bitboard_zobrist[player][type][pos_from];
+        s->hash ^= bitboard_zobrist[player][type][pos_to];
+        
+        /* Remove captured piece from the other side */
+        if(special & MOVE_CAPTURE) {
+            if(special == MOVE_EP_CAPTURE) {
+                /* En passant capture */
+                s->bitboard[opponent_index + PAWN] ^= bitboard_ep_capture[pos_to];
+                s->bitboard[opponent_index + ALL] ^= bitboard_ep_capture[pos_to];
+                
+                /* Update hash with EP capture */
+                s->hash ^= bitboard_zobrist[opponent][opponent_type][bitboard_find_bit(bitboard_ep_capture[pos_to])];
+            } else {
+                /* Normal capture */
+                BITBOARD_CLEAR(s->bitboard[opponent_index + opponent_type], pos_to);
+                BITBOARD_CLEAR(s->bitboard[opponent_index + ALL], pos_to);
             
-            /* Update hash with EP capture */
-            s->hash ^= bitboard_zobrist[opponent][opponent_type][bitboard_find_bit(bitboard_ep_capture[pos_to])];
-        } else {
-            /* Normal capture */
-            BITBOARD_CLEAR(s->bitboard[opponent_index + opponent_type], pos_to);
-            BITBOARD_CLEAR(s->bitboard[opponent_index + ALL], pos_to);
+            
+                /* Rook capture disables castling */
+                if((opponent_type == ROOK) && (BITBOARD_POSITION(pos_to) & bitboard_start_position[opponent][ROOK])) {
+                    if(bitboard_file[pos_to] == bitboard_file[0]) {
+                        s->flags[opponent] &= ~STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK;
+                    } else {
+                        s->flags[opponent] &= ~STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
+                    }
+                }
+                
+                /* Update hash with normal capture */
+                s->hash ^= bitboard_zobrist[opponent][opponent_type][pos_to];
+            }
+        }
         
+        /* Pushing pawn 2 squares opens for en passant */
+        if(special == MOVE_DOUBLE_PAWN_PUSH) {
+            s->flags[s->player^1] |= STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK;
+            s->flags[s->player^1] &= ~STATE_FLAGS_EN_PASSANT_FILE_MASK;
+            s->flags[s->player^1] |= BITBOARD_GET_FILE(pos_from) << STATE_FLAGS_EN_PASSANT_FILE_SHIFT;
+        }
         
-            /* Rook capture disables castling */
-            if((opponent_type == ROOK) && (BITBOARD_POSITION(pos_to) & bitboard_start_position[opponent][ROOK])) {
-                if(bitboard_file[pos_to] == bitboard_file[0]) {
-                    s->flags[opponent] &= ~STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK;
+        /* Pawn promotion */
+        if(MOVE_IS_PROMOTION(move)) {
+            int promotion_type = MOVE_PROMOTION_TYPE(move);
+            BITBOARD_CLEAR(s->bitboard[player_index + type], pos_to);
+            BITBOARD_SET(s->bitboard[player_index + promotion_type], pos_to);
+            
+            /* Update hash with promotion */
+            s->hash ^= bitboard_zobrist[player][PAWN][pos_to];
+            s->hash ^= bitboard_zobrist[player][promotion_type][pos_to];
+        }
+        
+        /* Castling */
+        if(special == MOVE_KING_CASTLE) {
+            /* Move rook */
+            s->bitboard[player_index + ALL] ^= s->bitboard[player_index + ROOK];
+            s->bitboard[player_index + ROOK] ^= s->bitboard[player_index + KING] << 1;
+            s->bitboard[player_index + ROOK] ^= s->bitboard[player_index + KING] >> 1;
+            s->bitboard[player_index + ALL] ^= s->bitboard[player_index + ROOK];
+            
+            /* Update hash with king-side castling */
+            s->hash ^= bitboard_zobrist[player][ROOK][pos_to+1];
+            s->hash ^= bitboard_zobrist[player][ROOK][pos_to-1];
+        }
+        if(special == MOVE_QUEEN_CASTLE) {
+            /* Move rook */
+            s->bitboard[player_index + ALL] ^= s->bitboard[player_index + ROOK];
+            s->bitboard[player_index + ROOK] ^= s->bitboard[player_index + KING] >> 2;
+            s->bitboard[player_index + ROOK] ^= s->bitboard[player_index + KING] << 1;
+            s->bitboard[player_index + ALL] ^= s->bitboard[player_index + ROOK];
+            
+            /* Update hash with king-side castling */
+            s->hash ^= bitboard_zobrist[player][ROOK][pos_to-2];
+            s->hash ^= bitboard_zobrist[player][ROOK][pos_to+1];
+        }
+        
+        if(type == KING) {
+            /* Disable castling */
+            s->flags[player] &= ~(STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK | STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK);
+        }
+        
+        if(type == ROOK) {
+            /* Disable castling for a moved rook */
+            if(BITBOARD_POSITION(pos_from) & bitboard_start_position[player][ROOK]) {
+                if(bitboard_file[pos_from] == bitboard_file[0]) {
+                    s->flags[player] &= ~STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK;
                 } else {
-                    s->flags[opponent] &= ~STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
+                    s->flags[player] &= ~STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
                 }
             }
-            
-            /* Update hash with normal capture */
-            s->hash ^= bitboard_zobrist[opponent][opponent_type][pos_to];
         }
-    }
-    
-    /* Pushing pawn 2 squares opens for en passant */
-    if(special == MOVE_DOUBLE_PAWN_PUSH) {
-        s->flags[s->player^1] |= STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK;
-        s->flags[s->player^1] &= ~STATE_FLAGS_EN_PASSANT_FILE_MASK;
-        s->flags[s->player^1] |= BITBOARD_GET_FILE(pos_from) << STATE_FLAGS_EN_PASSANT_FILE_SHIFT;
-    }
-    
-    /* Pawn promotion */
-    if(MOVE_IS_PROMOTION(move)) {
-        int promotion_type = MOVE_PROMOTION_TYPE(move);
-        BITBOARD_CLEAR(s->bitboard[player_index + type], pos_to);
-        BITBOARD_SET(s->bitboard[player_index + promotion_type], pos_to);
-        
-        /* Update hash with promotion */
-        s->hash ^= bitboard_zobrist[player][PAWN][pos_to];
-        s->hash ^= bitboard_zobrist[player][promotion_type][pos_to];
-    }
-    
-    /* Castling */
-    if(special == MOVE_KING_CASTLE) {
-        /* Move rook */
-        s->bitboard[player_index + ALL] ^= s->bitboard[player_index + ROOK];
-        s->bitboard[player_index + ROOK] ^= s->bitboard[player_index + KING] << 1;
-        s->bitboard[player_index + ROOK] ^= s->bitboard[player_index + KING] >> 1;
-        s->bitboard[player_index + ALL] ^= s->bitboard[player_index + ROOK];
-        
-        /* Update hash with king-side castling */
-        s->hash ^= bitboard_zobrist[player][ROOK][pos_to+1];
-        s->hash ^= bitboard_zobrist[player][ROOK][pos_to-1];
-    }
-    if(special == MOVE_QUEEN_CASTLE) {
-        /* Move rook */
-        s->bitboard[player_index + ALL] ^= s->bitboard[player_index + ROOK];
-        s->bitboard[player_index + ROOK] ^= s->bitboard[player_index + KING] >> 2;
-        s->bitboard[player_index + ROOK] ^= s->bitboard[player_index + KING] << 1;
-        s->bitboard[player_index + ALL] ^= s->bitboard[player_index + ROOK];
-        
-        /* Update hash with king-side castling */
-        s->hash ^= bitboard_zobrist[player][ROOK][pos_to-2];
-        s->hash ^= bitboard_zobrist[player][ROOK][pos_to+1];
-    }
-    
-    if(type == KING) {
-        /* Disable castling */
-        s->flags[player] &= ~(STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK | STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK);
-    }
-    
-    if(type == ROOK) {
-        /* Disable castling for a moved rook */
-        if(BITBOARD_POSITION(pos_from) & bitboard_start_position[player][ROOK]) {
-            if(bitboard_file[pos_from] == bitboard_file[0]) {
-                s->flags[player] &= ~STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK;
-            } else {
-                s->flags[player] &= ~STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
-            }
-        }
-    }
 
-    /* Occupied by piece of any color */
-    s->bitboard[OCCUPIED] = s->bitboard[WHITE_PIECES+ALL] | s->bitboard[BLACK_PIECES+ALL];
+        /* Occupied by piece of any color */
+        s->bitboard[OCCUPIED] = s->bitboard[WHITE_PIECES+ALL] | s->bitboard[BLACK_PIECES+ALL];
 
-    /* This side can't play en passant next move (unless enabled by opponent's next move) */
-    s->flags[player] &= ~STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK;
-        
+        /* This side can't play en passant next move (unless enabled by opponent's next move) */
+        s->flags[player] &= ~STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK;
+    }    
     /* Switch side to play */
     s->player = opponent;
     s->hash ^= bitboard_zorbist_color;
