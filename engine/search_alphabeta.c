@@ -41,7 +41,7 @@ int SEARCH_alphabeta(chess_state_t *s1, move_t *stack, ttable_t *ttable, short d
     num_moves = STATE_generate_moves(s1, stack);
     
 #if USE_MOVE_ORDERING
-    MOVEORDER_order_moves(stack, num_moves, *move);
+    MOVEORDER_order_moves(s1, stack, num_moves, *move);
 #endif
 
     num_legal_moves = 0;
@@ -118,7 +118,7 @@ int SEARCH_alphabeta_quiescence(chess_state_t *s1, move_t *stack, ttable_t *ttab
     num_moves = STATE_generate_moves(s1, stack);
     
 #if USE_MOVE_ORDERING
-    MOVEORDER_order_moves(stack, num_moves, move);
+    MOVEORDER_order_moves(s1, stack, num_moves, move);
 #endif
     
     num_legal_moves = 0;

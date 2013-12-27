@@ -10,14 +10,13 @@ static int capture_score[6][6] = {
     { 10 + 1 -10, 10 + 3 -10, 10 + 3 -10, 10 + 5 -10, 10 + 9 -10, 10 + 10 -10 }
 };
 
-static int MOVEORDER_compute_score(move_t move, move_t best_guess)
+static int MOVEORDER_compute_score(const chess_state_t *s, move_t move, move_t best_guess)
 {
-    unsigned int score;
-    unsigned int max;
+    const unsigned int max = MOVE_SCORE_MASK >> MOVE_SCORE_SHIFT;
+    unsigned int score = 0;
     
-    score = 0;
-    max = MOVE_SCORE_MASK >> MOVE_SCORE_SHIFT;
-    
+    const int pos_to = MOVE_GET_POS_TO(move);
+
     if(move == best_guess) {
         score += 1000;
     }
@@ -27,9 +26,17 @@ static int MOVEORDER_compute_score(move_t move, move_t best_guess)
     }
     
     if(MOVE_IS_CAPTURE(move)) {
+        /* MVV-LVA */
         int own_type      = MOVE_GET_TYPE(move);
         int captured_type = MOVE_GET_CAPTURE_TYPE(move);
         score += capture_score[own_type][captured_type];
+        
+        /* Recapture bonus */
+        if(MOVE_IS_CAPTURE(s->last_move)) {
+            if(pos_to == MOVE_GET_POS_TO(s->last_move)) {
+                score += 10;
+            }
+        }
     }
     
     if(score > max) {
@@ -58,13 +65,13 @@ static void MOVERORDER_sort(move_t moves[], int num_moves)
     }
 }
 
-void MOVEORDER_order_moves(move_t moves[], int num_moves, move_t best_guess)
+void MOVEORDER_order_moves(const chess_state_t *s, move_t moves[], int num_moves, move_t best_guess)
 {
     int i;
     
     /* Get score for each move */
     for(i = 0; i < num_moves; i++) {
-        int score = MOVEORDER_compute_score(moves[i], best_guess);
+        int score = MOVEORDER_compute_score(s, moves[i], best_guess);
         moves[i] |= score << MOVE_SCORE_SHIFT;
     }
     

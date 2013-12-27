@@ -4,31 +4,6 @@
 #include "defines.h"
 #include "bitboard.h"
 
-/* Type describing the state of the game */
-typedef struct chess_state_t {
-    bitboard_t  bitboard[NUM_COLORS*NUM_TYPES+1];
-    bitboard_t  hash;
-    char        flags[2];
-    char        player;
-} chess_state_t;
-
-#define WHITE_PIECES    0
-#define BLACK_PIECES    (NUM_TYPES)
-#define OCCUPIED        (NUM_COLORS*NUM_TYPES)
-
-#define STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_SHIFT     0
-#define STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK      (1<<(STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_SHIFT))
-
-#define STATE_FLAGS_KING_CASTLE_POSSIBLE_SHIFT      1
-#define STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK       (1<<(STATE_FLAGS_KING_CASTLE_POSSIBLE_SHIFT))
-
-#define STATE_FLAGS_EN_PASSANT_POSSIBLE_SHIFT       2
-#define STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK        (1<<(STATE_FLAGS_EN_PASSANT_POSSIBLE_SHIFT))
-
-#define STATE_FLAGS_EN_PASSANT_FILE_SHIFT           3
-#define STATE_FLAGS_EN_PASSANT_FILE_MASK            (0x7<<(STATE_FLAGS_EN_PASSANT_FILE_SHIFT))
-
-
 /* Type describing a single move */
 typedef uint32_t move_t;
 /* Bits 32 - 22 special      */
@@ -82,6 +57,33 @@ typedef uint32_t move_t;
 #define MOVE_IS_PROMOTION(move)             ((move) & (MOVE_KNIGHT_PROMOTION << MOVE_SPECIAL_FLAGS_SHIFT))
 #define MOVE_IS_CAPTURE_OR_PROMOTION(move)  ((move) & ((MOVE_CAPTURE | MOVE_KNIGHT_PROMOTION) << MOVE_SPECIAL_FLAGS_SHIFT))
 #define MOVE_PROMOTION_TYPE(move)           ((MOVE_GET_SPECIAL_FLAGS(move) & 0x8) ? ((MOVE_GET_SPECIAL_FLAGS(move) & 0xB)-7) : (0))
+
+
+/* Type describing the state of the game */
+typedef struct chess_state_t {
+    bitboard_t  bitboard[NUM_COLORS*NUM_TYPES+1];
+    bitboard_t  hash;
+    move_t      last_move;
+    char        flags[2];
+    char        player;
+} chess_state_t;
+
+#define WHITE_PIECES    0
+#define BLACK_PIECES    (NUM_TYPES)
+#define OCCUPIED        (NUM_COLORS*NUM_TYPES)
+
+#define STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_SHIFT     0
+#define STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK      (1<<(STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_SHIFT))
+
+#define STATE_FLAGS_KING_CASTLE_POSSIBLE_SHIFT      1
+#define STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK       (1<<(STATE_FLAGS_KING_CASTLE_POSSIBLE_SHIFT))
+
+#define STATE_FLAGS_EN_PASSANT_POSSIBLE_SHIFT       2
+#define STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK        (1<<(STATE_FLAGS_EN_PASSANT_POSSIBLE_SHIFT))
+
+#define STATE_FLAGS_EN_PASSANT_FILE_SHIFT           3
+#define STATE_FLAGS_EN_PASSANT_FILE_MASK            (0x7<<(STATE_FLAGS_EN_PASSANT_FILE_SHIFT))
+
 
 void STATE_reset(chess_state_t *s);
 int  STATE_generate_moves(chess_state_t *s, move_t *stack);

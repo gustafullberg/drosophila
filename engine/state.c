@@ -22,6 +22,8 @@ void STATE_reset(chess_state_t *s)
     s->player = WHITE;
     
     STATE_compute_hash(s);
+    
+    s->last_move = 0;
 }
 
 static int STATE_add_moves_to_stack(chess_state_t *s, bitboard_t bitboard_to, int pos_from, int type, int captured_type, int special, move_t *stack)
@@ -283,6 +285,9 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
     /* Switch side to play */
     s->player = opponent;
     s->hash ^= bitboard_zorbist_color;
+    
+    /* Store last move */
+    s->last_move = move;
 
     return 0;
 }
