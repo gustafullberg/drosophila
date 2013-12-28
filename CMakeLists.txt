@@ -23,6 +23,13 @@ else()
     add_definitions(-DUSE_MOVE_ORDERING=0)
 endif()
 
+option(USE_NULL_MOVE "Use null move pruning" ON)
+if(USE_NULL_MOVE)
+    add_definitions(-DUSE_NULL_MOVE=1)
+else()
+    add_definitions(-DUSE_NULL_MOVE=0)
+endif()
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 if(CMAKE_COMPILER_IS_GNUCC)

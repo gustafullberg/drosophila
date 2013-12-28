@@ -1,5 +1,4 @@
 set(files
-    ../engine/engine.h
     bitboard.c
     bitboard.h
     defines.h

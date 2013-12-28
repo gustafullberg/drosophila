@@ -39,17 +39,19 @@ int SEARCH_alphabeta(const chess_state_t *state, move_t *stack, ttable_t *ttable
     }
 #endif
 
+#if USE_NULL_MOVE
     if(depth > 4 && state->last_move) {
         next_state = *state;
         STATE_apply_move(&next_state, 0);
         if(!SEARCH_is_check(&next_state, state->player)) {
-            score = -SEARCH_alphabeta(&next_state, &stack[num_moves], ttable, depth-3, &next_move, -beta, -alpha);
+            score = -SEARCH_alphabeta(&next_state, &stack[0], ttable, depth-3, &next_move, -beta, -alpha);
             if(score >= beta) {
                 best_score = beta;
                 skip_move_generation = 1;
             }
         }
     }
+#endif
 
     if(!skip_move_generation) {
         num_moves = STATE_generate_moves(state, stack);

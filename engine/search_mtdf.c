@@ -9,6 +9,8 @@ int SEARCH_mtdf(const chess_state_t *s, move_t *stack, ttable_t *ttable, short d
     int beta;
     move_t movetemp;
     chess_state_t state = *s;
+    
+    /* Trick to disable null-move pruning on the first level of search */
     state.last_move = 0;
     
     bounds[0] = SEARCH_MIN_RESULT(depth+1);
