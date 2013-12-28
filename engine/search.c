@@ -5,10 +5,10 @@
 #include "search_minimax.h"
 #include "eval.h"
 
-int SEARCH_perform_search(const chess_state_t *s, move_t *stack, ttable_t *ttable, short depth, int *score)
+int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, short depth, int *score)
 {
     move_t move = 0;
-    *score = SEARCH_mtdf_iterative(s, stack, ttable, depth, &move);
+    *score = SEARCH_mtdf_iterative(s, ttable, depth, &move);
     return move;
 }
 
@@ -19,16 +19,17 @@ int SEARCH_is_check(const chess_state_t *s, int color)
     return EVAL_position_is_attacked(s, color, king_pos);
 }
 
-int SEARCH_is_mate(const chess_state_t *state, move_t *stack)
+int SEARCH_is_mate(const chess_state_t *state)
 {
     int num_moves;
     int i;
     chess_state_t s2;
+    move_t moves[256];
 
-    num_moves = STATE_generate_moves(state, stack);
+    num_moves = STATE_generate_moves(state, moves);
     for(i = 0; i < num_moves; i++) {
         s2 = *state;
-        STATE_apply_move(&s2, stack[i]);
+        STATE_apply_move(&s2, moves[i]);
         if(!SEARCH_is_check(&s2, state->player)) {
             /* A legal move is found => not in mate */
             return 0;

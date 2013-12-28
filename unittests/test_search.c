@@ -10,7 +10,6 @@
 
 ttable_t *ttable1;
 ttable_t *ttable2;
-move_t stack[5000];
 
 void test_alphabeta()
 {
@@ -25,10 +24,10 @@ void test_alphabeta()
 
     for(ply = 0; ply < 20; ply++) {
         printf("\nPly: %d\n", ply);
-        s_mtdf = SEARCH_mtdf(&s, stack, ttable1, depth, &move_mtdf, 0);
+        s_mtdf = SEARCH_mtdf(&s, ttable1, depth, &move_mtdf, 0);
         printf("MTD(f): %d ", s_mtdf);
         STATE_move_print_debug(move_mtdf);
-        s_ab   = SEARCH_alphabeta(&s, stack, ttable2, depth, &move_ab, -SHRT_MAX-depth, SHRT_MAX+depth);
+        s_ab   = SEARCH_alphabeta(&s, ttable2, depth, &move_ab, -SHRT_MAX-depth, SHRT_MAX+depth);
         printf("AB:     %d ", s_ab);
         STATE_move_print_debug(move_ab);
 

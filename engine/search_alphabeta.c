@@ -7,7 +7,7 @@ static inline ttable_entry_t *SEARCH_transpositiontable_retrieve(ttable_t *ttabl
 static inline void SEARCH_transpositiontable_store(ttable_t *ttable, bitboard_t hash, int depth, int best_score, move_t best_move, int alpha, int beta);
 
 /* Alpha-Beta search with Nega Max */
-int SEARCH_alphabeta(const chess_state_t *state, move_t *stack, ttable_t *ttable, short depth, move_t *move, int inalpha, int inbeta)
+int SEARCH_alphabeta(const chess_state_t *state, ttable_t *ttable, short depth, move_t *move, int inalpha, int inbeta)
 {
     int num_moves;
     int num_legal_moves;
@@ -17,6 +17,7 @@ int SEARCH_alphabeta(const chess_state_t *state, move_t *stack, ttable_t *ttable
     int skip_move_generation = 0;
     move_t next_move;
     chess_state_t next_state;
+    move_t moves[256];
 
     int alpha = inalpha;
     int beta = inbeta;
@@ -24,7 +25,7 @@ int SEARCH_alphabeta(const chess_state_t *state, move_t *stack, ttable_t *ttable
 
     if(depth <= 0) {
 #if USE_QUIESCENCE
-        return SEARCH_alphabeta_quiescence(state, stack, ttable, alpha, beta);
+        return SEARCH_alphabeta_quiescence(state, ttable, alpha, beta);
 #else
         return EVAL_evaluate_board(state);
 #endif
@@ -44,7 +45,7 @@ int SEARCH_alphabeta(const chess_state_t *state, move_t *stack, ttable_t *ttable
         next_state = *state;
         STATE_apply_move(&next_state, 0);
         if(!SEARCH_is_check(&next_state, state->player)) {
-            score = -SEARCH_alphabeta(&next_state, &stack[0], ttable, depth-3, &next_move, -beta, -alpha);
+            score = -SEARCH_alphabeta(&next_state, ttable, depth-3, &next_move, -beta, -alpha);
             if(score >= beta) {
                 best_score = beta;
                 skip_move_generation = 1;
@@ -54,24 +55,24 @@ int SEARCH_alphabeta(const chess_state_t *state, move_t *stack, ttable_t *ttable
 #endif
 
     if(!skip_move_generation) {
-        num_moves = STATE_generate_moves(state, stack);
+        num_moves = STATE_generate_moves(state, moves);
         
     #if USE_MOVE_ORDERING
-        MOVEORDER_order_moves(state, stack, num_moves, *move);
+        MOVEORDER_order_moves(state, moves, num_moves, *move);
     #endif
 
         num_legal_moves = 0;
         for(i = 0; i < num_moves; i++) {
             next_state = *state;
-            STATE_apply_move(&next_state, stack[i]);
+            STATE_apply_move(&next_state, moves[i]);
             if(SEARCH_is_check(&next_state, state->player)) {
                 continue;
             }
             num_legal_moves++;
-            score = -SEARCH_alphabeta(&next_state, &stack[num_moves], ttable, depth-1, &next_move, -beta, -alpha);
+            score = -SEARCH_alphabeta(&next_state, ttable, depth-1, &next_move, -beta, -alpha);
             if(score > best_score) {
                 best_score = score;
-                *move = stack[i];
+                *move = moves[i];
                 if(best_score >= beta) {
                     /* Beta-cuttoff */
                     break;
@@ -100,7 +101,7 @@ int SEARCH_alphabeta(const chess_state_t *state, move_t *stack, ttable_t *ttable
 }
 
 /* Alpha-Beta quiescence search with Nega Max */
-int SEARCH_alphabeta_quiescence(const chess_state_t *state, move_t *stack, ttable_t *ttable, int inalpha, int inbeta)
+int SEARCH_alphabeta_quiescence(const chess_state_t *state, ttable_t *ttable, int inalpha, int inbeta)
 {
     int num_moves;
     int num_legal_moves;
@@ -109,6 +110,7 @@ int SEARCH_alphabeta_quiescence(const chess_state_t *state, move_t *stack, ttabl
     int best_score;
     move_t move;
     chess_state_t next_state;
+    move_t moves[256];
 
     int alpha = inalpha;
     int beta = inbeta;
@@ -132,26 +134,26 @@ int SEARCH_alphabeta_quiescence(const chess_state_t *state, move_t *stack, ttabl
     }
 #endif
     
-    num_moves = STATE_generate_moves(state, stack);
+    num_moves = STATE_generate_moves(state, moves);
     
 #if USE_MOVE_ORDERING
-    MOVEORDER_order_moves(state, stack, num_moves, move);
+    MOVEORDER_order_moves(state, moves, num_moves, move);
 #endif
     
     num_legal_moves = 0;
     for(i = 0; i < num_moves; i++) {
         /* Only look for captures in quiescence search */
-        if(!(MOVE_IS_CAPTURE_OR_PROMOTION(stack[i]))) {
+        if(!(MOVE_IS_CAPTURE_OR_PROMOTION(moves[i]))) {
             continue;
         }
         
         next_state = *state;
-        STATE_apply_move(&next_state, stack[i]);
+        STATE_apply_move(&next_state, moves[i]);
         if(SEARCH_is_check(&next_state, state->player)) {
             continue;
         }
         num_legal_moves++;
-        score = -SEARCH_alphabeta_quiescence(&next_state, &stack[num_moves], ttable, -beta, -alpha);
+        score = -SEARCH_alphabeta_quiescence(&next_state, ttable, -beta, -alpha);
         if(score > best_score) {
             best_score = score;
             if(best_score >= beta) {
