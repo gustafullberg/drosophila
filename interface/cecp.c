@@ -6,7 +6,26 @@
 
 #define COMMAND_BUFFER_SIZE 512
 
-enum state_t { STATE_NORMAL, STATE_FORCE, STATE_QUIT };
+typedef struct {
+    int flag_forced;
+    int flag_quit;
+    int time_period;                /* Time control period (number of turns)            */
+    int time_seconds;               /* Seconds per control period                       */
+    int time_incremental_seconds;   /* Seconds added per turn                           */
+    int time_left_centiseconds;     /* Time left in current control period (10^-2 sec)  */
+    int num_half_moves;             /* Number of half moves                             */
+} state_t;
+
+void state_clear(state_t *state)
+{
+    state->flag_forced = 0;
+    state->flag_quit = 0;
+    state->time_period = 0;
+    state->time_seconds = 0;
+    state->time_incremental_seconds = 0;
+    state->time_left_centiseconds = 0;
+    state->num_half_moves = 0;
+}
 
 void send_features()
 {
@@ -110,7 +129,28 @@ void user_move(engine_state_t *engine, const char *move_str, int respond_to_move
     }
 }
 
-static int process_command(engine_state_t *engine, char *command, enum state_t state)
+void parse_time_control(const char *level)
+{
+    int period = 0;
+    int minutes = 0;
+    int seconds = 0;
+    int inc_seconds = 0;
+    int ret = 0;
+
+    /* Try to parse "period minutes:seconds inc" */
+    ret = sscanf(level, "%d %d:%d %d\n", &period, &minutes, &seconds, &inc_seconds);
+    if(ret != 4) {
+        /* Try to parse "period minutes inc" */
+        seconds = 0;
+        ret = sscanf(level, "%d %d %d\n", &period, &minutes, &inc_seconds);
+        if(ret != 3) {
+        /* Failed to parse */
+            return;
+        }
+    }
+}
+
+static void process_command(engine_state_t *engine, char *command, state_t *state)
 {
     /* Commands that do reqire action from the engine */
     
@@ -127,24 +167,37 @@ static int process_command(engine_state_t *engine, char *command, enum state_t s
     
     /* usermove */
     else if(strncmp(command, "usermove ", 9) == 0) {
-        user_move(engine, command + 9, state == STATE_NORMAL);
+        user_move(engine, command + 9, !state->flag_forced);
     }
     
     /* go */
     else if(strcmp(command, "go\n") == 0) {
-        state = STATE_NORMAL;
+        state->flag_forced = 0;
         make_move(engine);
     }
     
     /*  quit */
     else if(strcmp(command, "quit\n") == 0) {
-        return STATE_QUIT;
+        state->flag_quit = 1;
     }
     
     /* force */
     else if(strcmp(command, "force\n") == 0) {
-        state = STATE_FORCE;
+        state->flag_forced = 1;
     }
+    
+    /* level */
+    else if(strncmp(command, "level ", 6) == 0) {
+        parse_time_control(command + 6);
+    }
+
+    /* time */
+    else if(strncmp(command, "time ", 5) == 0) {
+        int centiseconds = 0;
+        sscanf(command + 5, "%d\n", &centiseconds);
+        state->time_left_centiseconds = centiseconds;
+    }
+    
     
     /* Commands that do not reqire action from the engine (or not implemented) */
     
@@ -166,16 +219,15 @@ static int process_command(engine_state_t *engine, char *command, enum state_t s
     /* cores */
     else if(strncmp(command, "cores ", 6) == 0) {}
     
-    /* level */
-    else if(strncmp(command, "level ", 6) == 0) {}
-    
     /* result */
     else if(strncmp(command, "result ", 7) == 0) {}
     
     /* computer */
     else if(strcmp(command, "computer\n") == 0) {}
 
-    
+    /* otim */
+    else if(strncmp(command, "otim ", 5) == 0) {}
+	    
     /* Errors */
     
     /* rejected */
@@ -188,16 +240,15 @@ static int process_command(engine_state_t *engine, char *command, enum state_t s
     else {
         fprintf(stdout, "Error (unknown command): %s", command);
     }
-    
-    return state;
 }
 
 
 int main(int argc, char **argv)
 {
-    enum state_t state = STATE_NORMAL;
     engine_state_t *engine;
     char command_buffer[COMMAND_BUFFER_SIZE];
+    state_t state;
+    state_clear(&state);
     
     IO_init();
     
@@ -214,8 +265,8 @@ int main(int argc, char **argv)
         /* Check if a command is sent from Xboard */
         if(IO_read_input(command_buffer, COMMAND_BUFFER_SIZE)) {
             /* Take proper action */
-            state = process_command(engine, command_buffer, state);
-            if(state == STATE_QUIT) {
+            process_command(engine, command_buffer, &state);
+            if(state.flag_quit) {
                 /* Shutdown if we get the 'quit' command etc */
                 break;
             }

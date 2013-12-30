@@ -8,7 +8,6 @@ const char *cecp_features[] =
 {
     "done=0",
     "usermove=1",
-    "time=0",
     "draw=0",
     "sigint=0",
     "analyze=0",
