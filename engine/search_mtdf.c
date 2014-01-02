@@ -40,11 +40,16 @@ int SEARCH_mtdf(const chess_state_t *s, ttable_t *ttable, short depth, move_t *m
 
 int SEARCH_mtdf_iterative(const chess_state_t *s, ttable_t *ttable, short max_depth, move_t *move)
 {
+#define MAX_DEPTH 100
     short depth;
-    int results[100];
+    int results[MAX_DEPTH+1];
     int guess;
     move_t m;
     m = 0;
+    
+    if(max_depth > MAX_DEPTH) {
+        max_depth = MAX_DEPTH;
+    }
     
     results[0] = SEARCH_mtdf(s, ttable, 0, &m, 0);
     
