@@ -134,7 +134,7 @@ int SEARCH_alphabeta_quiescence(const chess_state_t *state, ttable_t *ttable, in
     }
 #endif
     
-    num_moves = STATE_generate_moves(state, moves);
+    num_moves = STATE_generate_moves_quiescence(state, moves);
     
 #if USE_MOVE_ORDERING
     MOVEORDER_order_moves(state, moves, num_moves, move);
@@ -142,11 +142,6 @@ int SEARCH_alphabeta_quiescence(const chess_state_t *state, ttable_t *ttable, in
     
     num_legal_moves = 0;
     for(i = 0; i < num_moves; i++) {
-        /* Only look for captures in quiescence search */
-        if(!(MOVE_IS_CAPTURE_OR_PROMOTION(moves[i]))) {
-            continue;
-        }
-        
         next_state = *state;
         STATE_apply_move(&next_state, moves[i]);
         if(SEARCH_is_check(&next_state, state->player)) {
