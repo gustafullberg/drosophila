@@ -54,6 +54,20 @@ int SEARCH_alphabeta(const chess_state_t *state, ttable_t *ttable, short depth, 
     }
 #endif
 
+#if USE_TRANSPOSITION_TABLE
+    if(!skip_move_generation && *move) {
+        next_state = *state;
+        STATE_apply_move(&next_state, *move);
+        if(!SEARCH_is_check(&next_state, state->player)) {
+            score = -SEARCH_alphabeta(&next_state, ttable, depth-1, &next_move, -beta, -alpha);
+            if(score >= beta) {
+                best_score = beta;
+                skip_move_generation = 1;
+            }
+        }
+    }
+#endif
+
     if(!skip_move_generation) {
         num_moves = STATE_generate_moves(state, moves);
         
@@ -108,6 +122,7 @@ int SEARCH_alphabeta_quiescence(const chess_state_t *state, ttable_t *ttable, in
     int i;
     int score;
     int best_score;
+    int skip_move_generation = 0;
     move_t move;
     chess_state_t next_state;
     move_t moves[256];
@@ -132,31 +147,45 @@ int SEARCH_alphabeta_quiescence(const chess_state_t *state, ttable_t *ttable, in
     if(alpha >= beta) {
         return alpha;
     }
-#endif
     
-    num_moves = STATE_generate_moves_quiescence(state, moves);
-    
-#if USE_MOVE_ORDERING
-    MOVEORDER_order_moves(state, moves, num_moves, move);
-#endif
-    
-    num_legal_moves = 0;
-    for(i = 0; i < num_moves; i++) {
+    if(move) {
         next_state = *state;
-        STATE_apply_move(&next_state, moves[i]);
-        if(SEARCH_is_check(&next_state, state->player)) {
-            continue;
-        }
-        num_legal_moves++;
-        score = -SEARCH_alphabeta_quiescence(&next_state, ttable, -beta, -alpha);
-        if(score > best_score) {
-            best_score = score;
-            if(best_score >= beta) {
-                /* Beta-cuttoff */
-                break;
+        STATE_apply_move(&next_state, move);
+        if(!SEARCH_is_check(&next_state, state->player)) {
+            score = -SEARCH_alphabeta_quiescence(&next_state, ttable, -beta, -alpha);
+            if(score >= beta) {
+                best_score = beta;
+                skip_move_generation = 1;
             }
-            if(best_score > alpha) {
-                alpha = best_score;
+        }
+    }
+#endif
+
+    if(!skip_move_generation) {    
+        num_moves = STATE_generate_moves_quiescence(state, moves);
+        
+#if USE_MOVE_ORDERING
+        MOVEORDER_order_moves(state, moves, num_moves, move);
+#endif
+        
+        num_legal_moves = 0;
+        for(i = 0; i < num_moves; i++) {
+            next_state = *state;
+            STATE_apply_move(&next_state, moves[i]);
+            if(SEARCH_is_check(&next_state, state->player)) {
+                continue;
+            }
+            num_legal_moves++;
+            score = -SEARCH_alphabeta_quiescence(&next_state, ttable, -beta, -alpha);
+            if(score > best_score) {
+                best_score = score;
+                if(best_score >= beta) {
+                    /* Beta-cuttoff */
+                    break;
+                }
+                if(best_score > alpha) {
+                    alpha = best_score;
+                }
             }
         }
     }
