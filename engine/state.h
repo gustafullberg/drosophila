@@ -90,6 +90,7 @@ int  STATE_generate_moves(const chess_state_t *s, move_t *moves);
 int  STATE_generate_moves_quiescence(const chess_state_t *s, move_t *moves);
 int  STATE_apply_move(chess_state_t *s, const move_t move);
 void STATE_compute_hash(chess_state_t *s);
+int  STATE_is_endgame(const chess_state_t *s);
 void STATE_move_print_debug(const move_t move);
 void STATE_board_print_debug(const chess_state_t *s);
 

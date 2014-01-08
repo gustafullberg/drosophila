@@ -41,10 +41,10 @@ int SEARCH_alphabeta(const chess_state_t *state, ttable_t *ttable, short depth, 
 #endif
 
 #if USE_NULL_MOVE
-    if(depth > 4 && state->last_move) {
-        next_state = *state;
-        STATE_apply_move(&next_state, 0);
-        if(!SEARCH_is_check(&next_state, state->player)) {
+    if(depth > 4 && state->last_move && !STATE_is_endgame(state)) {
+        if(!SEARCH_is_check(state, state->player)) {
+            next_state = *state;
+            STATE_apply_move(&next_state, 0);
             score = -SEARCH_alphabeta(&next_state, ttable, depth-3, &next_move, -beta, -alpha);
             if(score >= beta) {
                 best_score = beta;

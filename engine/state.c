@@ -420,6 +420,14 @@ void STATE_compute_hash(chess_state_t *s)
     }
 }
 
+int STATE_is_endgame(const chess_state_t *s)
+{
+    bitboard_t pieces = s->bitboard[OCCUPIED];
+    pieces ^= s->bitboard[WHITE_PIECES+PAWN];
+    pieces ^= s->bitboard[BLACK_PIECES+PAWN];
+    return bitboard_count_bits(pieces) <= 6;
+}
+
 void STATE_move_print_debug(const move_t move)
 {
     int pos_from = MOVE_GET_POS_FROM(move);
