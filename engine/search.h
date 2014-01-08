@@ -1,13 +1,12 @@
 #ifndef _SEARCH_H
 #define _SEARCH_H
 
-#include <limits.h>
 #include "defines.h"
 #include "state.h"
 #include "ttable.h"
 
-#define SEARCH_MIN_RESULT(depth) (-(SHRT_MAX)-(depth))
-#define SEARCH_MAX_RESULT(depth) ((SHRT_MAX)+(depth))
+#define SEARCH_MIN_RESULT(depth) (-1000-(depth))
+#define SEARCH_MAX_RESULT(depth) (1000+(depth))
 
 int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, short depth, int *score);
 int SEARCH_is_check(const chess_state_t *s, int color);

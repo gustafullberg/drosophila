@@ -93,7 +93,10 @@ int EVAL_evaluate_board(const chess_state_t *s)
     score -=      5 * (bitboard_count_bits(bitboard_bad_bishop[WHITE] & s->bitboard[WHITE_PIECES+BISHOP]) - 
                         bitboard_count_bits(bitboard_bad_bishop[BLACK] & s->bitboard[BLACK_PIECES+BISHOP]));
     
-    score += pawn_structure_assessment(s);                    
+    score += pawn_structure_assessment(s);
+    
+    /* Down-sample score for faster MTD(f) convergence */
+    score = score >> 2;
     
     /* Switch sign of evaluation if it is black's turn */
     return score * sign[(int)(s->player)];
