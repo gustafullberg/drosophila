@@ -59,9 +59,8 @@ int SEARCH_alphabeta(const chess_state_t *state, ttable_t *ttable, short depth, 
         next_state = *state;
         STATE_apply_move(&next_state, *move);
         if(!SEARCH_is_check(&next_state, state->player)) {
-            score = -SEARCH_alphabeta(&next_state, ttable, depth-1, &next_move, -beta, -alpha);
-            if(score >= beta) {
-                best_score = beta;
+            best_score = -SEARCH_alphabeta(&next_state, ttable, depth-1, &next_move, -beta, -alpha);
+            if(best_score >= beta) {
                 skip_move_generation = 1;
             }
         }
@@ -71,9 +70,9 @@ int SEARCH_alphabeta(const chess_state_t *state, ttable_t *ttable, short depth, 
     if(!skip_move_generation) {
         num_moves = STATE_generate_moves(state, moves);
         
-    #if USE_MOVE_ORDERING
-        MOVEORDER_order_moves(state, moves, num_moves, *move);
-    #endif
+#if USE_MOVE_ORDERING
+        num_moves = MOVEORDER_order_moves(state, moves, num_moves, *move);
+#endif
 
         num_legal_moves = 0;
         for(i = 0; i < num_moves; i++) {
@@ -152,9 +151,8 @@ int SEARCH_alphabeta_quiescence(const chess_state_t *state, ttable_t *ttable, in
         next_state = *state;
         STATE_apply_move(&next_state, move);
         if(!SEARCH_is_check(&next_state, state->player)) {
-            score = -SEARCH_alphabeta_quiescence(&next_state, ttable, -beta, -alpha);
-            if(score >= beta) {
-                best_score = beta;
+            best_score = -SEARCH_alphabeta_quiescence(&next_state, ttable, -beta, -alpha);
+            if(best_score >= beta) {
                 skip_move_generation = 1;
             }
         }
@@ -165,7 +163,7 @@ int SEARCH_alphabeta_quiescence(const chess_state_t *state, ttable_t *ttable, in
         num_moves = STATE_generate_moves_quiescence(state, moves);
         
 #if USE_MOVE_ORDERING
-        MOVEORDER_order_moves(state, moves, num_moves, move);
+        num_moves = MOVEORDER_order_moves(state, moves, num_moves, move);
 #endif
         
         num_legal_moves = 0;

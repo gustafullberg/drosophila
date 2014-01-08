@@ -10,16 +10,12 @@ static int capture_score[6][6] = {
     { 10 + 1 -10, 10 + 3 -10, 10 + 3 -10, 10 + 5 -10, 10 + 9 -10, 10 + 10 -10 }
 };
 
-static int MOVEORDER_compute_score(const chess_state_t *s, move_t move, move_t best_guess)
+static int MOVEORDER_compute_score(const chess_state_t *s, move_t move)
 {
     const unsigned int max = MOVE_SCORE_MASK >> MOVE_SCORE_SHIFT;
     unsigned int score = 0;
     
     const int pos_to = MOVE_GET_POS_TO(move);
-
-    if(move == best_guess) {
-        score += 1000;
-    }
     
     if(MOVE_IS_PROMOTION(move)) {
         score += 20;
@@ -62,19 +58,30 @@ static void MOVERORDER_sort(move_t moves[], int num_moves)
         temp = moves[i];
         moves[i] = moves[index_highest];
         moves[index_highest] = temp;
+        if(moves[i] == 0) {
+            break;
+        }
     }
 }
 
-void MOVEORDER_order_moves(const chess_state_t *s, move_t moves[], int num_moves, move_t best_guess)
+int MOVEORDER_order_moves(const chess_state_t *s, move_t moves[], int num_moves, move_t best_guess)
 {
     int i;
     
     /* Get score for each move */
     for(i = 0; i < num_moves; i++) {
-        int score = MOVEORDER_compute_score(s, moves[i], best_guess);
+        int score;
+        if(moves[i] == best_guess) {
+            /* This move is already tried. Remove it from the list */
+            moves[i] = moves[num_moves-1];
+            num_moves--;
+        }
+        score = MOVEORDER_compute_score(s, moves[i]);
         moves[i] |= score << MOVE_SCORE_SHIFT;
     }
     
     /* Sort moves by score */
     MOVERORDER_sort(moves, num_moves);
+    
+    return num_moves;
 }
