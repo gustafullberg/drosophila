@@ -44,11 +44,16 @@ static int MOVEORDER_compute_score(const chess_state_t *s, move_t move)
 
 static void MOVEORDER_sort(move_t moves[], int num_moves)
 {
+#define MAX_NUM_MOVE_TO_SORT 4
     int i, j;
     move_t temp;
+    int num_to_sort = num_moves;
+    if(num_to_sort > MAX_NUM_MOVE_TO_SORT) {
+        num_to_sort = MAX_NUM_MOVE_TO_SORT;
+    }
     
     /* Selection sort (greatest first) */
-    for(i = 0; i < num_moves-1; i++) {
+    for(i = 0; i < num_to_sort-1; i++) {
         int index_highest = i;
         for(j = i+1; j < num_moves; j++) {
             if(moves[j] > moves[index_highest]) {
@@ -58,11 +63,6 @@ static void MOVEORDER_sort(move_t moves[], int num_moves)
         temp = moves[i];
         moves[i] = moves[index_highest];
         moves[index_highest] = temp;
-        
-        /* Break if the rest of the moves have a score of zero */
-        if(moves[i] && MOVE_SCORE_MASK == 0) {
-            break;
-        }
     }
 }
 
