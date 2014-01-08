@@ -42,7 +42,7 @@ static int MOVEORDER_compute_score(const chess_state_t *s, move_t move)
     return score;
 }
 
-static void MOVERORDER_sort(move_t moves[], int num_moves)
+static void MOVEORDER_sort(move_t moves[], int num_moves)
 {
     int i, j;
     move_t temp;
@@ -58,7 +58,9 @@ static void MOVERORDER_sort(move_t moves[], int num_moves)
         temp = moves[i];
         moves[i] = moves[index_highest];
         moves[index_highest] = temp;
-        if(moves[i] == 0) {
+        
+        /* Break if the rest of the moves have a score of zero */
+        if(moves[i] && MOVE_SCORE_MASK == 0) {
             break;
         }
     }
@@ -81,7 +83,7 @@ int MOVEORDER_order_moves(const chess_state_t *s, move_t moves[], int num_moves,
     }
     
     /* Sort moves by score */
-    MOVERORDER_sort(moves, num_moves);
+    MOVEORDER_sort(moves, num_moves);
     
     return num_moves;
 }
