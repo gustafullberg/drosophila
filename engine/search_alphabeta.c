@@ -134,7 +134,7 @@ int SEARCH_alphabeta_quiescence(const chess_state_t *state, ttable_t *ttable, in
     best_score = EVAL_evaluate_board(state);
     if(best_score > alpha) {
         if(best_score >= beta) {
-            return beta;
+            return best_score;
         }
         alpha = best_score;
     }
