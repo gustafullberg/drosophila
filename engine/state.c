@@ -32,10 +32,10 @@ static int STATE_add_moves_to_list(const chess_state_t *s, bitboard_t bitboard_t
     int pos_to;
     int num_moves = 0;
     
+    move = (pos_from) | (type << 12) | (captured_type << 15) | (special << 18);
     while(bitboard_to) {
         pos_to = bitboard_find_bit(bitboard_to);
-        move = (pos_from) | (pos_to << 6) | (type << 12) | (captured_type << 15) | (special << 18);
-        moves[num_moves] = move;
+        moves[num_moves] = move | (pos_to << 6);
         
         bitboard_to ^= BITBOARD_POSITION(pos_to);
         num_moves++;
@@ -50,22 +50,24 @@ int STATE_generate_moves(const chess_state_t *s, move_t *moves)
     bitboard_t pieces, possible_moves, possible_captures;
     bitboard_t pawn_push2, pawn_promotion, pawn_capture_promotion;
     int num_moves = 0;
-    int player = s->player;
-    int opponent = player ^ 1;
-    int player_index = NUM_TYPES*player;
-    int opponent_index = NUM_TYPES*opponent;
+    const int player = s->player;
+    const int opponent = player ^ 1;
+    const int player_index = NUM_TYPES*player;
+    const int opponent_index = NUM_TYPES*opponent;
+    const bitboard_t player_pieces = s->bitboard[player_index + ALL];
+    const bitboard_t opponent_pieces = s->bitboard[opponent_index + ALL];
     
     type = PAWN;
     pieces = s->bitboard[player_index + type];
     while(pieces) { /* Loop through all pieces of the type */
         pos_from = bitboard_find_bit(pieces);
         
-        MOVEGEN_pawn(player, pos_from, s->bitboard[player_index + ALL], s->bitboard[opponent_index + ALL], &possible_moves, &pawn_push2, &possible_captures, &pawn_promotion, &pawn_capture_promotion);
+        MOVEGEN_pawn(player, pos_from, player_pieces, opponent_pieces, &possible_moves, &pawn_push2, &possible_captures, &pawn_promotion, &pawn_capture_promotion);
         
         num_moves += STATE_add_moves_to_list(s, possible_moves, pos_from, type, 0, MOVE_QUIET, moves + num_moves);
         num_moves += STATE_add_moves_to_list(s, pawn_push2, pos_from, type, 0, MOVE_DOUBLE_PAWN_PUSH, moves + num_moves);
 
-        for(opponent_type = 0; possible_captures && (opponent_type < NUM_TYPES - 1); opponent_type++) {
+        for(opponent_type = 0; possible_captures; opponent_type++) {
             bitboard_t captures = possible_captures & s->bitboard[opponent_index + opponent_type];
             num_moves += STATE_add_moves_to_list(s, captures, pos_from, type, opponent_type, MOVE_CAPTURE, moves + num_moves);
             possible_captures ^= captures;
@@ -96,10 +98,10 @@ int STATE_generate_moves(const chess_state_t *s, move_t *moves)
             pos_from = bitboard_find_bit(pieces);
 
             /* Get all possible moves for this piece */
-            MOVEGEN_piece(player, type, pos_from, s->bitboard[player_index + ALL], s->bitboard[opponent_index + ALL], &possible_moves, &possible_captures);
+            MOVEGEN_piece(player, type, pos_from, player_pieces, opponent_pieces, &possible_moves, &possible_captures);
             
             /* Extract possible captures */
-            for(opponent_type = 0; possible_captures && (opponent_type < NUM_TYPES - 1); opponent_type++) {
+            for(opponent_type = 0; possible_captures; opponent_type++) {
                 bitboard_t captures = possible_captures & s->bitboard[opponent_index + opponent_type];
                 num_moves += STATE_add_moves_to_list(s, captures, pos_from, type, opponent_type, MOVE_CAPTURE, moves + num_moves);
                 possible_captures ^= captures;
@@ -140,8 +142,8 @@ int STATE_generate_moves(const chess_state_t *s, move_t *moves)
 
     /* King-side Castling */
     if(s->flags[player] & STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK) {
-        int king_pos = bitboard_find_bit(s->bitboard[player_index + KING]);
-        if((bitboard_king_castle_empty[player] & (s->bitboard[WHITE_PIECES + ALL] | s->bitboard[BLACK_PIECES + ALL])) == 0) {
+        if((bitboard_king_castle_empty[player] & s->bitboard[OCCUPIED]) == 0) {
+            int king_pos = bitboard_find_bit(s->bitboard[player_index + KING]);
             if(EVAL_position_is_attacked(s, player, king_pos+0) == 0 && 
                EVAL_position_is_attacked(s, player, king_pos+1) == 0 &&
                EVAL_position_is_attacked(s, player, king_pos+2) == 0)
@@ -153,8 +155,8 @@ int STATE_generate_moves(const chess_state_t *s, move_t *moves)
     
     /* Queen-side Castling */
     if(s->flags[player] & STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK) {
-        int king_pos = bitboard_find_bit(s->bitboard[player_index + KING]);
-        if((bitboard_queen_castle_empty[player] & (s->bitboard[WHITE_PIECES + ALL] | s->bitboard[BLACK_PIECES + ALL])) == 0) {
+        if((bitboard_queen_castle_empty[player] & s->bitboard[OCCUPIED]) == 0) {
+            int king_pos = bitboard_find_bit(s->bitboard[player_index + KING]);
             if(EVAL_position_is_attacked(s, player, king_pos-0) == 0 && 
                EVAL_position_is_attacked(s, player, king_pos-1) == 0 &&
                EVAL_position_is_attacked(s, player, king_pos-2) == 0)
@@ -173,19 +175,21 @@ int STATE_generate_moves_quiescence(const chess_state_t *s, move_t *moves)
     bitboard_t pieces, possible_moves, possible_captures;
     bitboard_t pawn_push2, pawn_promotion, pawn_capture_promotion;
     int num_moves = 0;
-    int player = s->player;
-    int opponent = player ^ 1;
-    int player_index = NUM_TYPES*player;
-    int opponent_index = NUM_TYPES*opponent;
+    const int player = s->player;
+    const int opponent = player ^ 1;
+    const int player_index = NUM_TYPES*player;
+    const int opponent_index = NUM_TYPES*opponent;
+    const bitboard_t player_pieces = s->bitboard[player_index + ALL];
+    const bitboard_t opponent_pieces = s->bitboard[opponent_index + ALL];
     
     type = PAWN;
     pieces = s->bitboard[player_index + type];
     while(pieces) { /* Loop through all pieces of the type */
         pos_from = bitboard_find_bit(pieces);
         
-        MOVEGEN_pawn(player, pos_from, s->bitboard[player_index + ALL], s->bitboard[opponent_index + ALL], &possible_moves, &pawn_push2, &possible_captures, &pawn_promotion, &pawn_capture_promotion);
+        MOVEGEN_pawn(player, pos_from, player_pieces, opponent_pieces, &possible_moves, &pawn_push2, &possible_captures, &pawn_promotion, &pawn_capture_promotion);
         
-        for(opponent_type = 0; possible_captures && (opponent_type < NUM_TYPES - 1); opponent_type++) {
+        for(opponent_type = 0; possible_captures; opponent_type++) {
             bitboard_t captures = possible_captures & s->bitboard[opponent_index + opponent_type];
             num_moves += STATE_add_moves_to_list(s, captures, pos_from, type, opponent_type, MOVE_CAPTURE, moves + num_moves);
             possible_captures ^= captures;
@@ -216,10 +220,10 @@ int STATE_generate_moves_quiescence(const chess_state_t *s, move_t *moves)
             pos_from = bitboard_find_bit(pieces);
 
             /* Get all possible moves for this piece */
-            MOVEGEN_piece(player, type, pos_from, s->bitboard[player_index + ALL], s->bitboard[opponent_index + ALL], &possible_moves, &possible_captures);
+            MOVEGEN_piece(player, type, pos_from, player_pieces, opponent_pieces, &possible_moves, &possible_captures);
             
             /* Extract possible captures */
-            for(opponent_type = 0; possible_captures && (opponent_type < NUM_TYPES - 1); opponent_type++) {
+            for(opponent_type = 0; possible_captures; opponent_type++) {
                 bitboard_t captures = possible_captures & s->bitboard[opponent_index + opponent_type];
                 num_moves += STATE_add_moves_to_list(s, captures, pos_from, type, opponent_type, MOVE_CAPTURE, moves + num_moves);
                 possible_captures ^= captures;
