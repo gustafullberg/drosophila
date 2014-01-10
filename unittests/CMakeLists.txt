@@ -11,6 +11,12 @@ add_executable(
 target_link_libraries(unittest_moves pawnedengine)
 
 add_executable(
+    unittest_perft
+    test_perft.c
+)
+target_link_libraries(unittest_perft pawnedengine)
+
+add_executable(
     unittest_search
     test_search.c
 )
