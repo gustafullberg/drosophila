@@ -7,7 +7,7 @@ static inline ttable_entry_t *SEARCH_transpositiontable_retrieve(ttable_t *ttabl
 static inline void SEARCH_transpositiontable_store(ttable_t *ttable, bitboard_t hash, int depth, int best_score, move_t best_move, int alpha, int beta);
 
 /* Alpha-Beta search with Nega Max */
-int SEARCH_alphabeta(const chess_state_t *state, ttable_t *ttable, short depth, move_t *move, int inalpha, int inbeta)
+int SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, short depth, move_t *move, int inalpha, int inbeta)
 {
     int num_moves;
     int num_legal_moves;
@@ -25,14 +25,14 @@ int SEARCH_alphabeta(const chess_state_t *state, ttable_t *ttable, short depth, 
 
     if(depth <= 0) {
 #if USE_QUIESCENCE
-        return SEARCH_alphabeta_quiescence(state, ttable, alpha, beta);
+        return SEARCH_alphabeta_quiescence(state, search_state, alpha, beta);
 #else
         return EVAL_evaluate_board(state);
 #endif
     }
     
 #if USE_TRANSPOSITION_TABLE
-    SEARCH_transpositiontable_retrieve(ttable, state->hash, depth, &alpha, &beta, move);
+    SEARCH_transpositiontable_retrieve(search_state->ttable, state->hash, depth, &alpha, &beta, move);
     if(alpha >= inbeta) return alpha;
     if(beta <= inalpha) return beta;
     if(alpha >= beta) {
@@ -45,7 +45,7 @@ int SEARCH_alphabeta(const chess_state_t *state, ttable_t *ttable, short depth, 
         if(!SEARCH_is_check(state, state->player)) {
             next_state = *state;
             STATE_apply_move(&next_state, 0);
-            score = -SEARCH_alphabeta(&next_state, ttable, depth-3, &next_move, -beta, -alpha);
+            score = -SEARCH_alphabeta(&next_state, search_state, depth-3, &next_move, -beta, -alpha);
             if(score >= beta) {
                 best_score = beta;
                 skip_move_generation = 1;
@@ -59,7 +59,7 @@ int SEARCH_alphabeta(const chess_state_t *state, ttable_t *ttable, short depth, 
         next_state = *state;
         STATE_apply_move(&next_state, *move);
         if(!SEARCH_is_check(&next_state, state->player)) {
-            best_score = -SEARCH_alphabeta(&next_state, ttable, depth-1, &next_move, -beta, -alpha);
+            best_score = -SEARCH_alphabeta(&next_state, search_state, depth-1, &next_move, -beta, -alpha);
             if(best_score >= beta) {
                 skip_move_generation = 1;
             }
@@ -82,7 +82,7 @@ int SEARCH_alphabeta(const chess_state_t *state, ttable_t *ttable, short depth, 
                 continue;
             }
             num_legal_moves++;
-            score = -SEARCH_alphabeta(&next_state, ttable, depth-1, &next_move, -beta, -alpha);
+            score = -SEARCH_alphabeta(&next_state, search_state, depth-1, &next_move, -beta, -alpha);
             if(score > best_score) {
                 best_score = score;
                 *move = moves[i];
@@ -108,13 +108,13 @@ int SEARCH_alphabeta(const chess_state_t *state, ttable_t *ttable, short depth, 
     }
     
 #if USE_TRANSPOSITION_TABLE
-    SEARCH_transpositiontable_store(ttable, state->hash, depth, best_score, *move, inalpha, inbeta);
+    SEARCH_transpositiontable_store(search_state->ttable, state->hash, depth, best_score, *move, inalpha, inbeta);
 #endif
     return best_score;
 }
 
 /* Alpha-Beta quiescence search with Nega Max */
-int SEARCH_alphabeta_quiescence(const chess_state_t *state, ttable_t *ttable, int inalpha, int inbeta)
+int SEARCH_alphabeta_quiescence(const chess_state_t *state, search_state_t *search_state, int inalpha, int inbeta)
 {
     int num_moves;
     int num_legal_moves;
@@ -140,7 +140,7 @@ int SEARCH_alphabeta_quiescence(const chess_state_t *state, ttable_t *ttable, in
     }
     
 #if USE_TRANSPOSITION_TABLE
-    SEARCH_transpositiontable_retrieve(ttable, state->hash, 0, &alpha, &beta, &move);
+    SEARCH_transpositiontable_retrieve(search_state->ttable, state->hash, 0, &alpha, &beta, &move);
     if(alpha >= inbeta) return alpha;
     if(beta <= inalpha) return beta;
     if(alpha >= beta) {
@@ -151,7 +151,7 @@ int SEARCH_alphabeta_quiescence(const chess_state_t *state, ttable_t *ttable, in
         next_state = *state;
         STATE_apply_move(&next_state, move);
         if(!SEARCH_is_check(&next_state, state->player)) {
-            best_score = -SEARCH_alphabeta_quiescence(&next_state, ttable, -beta, -alpha);
+            best_score = -SEARCH_alphabeta_quiescence(&next_state, search_state, -beta, -alpha);
             if(best_score >= beta) {
                 skip_move_generation = 1;
             }
@@ -174,7 +174,7 @@ int SEARCH_alphabeta_quiescence(const chess_state_t *state, ttable_t *ttable, in
                 continue;
             }
             num_legal_moves++;
-            score = -SEARCH_alphabeta_quiescence(&next_state, ttable, -beta, -alpha);
+            score = -SEARCH_alphabeta_quiescence(&next_state, search_state, -beta, -alpha);
             if(score > best_score) {
                 best_score = score;
                 if(best_score >= beta) {
@@ -189,7 +189,7 @@ int SEARCH_alphabeta_quiescence(const chess_state_t *state, ttable_t *ttable, in
     }
     
 #if USE_TRANSPOSITION_TABLE
-    SEARCH_transpositiontable_store(ttable, state->hash, 0, best_score, 0, inalpha, inbeta);
+    SEARCH_transpositiontable_store(search_state->ttable, state->hash, 0, best_score, 0, inalpha, inbeta);
 #endif
     
     return best_score;

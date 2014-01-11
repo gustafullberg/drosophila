@@ -5,7 +5,7 @@
 
 #define abs(x) ((x) >= 0 ? (x) : -(x))
 
-int SEARCH_mtdf(const chess_state_t *s, ttable_t *ttable, short depth, move_t *move, int guess)
+int SEARCH_mtdf(const chess_state_t *s, search_state_t *search_state, short depth, move_t *move, int guess)
 {
     int bounds[2];
     int beta;
@@ -25,7 +25,7 @@ int SEARCH_mtdf(const chess_state_t *s, ttable_t *ttable, short depth, move_t *m
             beta = guess;
         }
 
-        guess = SEARCH_alphabeta(&state, ttable, depth, &movetemp, beta-1, beta);
+        guess = SEARCH_alphabeta(&state, search_state, depth, &movetemp, beta-1, beta);
 
         if(guess < beta) {
             bounds[1] = guess;
@@ -38,7 +38,7 @@ int SEARCH_mtdf(const chess_state_t *s, ttable_t *ttable, short depth, move_t *m
     return guess;
 }
 
-int SEARCH_mtdf_iterative(const chess_state_t *s, ttable_t *ttable, short max_depth, move_t *move)
+int SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state, short max_depth, move_t *move)
 {
 #define MAX_DEPTH 100
     short depth;
@@ -51,7 +51,7 @@ int SEARCH_mtdf_iterative(const chess_state_t *s, ttable_t *ttable, short max_de
         max_depth = MAX_DEPTH;
     }
     
-    results[0] = SEARCH_mtdf(s, ttable, 0, &m, 0);
+    results[0] = SEARCH_mtdf(s, search_state, 0, &m, 0);
     
     for(depth = 1; depth <= max_depth; depth++) {
         
@@ -65,7 +65,7 @@ int SEARCH_mtdf_iterative(const chess_state_t *s, ttable_t *ttable, short max_de
             }
         }
         
-        results[depth] = SEARCH_mtdf(s, ttable, depth, &m, guess);
+        results[depth] = SEARCH_mtdf(s, search_state, depth, &m, guess);
         *move = m;
     }
     

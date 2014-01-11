@@ -8,7 +8,9 @@
 int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, short depth, int *score)
 {
     move_t move = 0;
-    *score = SEARCH_mtdf_iterative(s, ttable, depth, &move);
+    search_state_t search_state;
+    search_state.ttable = ttable;
+    *score = SEARCH_mtdf_iterative(s, &search_state, depth, &move);
     return move;
 }
 
