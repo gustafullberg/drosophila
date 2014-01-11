@@ -9,7 +9,8 @@
 #define SEARCH_MAX_RESULT(depth) (1000+(depth))
 
 typedef struct {
-    ttable_t *ttable;
+    ttable_t    *ttable;
+    int         abort_search;
 } search_state_t;
 
 int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, short depth, int *score);

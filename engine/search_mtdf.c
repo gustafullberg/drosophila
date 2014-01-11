@@ -33,6 +33,10 @@ int SEARCH_mtdf(const chess_state_t *s, search_state_t *search_state, short dept
             bounds[0] = guess;
             *move = movetemp;
         }
+        
+        if(search_state->abort_search) {
+            return 0;
+        }
     }
     
     return guess;
@@ -52,6 +56,7 @@ int SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state, 
     }
     
     results[0] = SEARCH_mtdf(s, search_state, 0, &m, 0);
+    *move = m;
     
     for(depth = 1; depth <= max_depth; depth++) {
         
@@ -66,6 +71,12 @@ int SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state, 
         }
         
         results[depth] = SEARCH_mtdf(s, search_state, depth, &m, guess);
+        
+        if(search_state->abort_search) {
+            depth--;
+            break;
+        }
+        
         *move = m;
     }
     

@@ -22,6 +22,10 @@ int SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, s
     int alpha = inalpha;
     int beta = inbeta;
     *move = 0;
+    
+    if(search_state->abort_search) {
+        return 0;
+    }
 
     if(depth <= 0) {
 #if USE_QUIESCENCE
