@@ -30,6 +30,8 @@ else()
     add_definitions(-DUSE_NULL_MOVE=0)
 endif()
 
+option(BUILD_TESTS "Build test binaries" ON)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 if(CMAKE_COMPILER_IS_GNUCC OR "${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
@@ -40,5 +42,8 @@ endif()
 
 include_directories(engine)
 add_subdirectory(engine)
-add_subdirectory(unittests)
 add_subdirectory(interface)
+
+if(BUILD_TESTS)
+add_subdirectory(tests)
+endif()
