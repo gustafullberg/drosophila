@@ -6,6 +6,8 @@ set(files
     engine.h
     eval.c
     eval.h
+    fen.c
+    fen.h
     movegen.c
     movegen.h
     moveorder.c
