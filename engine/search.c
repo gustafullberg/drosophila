@@ -5,7 +5,7 @@
 #include "search_minimax.h"
 #include "eval.h"
 
-int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, int *score)
+int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, int time_for_move_ms, int *score)
 {
     move_t move = 0;
     search_state_t search_state;
@@ -13,7 +13,7 @@ int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, int *score)
     search_state.abort_search = 0;
     search_state.next_clock_check = SEARCH_ITERATIONS_BETWEEN_CLOCK_CHECK;
     SEARCH_time_now(&search_state.start_time);
-    search_state.time_for_move_ms = 5 * 1000;
+    search_state.time_for_move_ms = time_for_move_ms;
     
     *score = SEARCH_mtdf_iterative(s, &search_state, &move);
     return move;
@@ -47,19 +47,19 @@ int SEARCH_is_mate(const chess_state_t *state)
     return 1;
 }
 
-void SEARCH_time_now(struct timespec *time)
+void SEARCH_time_now(struct timeval *time)
 {
-    clock_gettime(CLOCK_MONOTONIC, time);
+    gettimeofday(time, NULL);
 }
 
 int64_t SEARCH_time_left_ms(search_state_t *search_state)
 {
-    struct timespec now;
+    struct timeval now;
     int64_t time_left_ms = 0;
     
     SEARCH_time_now(&now);
     time_left_ms = (now.tv_sec - search_state->start_time.tv_sec) * 1000 +
-                    (now.tv_nsec - search_state->start_time.tv_nsec) / 1000000;
+                    (now.tv_usec - search_state->start_time.tv_usec) / 1000;
     
     return time_left_ms;
 }

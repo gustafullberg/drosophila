@@ -55,10 +55,19 @@ void send_result(int result)
     }
 }
 
-void make_move(engine_state_t *engine)
+void make_move(state_t *state, engine_state_t *engine)
 {
     int pos_from, pos_to, promotion_type, result;
-    result = ENGINE_think_and_move(engine, &pos_from, &pos_to, &promotion_type);
+    int time_left_ms = state->time_left_centiseconds * 10;
+    int time_incremental_ms = state->time_incremental_seconds * 1000;
+    int moves_left_in_period = 0;
+    
+    if(state->time_period) {
+        int num_moves = state->num_half_moves / 2;
+        moves_left_in_period = state->time_period - (num_moves % state->time_period);
+    }
+    
+    result = ENGINE_think_and_move(engine, moves_left_in_period, time_left_ms, time_incremental_ms, &pos_from, &pos_to, &promotion_type);
     if(promotion_type) {
         char pt = 0;
         if(promotion_type == 1) pt = 'n';
@@ -70,6 +79,7 @@ void make_move(engine_state_t *engine)
         fprintf(stdout, "move %c%c%c%c\n", (pos_from%8)+'a', (pos_from/8)+'1', (pos_to%8)+'a', (pos_to/8)+'1');
     }
     
+    state->num_half_moves++;
     send_result(result);
 }
 
@@ -108,7 +118,7 @@ void parse_move(const char *move_str, int *pos_from, int *pos_to, int *promotion
     }
 }
 
-void user_move(engine_state_t *engine, const char *move_str, int respond_to_move)
+void user_move(state_t *state, engine_state_t *engine, const char *move_str, int respond_to_move)
 {
     int result;
     int pos_from, pos_to, promotion_type;
@@ -117,8 +127,9 @@ void user_move(engine_state_t *engine, const char *move_str, int respond_to_move
     /* Move piece */
     result = ENGINE_apply_move(engine, pos_from, pos_to, promotion_type);
     if(result == ENGINE_RESULT_NONE) {
+        state->num_half_moves++;
         if(respond_to_move) {
-            make_move(engine);
+            make_move(state, engine);
         }
     } else if(result == ENGINE_RESULT_ILLEGAL_MOVE) {
         /* Illegal move */
@@ -129,7 +140,7 @@ void user_move(engine_state_t *engine, const char *move_str, int respond_to_move
     }
 }
 
-void parse_time_control(const char *level)
+void parse_time_control(state_t *state, const char *level)
 {
     int period = 0;
     int minutes = 0;
@@ -148,6 +159,10 @@ void parse_time_control(const char *level)
             return;
         }
     }
+    
+    state->time_period = period;
+    state->time_left_centiseconds = 100 * (60 * minutes + seconds);
+    state->time_incremental_seconds = inc_seconds;
 }
 
 static void process_command(engine_state_t *engine, char *command, state_t *state)
@@ -167,13 +182,13 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
     
     /* usermove */
     else if(strncmp(command, "usermove ", 9) == 0) {
-        user_move(engine, command + 9, !state->flag_forced);
+        user_move(state, engine, command + 9, !state->flag_forced);
     }
     
     /* go */
     else if(strcmp(command, "go\n") == 0) {
         state->flag_forced = 0;
-        make_move(engine);
+        make_move(state, engine);
     }
     
     /*  quit */
@@ -188,7 +203,7 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
     
     /* level */
     else if(strncmp(command, "level ", 6) == 0) {
-        parse_time_control(command + 6);
+        parse_time_control(state, command + 6);
     }
 
     /* time */

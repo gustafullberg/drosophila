@@ -76,13 +76,23 @@ int ENGINE_apply_move(engine_state_t *state, int pos_from, int pos_to, int promo
     return ENGINE_RESULT_ILLEGAL_MOVE;
 }
 
-int ENGINE_think_and_move(engine_state_t *state, int *pos_from, int *pos_to, int *promotion_type)
+int ENGINE_think_and_move(engine_state_t *state, int moves_left_in_period, int time_left_ms, int time_incremental_ms, int *pos_from, int *pos_to, int *promotion_type)
 {
     int move;
     int special;
     int score;
+    int time_for_move_ms;
+    
+    if(moves_left_in_period) {
+        time_for_move_ms = time_left_ms / moves_left_in_period;
+        if(time_for_move_ms > time_left_ms - 100) {
+            time_for_move_ms = time_left_ms - 100;
+        }
+    } else {
+        time_for_move_ms = time_left_ms * 2 / 100;
+    }
 
-    move = SEARCH_perform_search(state->chess_state, state->ttable, &score);
+    move = SEARCH_perform_search(state->chess_state, state->ttable, time_for_move_ms, &score);
 
     *pos_from = MOVE_GET_POS_FROM(move);
     *pos_to = MOVE_GET_POS_TO(move);
