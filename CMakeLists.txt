@@ -30,6 +30,13 @@ else()
     add_definitions(-DUSE_NULL_MOVE=0)
 endif()
 
+option(USE_TIME_MANAGEMENT "Use time management" ON)
+if(USE_TIME_MANAGEMENT)
+    add_definitions(-DUSE_TIME_MANAGEMENT=1)
+else()
+    add_definitions(-DUUSE_TIME_MANAGEMENT=0)
+endif()
+
 option(BUILD_TESTS "Build test binaries" ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})

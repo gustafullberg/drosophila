@@ -23,9 +23,18 @@ int SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, s
     int beta = inbeta;
     *move = 0;
     
+#if USE_TIME_MANAGEMENT
+    search_state->next_clock_check--;
+    if(search_state->next_clock_check <= 0) {
+        search_state->next_clock_check = SEARCH_ITERATIONS_BETWEEN_CLOCK_CHECK;
+        if(SEARCH_time_left_ms(search_state) >= search_state->time_for_move_ms) {
+            search_state->abort_search = 1;
+        }
+    }
     if(search_state->abort_search) {
         return 0;
     }
+#endif
 
     if(depth <= 0) {
 #if USE_QUIESCENCE

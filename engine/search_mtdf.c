@@ -42,7 +42,7 @@ int SEARCH_mtdf(const chess_state_t *s, search_state_t *search_state, short dept
     return guess;
 }
 
-int SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state, short max_depth, move_t *move)
+int SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state, move_t *move)
 {
 #define MAX_DEPTH 100
     short depth;
@@ -51,14 +51,10 @@ int SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state, 
     move_t m;
     m = 0;
     
-    if(max_depth > MAX_DEPTH) {
-        max_depth = MAX_DEPTH;
-    }
-    
     results[0] = SEARCH_mtdf(s, search_state, 0, &m, 0);
     *move = m;
     
-    for(depth = 1; depth <= max_depth; depth++) {
+    for(depth = 1; depth <= MAX_DEPTH; depth++) {
         
         /* If results oscillate between depths, let guess be the result from two depths back */ 
         guess = results[depth-1];
@@ -78,6 +74,12 @@ int SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state, 
         }
         
         *move = m;
+
+#if USE_TIME_MANAGEMENT
+        if(2 * SEARCH_time_left_ms(search_state) > search_state->time_for_move_ms) {
+            break;
+        }
+#endif
     }
     
     return results[depth];

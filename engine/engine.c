@@ -82,7 +82,7 @@ int ENGINE_think_and_move(engine_state_t *state, int *pos_from, int *pos_to, int
     int special;
     int score;
 
-    move = SEARCH_perform_search(state->chess_state, state->ttable, 8, &score);
+    move = SEARCH_perform_search(state->chess_state, state->ttable, &score);
 
     *pos_from = MOVE_GET_POS_FROM(move);
     *pos_to = MOVE_GET_POS_TO(move);
