@@ -37,6 +37,13 @@ else()
     add_definitions(-DUUSE_TIME_MANAGEMENT=0)
 endif()
 
+option(USE_OPENING_BOOK "Use opening book" ON)
+if(USE_OPENING_BOOK)
+    add_definitions(-DUSE_OPENING_BOOK=1)
+else()
+    add_definitions(-DUSE_OPENING_BOOK=0)
+endif()
+
 option(BUILD_TESTS "Build test binaries" ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
