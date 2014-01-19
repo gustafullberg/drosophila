@@ -12,6 +12,10 @@ set(files
     movegen.h
     moveorder.c
     moveorder.h
+    openingbook.c
+    openingbook.h
+    san.c
+    san.h
     search.c
     search.h
     search_alphabeta.c
