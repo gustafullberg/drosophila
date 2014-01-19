@@ -1,6 +1,7 @@
 #include <string.h>
 #include "san.h"
 
+/* TODO: rewrite this dirty code */
 move_t SAN_parse_move(const chess_state_t *state, const char *san)
 {
     move_t moves[256];
@@ -13,6 +14,8 @@ move_t SAN_parse_move(const chess_state_t *state, const char *san)
     int promotion_type = 0;
     int type = PAWN;
     int pos_to = 0;
+    int rank = -1;
+    int file = -1;
     
     len = strlen(san);
     
@@ -76,6 +79,11 @@ move_t SAN_parse_move(const chess_state_t *state, const char *san)
         }
     }
     
+    /* Is this move a check? */
+    if(san[len-1] == '+') {
+        len -= 1;
+    }
+    
     /* Is this move a pawn promotion? */
     if(type == PAWN && strchr(san, '=')) {
         /* To what piece? */
@@ -102,17 +110,41 @@ move_t SAN_parse_move(const chess_state_t *state, const char *san)
     
     /* To what square is the piece moving? */
     pos_to = (san[len-2]-'a') + (san[len-1]-'1') * 8;
+    len -= 2;
     
-    /* TODO: check from file/rank/square */
+    if(is_capture) {
+        len -= 1;
+    }
+    
+    /* Check from file/rank/square */
+    if((type == PAWN && len > 0 ) || (type != PAWN && len > 1)) {
+        const char *s = san;
+        if(type != PAWN) {
+            s += 1;
+            len -= 1;
+        }
+        
+        for(i = 0; i < len; i++) {
+            if(s[i] >= 'a' && s[i] <= 'h') {
+                file = s[i] - 'a';
+            } else if(s[i] >= '1' && s[i] <= '8') {
+                rank = s[i] - '1';
+            }
+        }
+    }
     
     /* Find candidate move */
     for(i = 0; i < num_moves; i++) {
+        int pos_from;
         move_t move = moves[i];
         
         if(MOVE_GET_TYPE(move) != type) continue;
         if((MOVE_IS_CAPTURE(move) != 0) != is_capture) continue;
         if(promotion_type && promotion_type != MOVE_PROMOTION_TYPE(move)) continue;
         if(MOVE_GET_POS_TO(move) != pos_to) continue;
+        pos_from = MOVE_GET_POS_FROM(move);
+        if(rank >= 0 && pos_from / 8 != rank) continue;
+        if(file >= 0 && pos_from % 8 != file) continue;
         
         num_candidates++;
         candidate = move;
