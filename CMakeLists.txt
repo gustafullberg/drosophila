@@ -57,6 +57,7 @@ endif()
 include_directories(engine)
 add_subdirectory(engine)
 add_subdirectory(interface)
+add_subdirectory(tools)
 
 if(BUILD_TESTS)
 add_subdirectory(tests)
