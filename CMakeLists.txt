@@ -44,6 +44,13 @@ else()
     add_definitions(-DUSE_OPENING_BOOK=0)
 endif()
 
+option(USE_LATE_MOVE_REDUCTION "Use late move reductions" ON)
+if(USE_LATE_MOVE_REDUCTION)
+    add_definitions(-DUSE_LATE_MOVE_REDUCTION=1)
+else()
+    add_definitions(-DUSE_LATE_MOVE_REDUCTION=0)
+endif()
+
 option(BUILD_TESTS "Build test binaries" ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})

@@ -18,6 +18,7 @@ int SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, s
     move_t next_move;
     chess_state_t next_state;
     move_t moves[256];
+    int is_in_check;
 
     int alpha = inalpha;
     int beta = inbeta;
@@ -35,6 +36,13 @@ int SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, s
         return 0;
     }
 #endif
+
+    is_in_check = SEARCH_is_check(state, state->player);
+    
+    if(is_in_check) {
+        /* Check extension */
+        depth += 1;
+    }
 
     if(depth <= 0) {
 #if USE_QUIESCENCE
@@ -95,7 +103,25 @@ int SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, s
                 continue;
             }
             num_legal_moves++;
+
+#if USE_LATE_MOVE_REDUCTION
+            /* Late move reduction */
+            if( num_legal_moves > 4                     && /* Four moves have been searched at full depth   */
+                depth >= 3                              && /* No LMR in the last plies                      */
+                !MOVE_IS_CAPTURE_OR_PROMOTION(moves[i]) && /* No LMR if capture / promotion                 */
+                !is_in_check)                              /* No LMR if in check                            */
+            {
+                /* Search at reduced depth */
+                score = -SEARCH_alphabeta(&next_state, search_state, depth-2, &next_move, -beta, -alpha);
+                if(score > alpha) {
+                    score = -SEARCH_alphabeta(&next_state, search_state, depth-1, &next_move, -beta, -alpha);
+                }
+            } else {
+                score = -SEARCH_alphabeta(&next_state, search_state, depth-1, &next_move, -beta, -alpha);
+            }
+#else
             score = -SEARCH_alphabeta(&next_state, search_state, depth-1, &next_move, -beta, -alpha);
+#endif
             if(score > best_score) {
                 best_score = score;
                 *move = moves[i];
