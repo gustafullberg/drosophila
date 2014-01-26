@@ -27,6 +27,15 @@ void state_clear(state_t *state)
     state->num_half_moves = 0;
 }
 
+void state_clear_time(state_t *state)
+{
+    state->time_period = 0;
+    state->time_seconds = 0;
+    state->time_incremental_seconds = 0;
+    state->time_left_centiseconds = 0;
+    state->num_half_moves = 0;
+}
+
 void send_features()
 {
     const char **feature;
@@ -178,6 +187,9 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
     else if(strcmp(command, "new\n") == 0) {
         /* Reset board */
         ENGINE_reset(engine);
+        
+        /* Reset time control */
+        state_clear_time(state);
     }
     
     /* usermove */
