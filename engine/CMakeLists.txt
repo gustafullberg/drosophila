@@ -6,6 +6,7 @@ set(files
     engine.h
     eval.c
     eval.h
+    eval_piecesquare.h
     fen.c
     fen.h
     movegen.c

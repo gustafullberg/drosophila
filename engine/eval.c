@@ -1,4 +1,5 @@
 #include "eval.h"
+#include "eval_piecesquare.h"
 #include "movegen.h"
 
 #define PAWN_RANK0 0
@@ -44,10 +45,10 @@ static int pawn_structure_assessment(const chess_state_t *s)
             /* Get one position from the bitboard */
             int pos = bitboard_find_bit(pawns);
             /*int file = BITBOARD_GET_RANK(pos);*/
-            int rank = BITBOARD_GET_RANK(pos);
+            /*int rank = BITBOARD_GET_RANK(pos);*/
             
             /* Bonus for advancing pawns to high ranks */
-            pawn_structure_score += pawn_rank_bonus[color][rank];
+            /*pawn_structure_score += pawn_rank_bonus[color][rank];*/
 
             /* Bonus for being guarded by other pawn */
             if(bitboard_pawn_capture[opponent_color][pos] & own_pawns) {
@@ -76,6 +77,34 @@ static int pawn_structure_assessment(const chess_state_t *s)
     return score;
 }
 
+static int EVAL_piecesquare(const chess_state_t *s)
+{
+    bitboard_t pieces;
+    int type;
+    int result = 0;
+    
+    /* White pawns */
+    for(type = PAWN; type <= KING; type++) {
+        const int *psq = piecesquare[type];
+        pieces = s->bitboard[WHITE_PIECES+type];
+        while(pieces) {
+            int pos = bitboard_find_bit(pieces);
+            result += psq[pos];
+            pieces ^= BITBOARD_POSITION(pos);
+        }
+        pieces = s->bitboard[BLACK_PIECES+type];
+        while(pieces) {
+            int pos = bitboard_find_bit(pieces);
+            result -= psq[pos^0x38];
+            pieces ^= BITBOARD_POSITION(pos);
+        }
+    }
+
+    return result;
+}
+
+
+
 int EVAL_evaluate_board(const chess_state_t *s)
 {
     int score = 0;
@@ -93,6 +122,7 @@ int EVAL_evaluate_board(const chess_state_t *s)
     score -=      5 * (bitboard_count_bits(bitboard_bad_bishop[WHITE] & s->bitboard[WHITE_PIECES+BISHOP]) - 
                         bitboard_count_bits(bitboard_bad_bishop[BLACK] & s->bitboard[BLACK_PIECES+BISHOP]));
     
+    score += EVAL_piecesquare(s);
     score += pawn_structure_assessment(s);
     
     /* Down-sample score for faster MTD(f) convergence */
