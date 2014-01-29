@@ -84,7 +84,7 @@ static int EVAL_piecesquare(const chess_state_t *s)
     int result = 0;
     
     /* White pawns */
-    for(type = PAWN; type <= KING; type++) {
+    for(type = PAWN; type < KING; type++) {
         const int *psq = piecesquare[type];
         pieces = s->bitboard[WHITE_PIECES+type];
         while(pieces) {
@@ -98,6 +98,12 @@ static int EVAL_piecesquare(const chess_state_t *s)
             result -= psq[pos^0x38];
             pieces ^= BITBOARD_POSITION(pos);
         }
+    }
+    
+    {
+        const int *psq = piecesquare[KING + STATE_is_endgame(s)];
+        result += psq[bitboard_find_bit(s->bitboard[WHITE_PIECES+KING])];
+        result -= psq[bitboard_find_bit(s->bitboard[BLACK_PIECES+KING])^0x38];
     }
 
     return result;
