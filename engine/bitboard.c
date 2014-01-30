@@ -26,9 +26,6 @@ bitboard_t bitboard_ep_capturers[NUM_COLORS][NUM_FILES];
 bitboard_t bitboard_king_castle_empty[NUM_COLORS];
 bitboard_t bitboard_queen_castle_empty[NUM_COLORS];
 bitboard_t bitboard_start_position[NUM_COLORS][NUM_TYPES-1];
-bitboard_t bitboard_bad_pawn[NUM_COLORS];
-bitboard_t bitboard_bad_knight[NUM_COLORS];
-bitboard_t bitboard_bad_bishop[NUM_COLORS];
 bitboard_t bitboard_zobrist[NUM_COLORS][NUM_TYPES-1][NUM_POSITIONS];
 bitboard_t bitboard_zorbist_color;
 
@@ -211,14 +208,6 @@ void bitboard_init()
     bitboard_start_position[BLACK][ROOK]    = 0x8100000000000000;
     bitboard_start_position[BLACK][QUEEN]   = 0x0800000000000000;
     bitboard_start_position[BLACK][KING]    = 0x1000000000000000;
-    
-    /* EVALUATION BITBOARDS */
-    bitboard_bad_pawn[WHITE] = 0x0000000000001800;
-    bitboard_bad_pawn[BLACK] = 0x0018000000000000;
-    bitboard_bad_knight[WHITE] = 0x0000000000000042;
-    bitboard_bad_knight[BLACK] = 0x4200000000000000;
-    bitboard_bad_bishop[WHITE] = 0x0000000000000024;
-    bitboard_bad_bishop[BLACK] = 0x2400000000000000;
     
     /* ZOBRIST KEYS */
     for(color = 0; color < NUM_COLORS; color++) {

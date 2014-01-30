@@ -18,11 +18,6 @@
 
 static const int sign[2] = { 1, -1 };
 
-static const int pawn_rank_bonus[2][8] = {
-    { PAWN_RANK0, PAWN_RANK1, PAWN_RANK2, PAWN_RANK3, PAWN_RANK4, PAWN_RANK5, PAWN_RANK6, PAWN_RANK7 },
-    { PAWN_RANK7, PAWN_RANK6, PAWN_RANK5, PAWN_RANK4, PAWN_RANK3, PAWN_RANK2, PAWN_RANK1, PAWN_RANK0 }
-};
-
 static const int pawn_double_pawn_penalty[8] = {
     0, 0, PAWN_DOUBLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN
 };
@@ -120,13 +115,6 @@ int EVAL_evaluate_board(const chess_state_t *s)
     score +=    320 * (bitboard_count_bits(s->bitboard[WHITE_PIECES+BISHOP]) - bitboard_count_bits(s->bitboard[BLACK_PIECES+BISHOP]));
     score +=    300 * (bitboard_count_bits(s->bitboard[WHITE_PIECES+KNIGHT]) - bitboard_count_bits(s->bitboard[BLACK_PIECES+KNIGHT]));
     score +=    100 * (bitboard_count_bits(s->bitboard[WHITE_PIECES+PAWN])   - bitboard_count_bits(s->bitboard[BLACK_PIECES+PAWN]));
-    
-    score -=      5 * (bitboard_count_bits(bitboard_bad_pawn[WHITE] & s->bitboard[WHITE_PIECES+PAWN]) - 
-                        bitboard_count_bits(bitboard_bad_pawn[BLACK] & s->bitboard[BLACK_PIECES+PAWN]));
-    score -=      5 * (bitboard_count_bits(bitboard_bad_knight[WHITE] & s->bitboard[WHITE_PIECES+KNIGHT]) - 
-                        bitboard_count_bits(bitboard_bad_knight[BLACK] & s->bitboard[BLACK_PIECES+KNIGHT]));
-    score -=      5 * (bitboard_count_bits(bitboard_bad_bishop[WHITE] & s->bitboard[WHITE_PIECES+BISHOP]) - 
-                        bitboard_count_bits(bitboard_bad_bishop[BLACK] & s->bitboard[BLACK_PIECES+BISHOP]));
     
     score += EVAL_piecesquare(s);
     score += pawn_structure_assessment(s);
