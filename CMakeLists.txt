@@ -14,7 +14,7 @@ else()
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC OR "${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -pedantic -Wall")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -Wall")
 elseif(MSVC)
     add_definitions(-Dinline=__inline)
 endif()
