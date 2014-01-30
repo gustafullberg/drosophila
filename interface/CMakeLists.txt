@@ -11,3 +11,4 @@ add_executable(
 )
 
 target_link_libraries(pawned pawnedengine)
+install(TARGETS pawned DESTINATION .)
