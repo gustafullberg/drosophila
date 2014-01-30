@@ -98,7 +98,7 @@ int ENGINE_think_and_move(engine_state_t *state, int moves_left_in_period, int t
         time_for_move_ms = time_left_ms * 2 / 100;
     }
 
-#if USE_OPENING_BOOK
+#ifndef DISABLE_OPENING_BOOK
     /* Look for a move in the opening book */
     move = OPENINGBOOK_get_move(state->obook, state->chess_state);
     if(!move)

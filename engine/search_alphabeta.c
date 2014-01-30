@@ -24,7 +24,7 @@ int SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, s
     int beta = inbeta;
     *move = 0;
     
-#if USE_TIME_MANAGEMENT
+#ifndef DISABLE_TIME_MANAGEMENT
     search_state->next_clock_check--;
     if(search_state->next_clock_check <= 0) {
         search_state->next_clock_check = SEARCH_ITERATIONS_BETWEEN_CLOCK_CHECK;
@@ -45,14 +45,14 @@ int SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, s
     }
 
     if(depth <= 0) {
-#if USE_QUIESCENCE
+#ifndef DISABLE_QUIESCENCE
         return SEARCH_alphabeta_quiescence(state, search_state, alpha, beta);
 #else
         return EVAL_evaluate_board(state);
 #endif
     }
     
-#if USE_TRANSPOSITION_TABLE
+#ifndef DISABLE_TRANSPOSITION_TABLE
     SEARCH_transpositiontable_retrieve(search_state->ttable, state->hash, depth, &alpha, &beta, move);
     if(alpha >= inbeta) return alpha;
     if(beta <= inalpha) return beta;
@@ -61,7 +61,7 @@ int SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, s
     }
 #endif
 
-#if USE_NULL_MOVE
+#ifndef DISABLE_NULL_MOVE
     if(depth > 4 && state->last_move && !STATE_is_endgame(state)) {
         if(!SEARCH_is_check(state, state->player)) {
             next_state = *state;
@@ -75,7 +75,7 @@ int SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, s
     }
 #endif
 
-#if USE_TRANSPOSITION_TABLE
+#ifndef DISABLE_TRANSPOSITION_TABLE
     if(!skip_move_generation && *move) {
         next_state = *state;
         STATE_apply_move(&next_state, *move);
@@ -91,7 +91,7 @@ int SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, s
     if(!skip_move_generation) {
         num_moves = STATE_generate_moves(state, moves);
         
-#if USE_MOVE_ORDERING
+#ifndef DISABLE_MOVE_ORDERING
         num_moves = MOVEORDER_order_moves(state, moves, num_moves, *move);
 #endif
 
@@ -104,7 +104,7 @@ int SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, s
             }
             num_legal_moves++;
 
-#if USE_LATE_MOVE_REDUCTION
+#ifndef DISABLE_LATE_MOVE_REDUCTION
             /* Late move reduction */
             if( num_legal_moves > 4                     && /* Four moves have been searched at full depth   */
                 depth >= 3                              && /* No LMR in the last plies                      */
@@ -146,7 +146,7 @@ int SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, s
         }
     }
     
-#if USE_TRANSPOSITION_TABLE
+#ifndef DISABLE_TRANSPOSITION_TABLE
     SEARCH_transpositiontable_store(search_state->ttable, state->hash, depth, best_score, *move, inalpha, inbeta);
 #endif
     return best_score;
@@ -178,7 +178,7 @@ int SEARCH_alphabeta_quiescence(const chess_state_t *state, search_state_t *sear
         alpha = best_score;
     }
     
-#if USE_TRANSPOSITION_TABLE
+#ifndef DISABLE_TRANSPOSITION_TABLE
     SEARCH_transpositiontable_retrieve(search_state->ttable, state->hash, 0, &alpha, &beta, &move);
     if(alpha >= inbeta) return alpha;
     if(beta <= inalpha) return beta;
@@ -201,7 +201,7 @@ int SEARCH_alphabeta_quiescence(const chess_state_t *state, search_state_t *sear
     if(!skip_move_generation) {    
         num_moves = STATE_generate_moves_quiescence(state, moves);
         
-#if USE_MOVE_ORDERING
+#ifndef DISABLE_MOVE_ORDERING
         num_moves = MOVEORDER_order_moves(state, moves, num_moves, move);
 #endif
         
@@ -227,7 +227,7 @@ int SEARCH_alphabeta_quiescence(const chess_state_t *state, search_state_t *sear
         }
     }
     
-#if USE_TRANSPOSITION_TABLE
+#ifndef DISABLE_TRANSPOSITION_TABLE
     SEARCH_transpositiontable_store(search_state->ttable, state->hash, 0, best_score, 0, inalpha, inbeta);
 #endif
     

@@ -75,7 +75,7 @@ int SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state, 
         
         *move = m;
 
-#if USE_TIME_MANAGEMENT
+#ifndef DISABLE_TIME_MANAGEMENT
         if(2 * SEARCH_time_left_ms(search_state) > search_state->time_for_move_ms) {
             break;
         }

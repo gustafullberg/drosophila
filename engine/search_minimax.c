@@ -15,7 +15,7 @@ int SEARCH_minimax(const chess_state_t *state, short depth, move_t *move)
     move_t moves[256];
 
     if(depth <= 0) {
-#if USE_QUIESCENCE
+#ifndef DISABLE_QUIESCENCE
         return SEARCH_minimax_quiescence(state);
 #else
         return EVAL_evaluate_board(state);
