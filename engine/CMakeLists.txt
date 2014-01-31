@@ -27,6 +27,8 @@ set(files
     search_mtdf.h
     state.c
     state.h
+    time.c
+    time.h
     ttable.c
     ttable.h
 )

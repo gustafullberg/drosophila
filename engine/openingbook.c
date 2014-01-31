@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include "time.h"
 #include "openingbook.h"
 
 typedef struct _openingbook_node_t {
@@ -29,7 +29,7 @@ openingbook_t *OPENINGBOOK_create(const char *filename)
     OPENINGBOOK_reset(o);
     
     /* Seed random number generator */
-    srand(time(NULL));
+    srand((unsigned int)TIME_now());
     
     return o;
 }

@@ -2,6 +2,7 @@
 #include "search.h"
 #include "eval.h"
 #include "moveorder.h"
+#include "time.h"
 
 static inline ttable_entry_t *SEARCH_transpositiontable_retrieve(ttable_t *ttable, bitboard_t hash, int depth, int *alpha, int *beta, move_t *best_move);
 static inline void SEARCH_transpositiontable_store(ttable_t *ttable, bitboard_t hash, int depth, int best_score, move_t best_move, int alpha, int beta);
@@ -28,7 +29,7 @@ int SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, s
     search_state->next_clock_check--;
     if(search_state->next_clock_check <= 0) {
         search_state->next_clock_check = SEARCH_ITERATIONS_BETWEEN_CLOCK_CHECK;
-        if(SEARCH_time_left_ms(search_state) >= search_state->time_for_move_ms) {
+        if(TIME_passed(search_state->start_time_ms) >= search_state->time_for_move_ms) {
             search_state->abort_search = 1;
         }
     }

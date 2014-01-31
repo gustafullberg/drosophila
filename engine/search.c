@@ -4,6 +4,7 @@
 #include "search_mtdf.h"
 #include "search_minimax.h"
 #include "eval.h"
+#include "time.h"
 
 int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, int time_for_move_ms, int *score)
 {
@@ -12,7 +13,7 @@ int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, int time_for
     search_state.ttable = ttable;
     search_state.abort_search = 0;
     search_state.next_clock_check = SEARCH_ITERATIONS_BETWEEN_CLOCK_CHECK;
-    SEARCH_time_now(&search_state.start_time);
+    search_state.start_time_ms = TIME_now();
     search_state.time_for_move_ms = time_for_move_ms;
     
     *score = SEARCH_mtdf_iterative(s, &search_state, &move);
@@ -45,21 +46,4 @@ int SEARCH_is_mate(const chess_state_t *state)
     
     /* No legal moves => mate */
     return 1;
-}
-
-void SEARCH_time_now(struct timeval *time)
-{
-    gettimeofday(time, NULL);
-}
-
-int64_t SEARCH_time_left_ms(search_state_t *search_state)
-{
-    struct timeval now;
-    int64_t time_left_ms = 0;
-    
-    SEARCH_time_now(&now);
-    time_left_ms = (now.tv_sec - search_state->start_time.tv_sec) * 1000 +
-                    (now.tv_usec - search_state->start_time.tv_usec) / 1000;
-    
-    return time_left_ms;
 }

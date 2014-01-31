@@ -2,6 +2,7 @@
 #include "search_alphabeta.h"
 #include "search.h"
 #include "eval.h"
+#include "time.h"
 
 #define abs(x) ((x) >= 0 ? (x) : -(x))
 
@@ -76,7 +77,7 @@ int SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state, 
         *move = m;
 
 #ifndef DISABLE_TIME_MANAGEMENT
-        if(2 * SEARCH_time_left_ms(search_state) > search_state->time_for_move_ms) {
+        if(2 * TIME_passed(search_state->start_time_ms) > search_state->time_for_move_ms) {
             break;
         }
 #endif

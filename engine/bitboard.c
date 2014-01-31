@@ -33,8 +33,7 @@ static bitboard_t bitboard_random();
 
 void bitboard_init()
 {
-    bitboard_t i, tmp;
-    int rank, file, color, offset, base;
+    int i, tmp, rank, file, color, offset, base;
     
     /* LESS THAN */
     bitboard_less_than[0] = 0;
