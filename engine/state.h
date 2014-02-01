@@ -66,6 +66,7 @@ typedef struct chess_state_t {
     move_t      last_move;
     char        flags[2];
     char        player;
+    char        halfmove_clock;
 } chess_state_t;
 
 #define WHITE_PIECES    0

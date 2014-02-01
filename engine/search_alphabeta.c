@@ -104,36 +104,45 @@ int SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, s
                 continue;
             }
             num_legal_moves++;
+            HISTORY_push(search_state->history, next_state.hash);
+            if(HISTORY_is_repetition(search_state->history, next_state.halfmove_clock)) {
+                score = 0;
+            } else {
 
 #ifndef DISABLE_LATE_MOVE_REDUCTION
-            /* Late move reduction */
-            if( num_legal_moves > 4                     && /* Four moves have been searched at full depth   */
-                depth >= 3                              && /* No LMR in the last plies                      */
-                !MOVE_IS_CAPTURE_OR_PROMOTION(moves[i]) && /* No LMR if capture / promotion                 */
-                !is_in_check)                              /* No LMR if in check                            */
-            {
-                /* Search at reduced depth */
-                score = -SEARCH_alphabeta(&next_state, search_state, depth-2, &next_move, -beta, -alpha);
-                if(score > alpha) {
+                /* Late move reduction */
+                if( num_legal_moves > 4                     && /* Four moves have been searched at full depth   */
+                    depth >= 3                              && /* No LMR in the last plies                      */
+                    !MOVE_IS_CAPTURE_OR_PROMOTION(moves[i]) && /* No LMR if capture / promotion                 */
+                    !is_in_check)                              /* No LMR if in check                            */
+                {
+                    /* Search at reduced depth */
+                    score = -SEARCH_alphabeta(&next_state, search_state, depth-2, &next_move, -beta, -alpha);
+                    if(score > alpha) {
+                        score = -SEARCH_alphabeta(&next_state, search_state, depth-1, &next_move, -beta, -alpha);
+                    }
+                } else {
                     score = -SEARCH_alphabeta(&next_state, search_state, depth-1, &next_move, -beta, -alpha);
                 }
-            } else {
-                score = -SEARCH_alphabeta(&next_state, search_state, depth-1, &next_move, -beta, -alpha);
-            }
 #else
-            score = -SEARCH_alphabeta(&next_state, search_state, depth-1, &next_move, -beta, -alpha);
+                score = -SEARCH_alphabeta(&next_state, search_state, depth-1, &next_move, -beta, -alpha);
 #endif
+            }
+            
             if(score > best_score) {
                 best_score = score;
                 *move = moves[i];
                 if(best_score >= beta) {
                     /* Beta-cuttoff */
+                    HISTORY_pop(search_state->history);
                     break;
                 }
                 if(best_score > alpha) {
                     alpha = best_score;
                 }
             }
+            
+            HISTORY_pop(search_state->history);
         }
         
         /* Detect checkmate and stalemate */

@@ -24,6 +24,7 @@ void STATE_reset(chess_state_t *s)
     STATE_compute_hash(s);
     
     s->last_move = 0;
+    s->halfmove_clock = 0;
 }
 
 static int STATE_add_moves_to_list(const chess_state_t *s, bitboard_t bitboard_to, int pos_from, int type, int captured_type, int special, move_t *moves)
@@ -278,6 +279,9 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
         int player_index = player * NUM_TYPES;
         int opponent_index = NUM_TYPES - player_index;
         
+        /* Increment half-move clock */
+        s->halfmove_clock++;
+        
         /* Remove bitboard of this type from the "ALL bitboard" */
         s->bitboard[player_index + ALL] ^= s->bitboard[player_index + type];
 
@@ -319,6 +323,9 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
                 /* Update hash with normal capture */
                 s->hash ^= bitboard_zobrist[opponent][opponent_type][pos_to];
             }
+            
+            /* Reset half-move clock when a piece is captured */
+            s->halfmove_clock = 0;
         }
         
         /* Pushing pawn 2 squares opens for en passant */
@@ -377,6 +384,11 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
                     s->flags[player] &= ~STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
                 }
             }
+        }
+        
+        if(type == PAWN) {
+            /* Reset half-move clock when a pawn is moved */
+            s->halfmove_clock = 0;
         }
 
         /* Occupied by piece of any color */

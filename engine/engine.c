@@ -3,6 +3,7 @@
 #include "engine.h"
 #include "state.h"
 #include "ttable.h"
+#include "history.h"
 #include "openingbook.h"
 #include "search.h"
 #include "defines.h"
@@ -10,6 +11,7 @@
 struct engine_state {
     chess_state_t   *chess_state;
     ttable_t        *ttable;
+    history_t       *history;
     openingbook_t   *obook;
 };
 
@@ -27,6 +29,7 @@ void ENGINE_create(engine_state_t **state)
     *state = malloc(sizeof(engine_state_t));
     (*state)->chess_state = malloc(sizeof(chess_state_t));
     (*state)->ttable = TTABLE_create(22);
+    (*state)->history = HISTORY_create();
     (*state)->obook = OPENINGBOOK_create("openingbook.dat");
     ENGINE_reset(*state);
 }
@@ -34,6 +37,7 @@ void ENGINE_create(engine_state_t **state)
 void ENGINE_destroy(engine_state_t *state)
 {
     TTABLE_destroy(state->ttable);
+    HISTORY_destroy(state->history);
     OPENINGBOOK_destroy(state->obook);
     free(state->chess_state);
     free(state);
@@ -42,6 +46,7 @@ void ENGINE_destroy(engine_state_t *state)
 void ENGINE_reset(engine_state_t *state)
 {
     STATE_reset(state->chess_state);
+    HISTORY_reset(state->history);
     OPENINGBOOK_reset(state->obook);
 }
 
@@ -74,6 +79,7 @@ int ENGINE_apply_move(engine_state_t *state, int pos_from, int pos_to, int promo
         
         /* Legal */
         *state->chess_state = temporary_state;
+        HISTORY_push(state->history, state->chess_state->hash);
         OPENINGBOOK_apply_move(state->obook, move);
         return ENGINE_result(state);
     }
@@ -105,7 +111,7 @@ int ENGINE_think_and_move(engine_state_t *state, int moves_left_in_period, int t
 #endif
     {
         /* No move in the opening book. Search! */
-        move = SEARCH_perform_search(state->chess_state, state->ttable, time_for_move_ms, &score);
+        move = SEARCH_perform_search(state->chess_state, state->ttable, state->history, time_for_move_ms, &score);
     }
 
     *pos_from = MOVE_GET_POS_FROM(move);
@@ -140,6 +146,7 @@ int ENGINE_think_and_move(engine_state_t *state, int moves_left_in_period, int t
     }
         
     STATE_apply_move(state->chess_state, move);
+    HISTORY_push(state->history, state->chess_state->hash);
     OPENINGBOOK_apply_move(state->obook, move);
     
     return ENGINE_result(state);

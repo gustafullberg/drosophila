@@ -9,6 +9,8 @@ set(files
     eval_piecesquare.h
     fen.c
     fen.h
+    history.c
+    history.h
     movegen.c
     movegen.h
     moveorder.c

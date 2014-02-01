@@ -6,11 +6,12 @@
 #include "eval.h"
 #include "time.h"
 
-int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, int time_for_move_ms, int *score)
+int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, history_t *history, int time_for_move_ms, int *score)
 {
     move_t move = 0;
     search_state_t search_state;
     search_state.ttable = ttable;
+    search_state.history = history;
     search_state.abort_search = 0;
     search_state.next_clock_check = SEARCH_ITERATIONS_BETWEEN_CLOCK_CHECK;
     search_state.start_time_ms = TIME_now();
