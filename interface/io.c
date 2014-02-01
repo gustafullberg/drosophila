@@ -46,7 +46,6 @@ int IO_ready()
 int IO_read_input(char *command_buffer, int max_size)
 {
     char *p;
-    int has_input = 0;
 
     /* Poll for input on STDIN */
     if(IO_ready()) {
