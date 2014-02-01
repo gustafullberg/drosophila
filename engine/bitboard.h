@@ -2,6 +2,9 @@
 #define _BITBOARD_H
 
 #include <stdint.h>
+#ifdef _MSC_VER
+#include <intrin.h>
+#endif
 #include "defines.h"
 
 typedef uint64_t bitboard_t;
@@ -55,6 +58,10 @@ static inline int bitboard_find_bit(bitboard_t bitboard)
 {
 #if __GNUC__
     return __builtin_ctzll(bitboard);
+#elif _MSC_VER && _WIN64
+    unsigned long index;
+    _BitScanForward64(&index, bitboard);
+    return index;
 #else
     int i;
     for(i = 0; i < NUM_POSITIONS; i++) {
@@ -70,6 +77,8 @@ static inline int bitboard_count_bits(bitboard_t bitboard)
 {
 #if __GNUC__
     return __builtin_popcountll(bitboard);
+#elif _MSC_VER && _WIN64
+    return (int)__popcnt64(bitboard);
 #else
     int num_bits = 0;
     while(bitboard) {

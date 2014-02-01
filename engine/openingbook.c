@@ -22,7 +22,7 @@ static void OPENINGBOOK_free_node(openingbook_node_t *n);
 openingbook_t *OPENINGBOOK_create(const char *filename)
 {
     /* Allocate memory for opening book */
-    openingbook_t *o = malloc(sizeof(openingbook_t));
+    openingbook_t *o = (openingbook_t*)malloc(sizeof(openingbook_t));
     
     /* Read opening book file */
     o->tree = OPENINGBOOK_read(filename);
@@ -102,7 +102,7 @@ static openingbook_node_t *OPENINGBOOK_read_node(FILE *f)
     int i;
     
     /* Allocate memory for the node */
-    openingbook_node_t *n = malloc(sizeof(openingbook_node_t));
+    openingbook_node_t *n = (openingbook_node_t*)malloc(sizeof(openingbook_node_t));
     
     /* Read positions (from and to) */
     fread(&n->pos_from, sizeof(n->pos_from), 1, f);
@@ -113,7 +113,7 @@ static openingbook_node_t *OPENINGBOOK_read_node(FILE *f)
     
     /* Allocate memory for subnodes array */
     if(n->num_subnodes) {
-        n->subnodes = malloc(n->num_subnodes * sizeof(openingbook_node_t*));
+        n->subnodes = (openingbook_node_t**)malloc(n->num_subnodes * sizeof(openingbook_node_t*));
         
         /* Recursively read subnodes */
         for(i = 0; i < n->num_subnodes; i++) {

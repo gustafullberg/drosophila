@@ -1,7 +1,14 @@
 #include <stdio.h>
 #include <string.h>
+#ifdef _WIN32
+#include <WinSock2.h>
+#include <io.h>
+#define STDIN_FILENO 0
+#define read _read
+#else
 #include <unistd.h>
 #include <sys/select.h>
+#endif
 #include "io.h"
 
 #define INPUT_BUFFER_SIZE 1024
@@ -17,9 +24,14 @@ void IO_init(void)
     input_buffer[0] = '\0';
 }
 
-int IO_read_input(char *command_buffer, int max_size)
+int IO_ready()
 {
-    char *p;
+#ifdef _WIN32
+    DWORD num_bytes = 0;
+    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
+    PeekNamedPipe(handle, NULL, 0, NULL, &num_bytes, NULL);
+    return num_bytes > 0;
+#else
     fd_set set;
     struct timeval timeout = { 0, 10 }; /* 10 usec timeout */
     
@@ -27,9 +39,19 @@ int IO_read_input(char *command_buffer, int max_size)
     FD_SET(STDIN_FILENO, &set);
 
     /* Poll for input on STDIN */
-    if(0 < select(STDIN_FILENO+1, &set, NULL, NULL, &timeout)) {
+    return select(STDIN_FILENO+1, &set, NULL, NULL, &timeout) > 0;
+#endif
+}
+
+int IO_read_input(char *command_buffer, int max_size)
+{
+    char *p;
+    int has_input = 0;
+
+    /* Poll for input on STDIN */
+    if(IO_ready()) {
         /* Append new input at the end of the input buffer */
-        int len = strlen(input_buffer);
+        int len = (int)strlen(input_buffer);
         len += read(STDIN_FILENO, input_buffer + len, INPUT_BUFFER_SIZE - len - 1);
         input_buffer[len] = '\0';
     }
@@ -37,7 +59,7 @@ int IO_read_input(char *command_buffer, int max_size)
     /* Check if there is a complete command in the buffer */
     p = strchr(input_buffer, '\n');
     if(p) {
-        /* Move it to the command ufer */
+        /* Move it to the command buffer */
         int len = (int)(p - input_buffer) + 1;
         if(len >= max_size) {
             len = max_size - 1;

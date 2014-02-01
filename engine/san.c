@@ -17,7 +17,7 @@ move_t SAN_parse_move(const chess_state_t *state, const char *san)
     int rank = -1;
     int file = -1;
     
-    len = strlen(san);
+    len = (int)strlen(san);
     
     /* Generate all possible moves */
     num_moves = STATE_generate_moves(state, moves);
