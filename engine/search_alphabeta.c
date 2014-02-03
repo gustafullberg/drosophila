@@ -104,10 +104,14 @@ int SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, s
                 continue;
             }
             num_legal_moves++;
+            
+#ifndef DISABLE_HISTORY
             HISTORY_push(search_state->history, next_state.hash);
             if(HISTORY_is_repetition(search_state->history, next_state.halfmove_clock)) {
                 score = 0;
-            } else {
+            } else
+#endif
+            {
 
 #ifndef DISABLE_LATE_MOVE_REDUCTION
                 /* Late move reduction */
@@ -141,8 +145,10 @@ int SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, s
                     alpha = best_score;
                 }
             }
-            
+
+#ifndef DISABLE_HISTORY
             HISTORY_pop(search_state->history);
+#endif
         }
         
         /* Detect checkmate and stalemate */

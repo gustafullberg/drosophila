@@ -33,6 +33,11 @@ if(DISABLE_LATE_MOVE_REDUCTION)
     add_definitions(-DDISABLE_LATE_MOVE_REDUCTION)
 endif()
 
+option(DISABLE_HISTORY "Disable history (logging of past moves to avoid repetition moves)" OFF)
+if(DISABLE_HISTORY)
+    add_definitions(-DDISABLE_HISTORY)
+endif()
+
 option(BUILD_EXECUTABLE "Build executable with Xboard interface" ON)
 option(BUILD_TOOLS "Build tools" OFF)
 option(BUILD_TESTS "Build test binaries" OFF)
