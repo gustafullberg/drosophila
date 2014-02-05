@@ -19,20 +19,9 @@ elseif(MSVC)
     add_definitions(-Dinline=__inline)
 endif()
 
-include_directories(engine)
-add_subdirectory(engine)
-
+add_subdirectory(src)
 if(BUILD_EXECUTABLE)
-    add_subdirectory(interface)
     add_subdirectory(data)
-endif()
-
-if(BUILD_TOOLS)
-    add_subdirectory(tools)
-endif()
-
-if(BUILD_TESTS)
-    add_subdirectory(tests)
 endif()
 
 install(FILES README.md LICENSE.txt DESTINATION .)
