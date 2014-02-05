@@ -45,7 +45,7 @@ int HISTORY_is_repetition(history_t *h, int halfmove_clock)
     const int first = h->idx - halfmove_clock;
     const int last = h->idx - 4;
     
-    for(i = last; i >= first; i--) {
+    for(i = last; i >= first; i -= 2) {
         if(h->hash[i] == hash) {
             return 1;
         }
