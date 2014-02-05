@@ -23,8 +23,6 @@ set(files
     search.h
     search_alphabeta.c
     search_alphabeta.h
-    search_minimax.c
-    search_minimax.h
     search_mtdf.c
     search_mtdf.h
     state.c

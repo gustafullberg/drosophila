@@ -2,7 +2,6 @@
 #include "search.h"
 #include "search_alphabeta.h"
 #include "search_mtdf.h"
-#include "search_minimax.h"
 #include "eval.h"
 #include "time.h"
 
