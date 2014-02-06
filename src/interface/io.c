@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #ifdef _WIN32
-#include <WinSock2.h>
+#include <winsock2.h>
 #include <io.h>
 #define STDIN_FILENO 0
 #define read _read
