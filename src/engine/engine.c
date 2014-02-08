@@ -88,7 +88,7 @@ int ENGINE_apply_move(engine_state_t *state, int pos_from, int pos_to, int promo
     return ENGINE_RESULT_ILLEGAL_MOVE;
 }
 
-int ENGINE_think_and_move(engine_state_t *state, int moves_left_in_period, int time_left_ms, int time_incremental_ms, int *pos_from, int *pos_to, int *promotion_type)
+void ENGINE_think(engine_state_t *state, int moves_left_in_period, int time_left_ms, int time_incremental_ms, int *pos_from, int *pos_to, int *promotion_type, int max_depth)
 {
     int move;
     int special;
@@ -111,7 +111,7 @@ int ENGINE_think_and_move(engine_state_t *state, int moves_left_in_period, int t
 #endif
     {
         /* No move in the opening book. Search! */
-        move = SEARCH_perform_search(state->chess_state, state->ttable, state->history, time_for_move_ms, &score);
+        move = SEARCH_perform_search(state->chess_state, state->ttable, state->history, time_for_move_ms, max_depth, &score);
     }
 
     *pos_from = MOVE_GET_POS_FROM(move);
@@ -144,12 +144,6 @@ int ENGINE_think_and_move(engine_state_t *state, int moves_left_in_period, int t
         *promotion_type = ENGINE_PROMOTION_NONE;
         break;
     }
-        
-    STATE_apply_move(state->chess_state, move);
-    HISTORY_push(state->history, state->chess_state->hash);
-    OPENINGBOOK_apply_move(state->obook, move);
-    
-    return ENGINE_result(state);
 }
 
 int ENGINE_result(engine_state_t *state)

@@ -5,7 +5,7 @@
 #include "eval.h"
 #include "time.h"
 
-int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, history_t *history, int time_for_move_ms, int *score)
+int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, history_t *history, int time_for_move_ms, int max_depth, int *score)
 {
     move_t move = 0;
     search_state_t search_state;
@@ -15,6 +15,7 @@ int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, history_t *h
     search_state.next_clock_check = SEARCH_ITERATIONS_BETWEEN_CLOCK_CHECK;
     search_state.start_time_ms = TIME_now();
     search_state.time_for_move_ms = time_for_move_ms;
+    search_state.max_depth = max_depth;
     
     *score = SEARCH_mtdf_iterative(s, &search_state, &move);
     return move;

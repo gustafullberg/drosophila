@@ -18,9 +18,10 @@ typedef struct {
     int             next_clock_check;
     int64_t         start_time_ms;
     int64_t         time_for_move_ms;
+    int             max_depth;
 } search_state_t;
 
-int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, history_t *history, int time_for_move_ms, int *score);
+int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, history_t *history, int time_for_move_ms, int max_depth, int *score);
 int SEARCH_is_check(const chess_state_t *s, int color);
 int SEARCH_is_mate(const chess_state_t *state);
 

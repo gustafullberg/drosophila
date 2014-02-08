@@ -55,7 +55,7 @@ int SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state, 
     results[0] = SEARCH_mtdf(s, search_state, 0, &m, 0);
     *move = m;
     
-    for(depth = 1; depth <= MAX_DEPTH; depth++) {
+    for(depth = 1; depth <= search_state->max_depth; depth++) {
         
         /* If results oscillate between depths, let guess be the result from two depths back */ 
         guess = results[depth-1];
