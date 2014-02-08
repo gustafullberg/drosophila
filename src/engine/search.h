@@ -25,17 +25,5 @@ int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, history_t *h
 int SEARCH_is_check(const chess_state_t *s, int color);
 int SEARCH_is_mate(const chess_state_t *state);
 
-static inline short SEARCH_clamp_score_to_valid_range(short score, short depth)
-{
-    short min = SEARCH_MIN_RESULT(depth);
-    short max = SEARCH_MAX_RESULT(depth);
-    if(score < min) {
-        score = min;
-    } else if(score > max) {
-        score = max;
-    }
-    return score;
-}
-
 #endif
 

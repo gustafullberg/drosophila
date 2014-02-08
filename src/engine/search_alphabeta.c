@@ -258,11 +258,13 @@ static inline ttable_entry_t *SEARCH_transpositiontable_retrieve(ttable_t *ttabl
             int score = ttentry->score;
             if(TTABLE_GET_TYPE(ttentry->depth_and_type) == TTABLE_TYPE_UPPER_BOUND) {
                 if(score < *beta) {
-                    *beta = SEARCH_clamp_score_to_valid_range(score, depth);
+                    short min = SEARCH_MIN_RESULT(depth);
+                    *beta = (score < min) ? min : score;
                 }
             } else { /* TTABLE_TYPE_LOWER_BOUND */
                 if(score > *alpha) {
-                    *alpha = SEARCH_clamp_score_to_valid_range(score, depth);
+                    short max = SEARCH_MAX_RESULT(depth);
+                    *alpha = (score > max) ? max : score;
                 }
             }
         }
