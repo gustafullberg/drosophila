@@ -24,30 +24,11 @@ void TTABLE_store(ttable_t *t, bitboard_t hash, short depth, short type, short s
     int index = (int)(hash & t->key_mask);
     ttable_entry_t *entry = &t->entries[index];
 
-    if(entry->hash == hash && entry->depth == depth) {
-        if(type == TTABLE_TYPE_EXACT) {
-            entry->score[0] = entry->score[1] = score;
-        } else if(type == TTABLE_TYPE_LOWER_BOUND) {
-            entry->score[0] = score;
-        } else {
-            entry->score[1] = score;
-        }
-        entry->best_move = best_move;
-    } else {
-        entry->hash = hash;
-        entry->depth = depth;
-
-        if(type == TTABLE_TYPE_EXACT) {
-            entry->score[0] = entry->score[1] = score;
-        } else if(type == TTABLE_TYPE_LOWER_BOUND) {
-            entry->score[0] = score;
-            entry->score[1] = SEARCH_MAX_RESULT(depth);
-        } else {
-            entry->score[0] = SEARCH_MIN_RESULT(depth);
-            entry->score[1] = score;
-        }
-        entry->best_move = best_move;
-    }
+    entry->hash = hash;
+    entry->best_move = best_move;
+    entry->score = score;
+    entry->depth = depth;
+    entry->type = type;
 }
 
 ttable_entry_t *TTABLE_retrieve(ttable_t *t, bitboard_t hash)

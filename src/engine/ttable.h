@@ -7,8 +7,9 @@
 typedef struct {
     bitboard_t  hash;
     move_t      best_move;
-    short       score[2];
+    short       score;
     short       depth;
+    char        type;
 } ttable_entry_t;
 
 typedef struct {
@@ -18,7 +19,6 @@ typedef struct {
 
 #define TTABLE_TYPE_LOWER_BOUND     0
 #define TTABLE_TYPE_UPPER_BOUND     1
-#define TTABLE_TYPE_EXACT           2
 
 ttable_t *TTABLE_create(int log2_num_entries);
 void TTABLE_destroy(ttable_t *t);

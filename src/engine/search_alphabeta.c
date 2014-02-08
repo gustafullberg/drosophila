@@ -252,17 +252,18 @@ short SEARCH_alphabeta_quiescence(const chess_state_t *state, search_state_t *se
 
 static inline ttable_entry_t *SEARCH_transpositiontable_retrieve(ttable_t *ttable, bitboard_t hash, short depth, short *alpha, short *beta, move_t *best_move)
 {
-    short score[2];
     ttable_entry_t *ttentry = TTABLE_retrieve(ttable, hash);
     if(ttentry) {
         if(ttentry->depth >= depth) {
-            score[0] = SEARCH_clamp_score_to_valid_range(ttentry->score[0], depth);
-            score[1] = SEARCH_clamp_score_to_valid_range(ttentry->score[1], depth);
-            if(score[0] > *alpha) {
-                *alpha = score[0];
-            }
-            if(score[1] < *beta) {
-                *beta = score[1];
+            int score = ttentry->score;
+            if(ttentry->type == TTABLE_TYPE_UPPER_BOUND) {
+                if(score < *beta) {
+                    *beta = SEARCH_clamp_score_to_valid_range(score, depth);
+                }
+            } else { /* TTABLE_TYPE_LOWER_BOUND */
+                if(score > *alpha) {
+                    *alpha = SEARCH_clamp_score_to_valid_range(score, depth);
+                }
             }
         }
         *best_move = ttentry->best_move;
@@ -276,9 +277,7 @@ static inline void SEARCH_transpositiontable_store(ttable_t *ttable, bitboard_t 
     best_move &= ~MOVE_SCORE_MASK;
     if(best_score <= alpha) {
         TTABLE_store(ttable, hash, depth, TTABLE_TYPE_UPPER_BOUND, best_score, best_move);
-    } else if(best_score >= beta) {
-        TTABLE_store(ttable, hash, depth, TTABLE_TYPE_LOWER_BOUND, best_score, best_move);
     } else {
-        TTABLE_store(ttable, hash, depth, TTABLE_TYPE_EXACT, best_score, best_move);
+        TTABLE_store(ttable, hash, depth, TTABLE_TYPE_LOWER_BOUND, best_score, best_move);
     }
 }
