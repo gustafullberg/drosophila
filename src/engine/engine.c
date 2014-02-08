@@ -6,6 +6,7 @@
 #include "history.h"
 #include "openingbook.h"
 #include "search.h"
+#include "san.h"
 #include "defines.h"
 
 struct engine_state {
@@ -84,6 +85,31 @@ int ENGINE_apply_move(engine_state_t *state, int pos_from, int pos_to, int promo
         return ENGINE_result(state);
     }
     
+    /* No valid move found: Illegal move */
+    return ENGINE_RESULT_ILLEGAL_MOVE;
+}
+
+int ENGINE_apply_move_san(engine_state_t *state, const char *san)
+{
+    move_t move;
+    chess_state_t temporary_state;
+    move = SAN_parse_move(state->chess_state, san);
+    
+    if(move) {
+        /* Pseudo legal move found: Apply to state */
+        temporary_state = *state->chess_state;
+        STATE_apply_move(&temporary_state, move);
+        
+        /* Check if the move is legal */
+        if(!SEARCH_is_check(&temporary_state, state->chess_state->player)) {
+            /* Legal */
+            *state->chess_state = temporary_state;
+            HISTORY_push(state->history, state->chess_state->hash);
+            OPENINGBOOK_apply_move(state->obook, move);
+            return ENGINE_result(state);
+        }
+    }
+
     /* No valid move found: Illegal move */
     return ENGINE_RESULT_ILLEGAL_MOVE;
 }
