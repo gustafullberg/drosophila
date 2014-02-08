@@ -11,6 +11,12 @@ add_executable(
 target_link_libraries(test_moves pawnedengine)
 
 add_executable(
+    test_performance
+    test_performance.c
+)
+target_link_libraries(test_performance pawnedengine)
+
+add_executable(
     test_perft
     test_perft.c
 )
