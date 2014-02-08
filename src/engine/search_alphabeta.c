@@ -254,9 +254,9 @@ static inline ttable_entry_t *SEARCH_transpositiontable_retrieve(ttable_t *ttabl
 {
     ttable_entry_t *ttentry = TTABLE_retrieve(ttable, hash);
     if(ttentry) {
-        if(ttentry->depth >= depth) {
+        if(TTABLE_GET_DEPTH(ttentry->depth_and_type) >= depth) {
             int score = ttentry->score;
-            if(ttentry->type == TTABLE_TYPE_UPPER_BOUND) {
+            if(TTABLE_GET_TYPE(ttentry->depth_and_type) == TTABLE_TYPE_UPPER_BOUND) {
                 if(score < *beta) {
                     *beta = SEARCH_clamp_score_to_valid_range(score, depth);
                 }

@@ -27,8 +27,7 @@ void TTABLE_store(ttable_t *t, bitboard_t hash, short depth, short type, short s
     entry->hash = hash;
     entry->best_move = best_move;
     entry->score = score;
-    entry->depth = depth;
-    entry->type = type;
+    entry->depth_and_type = TTABLE_SET_DEPTH_AND_TYPE(depth, type);
 }
 
 ttable_entry_t *TTABLE_retrieve(ttable_t *t, bitboard_t hash)
