@@ -18,17 +18,17 @@ typedef struct {
     int             next_clock_check;
     int64_t         start_time_ms;
     int64_t         time_for_move_ms;
-    int             max_depth;
+    short           max_depth;
 } search_state_t;
 
-int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, history_t *history, int time_for_move_ms, int max_depth, int *score);
+int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, history_t *history, int time_for_move_ms, short max_depth, short *score);
 int SEARCH_is_check(const chess_state_t *s, int color);
 int SEARCH_is_mate(const chess_state_t *state);
 
-static inline int SEARCH_clamp_score_to_valid_range(int score, int depth)
+static inline short SEARCH_clamp_score_to_valid_range(short score, short depth)
 {
-    int min = SEARCH_MIN_RESULT(depth);
-    int max = SEARCH_MAX_RESULT(depth);
+    short min = SEARCH_MIN_RESULT(depth);
+    short max = SEARCH_MAX_RESULT(depth);
     if(score < min) {
         score = min;
     } else if(score > max) {

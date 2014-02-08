@@ -4,25 +4,25 @@
 #include "moveorder.h"
 #include "time.h"
 
-static inline ttable_entry_t *SEARCH_transpositiontable_retrieve(ttable_t *ttable, bitboard_t hash, int depth, int *alpha, int *beta, move_t *best_move);
-static inline void SEARCH_transpositiontable_store(ttable_t *ttable, bitboard_t hash, int depth, int best_score, move_t best_move, int alpha, int beta);
+static inline ttable_entry_t *SEARCH_transpositiontable_retrieve(ttable_t *ttable, bitboard_t hash, short depth, short *alpha, short *beta, move_t *best_move);
+static inline void SEARCH_transpositiontable_store(ttable_t *ttable, bitboard_t hash, short depth, short best_score, move_t best_move, short alpha, short beta);
 
 /* Alpha-Beta search with Nega Max */
-int SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, short depth, move_t *move, int inalpha, int inbeta)
+short SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, short depth, move_t *move, short inalpha, short inbeta)
 {
     int num_moves;
     int num_legal_moves;
     int i;
-    int score;
-    int best_score = SEARCH_MIN_RESULT(depth);
+    short score;
+    short best_score = SEARCH_MIN_RESULT(depth);
     int skip_move_generation = 0;
     move_t next_move;
     chess_state_t next_state;
     move_t moves[256];
     int is_in_check;
 
-    int alpha = inalpha;
-    int beta = inbeta;
+    short alpha = inalpha;
+    short beta = inbeta;
     *move = 0;
     
 #ifndef DISABLE_TIME_MANAGEMENT
@@ -169,20 +169,20 @@ int SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, s
 }
 
 /* Alpha-Beta quiescence search with Nega Max */
-int SEARCH_alphabeta_quiescence(const chess_state_t *state, search_state_t *search_state, int inalpha, int inbeta)
+short SEARCH_alphabeta_quiescence(const chess_state_t *state, search_state_t *search_state, short inalpha, short inbeta)
 {
     int num_moves;
     int num_legal_moves;
     int i;
-    int score;
-    int best_score;
+    short score;
+    short best_score;
     int skip_move_generation = 0;
     move_t move;
     chess_state_t next_state;
     move_t moves[256];
 
-    int alpha = inalpha;
-    int beta = inbeta;
+    short alpha = inalpha;
+    short beta = inbeta;
     move = 0;
 
     /* Stand-pat */
@@ -250,9 +250,9 @@ int SEARCH_alphabeta_quiescence(const chess_state_t *state, search_state_t *sear
     return best_score;
 }
 
-static inline ttable_entry_t *SEARCH_transpositiontable_retrieve(ttable_t *ttable, bitboard_t hash, int depth, int *alpha, int *beta, move_t *best_move)
+static inline ttable_entry_t *SEARCH_transpositiontable_retrieve(ttable_t *ttable, bitboard_t hash, short depth, short *alpha, short *beta, move_t *best_move)
 {
-    int score[2];
+    short score[2];
     ttable_entry_t *ttentry = TTABLE_retrieve(ttable, hash);
     if(ttentry) {
         if(ttentry->depth >= depth) {
@@ -271,7 +271,7 @@ static inline ttable_entry_t *SEARCH_transpositiontable_retrieve(ttable_t *ttabl
     return ttentry;
 }
 
-static inline void SEARCH_transpositiontable_store(ttable_t *ttable, bitboard_t hash, int depth, int best_score, move_t best_move, int alpha, int beta)
+static inline void SEARCH_transpositiontable_store(ttable_t *ttable, bitboard_t hash, short depth, short best_score, move_t best_move, short alpha, short beta)
 {
     best_move &= ~MOVE_SCORE_MASK;
     if(best_score <= alpha) {

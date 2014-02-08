@@ -118,7 +118,7 @@ void ENGINE_think(engine_state_t *state, int moves_left_in_period, int time_left
 {
     int move;
     int special;
-    int score;
+    short score;
     int time_for_move_ms;
     
     if(moves_left_in_period) {

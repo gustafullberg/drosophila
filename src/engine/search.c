@@ -5,7 +5,7 @@
 #include "eval.h"
 #include "time.h"
 
-int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, history_t *history, int time_for_move_ms, int max_depth, int *score)
+int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, history_t *history, int time_for_move_ms, short max_depth, short *score)
 {
     move_t move = 0;
     search_state_t search_state;

@@ -6,10 +6,10 @@
 
 #define abs(x) ((x) >= 0 ? (x) : -(x))
 
-int SEARCH_mtdf(const chess_state_t *s, search_state_t *search_state, short depth, move_t *move, int guess)
+short SEARCH_mtdf(const chess_state_t *s, search_state_t *search_state, short depth, move_t *move, short guess)
 {
-    int bounds[2];
-    int beta;
+    short bounds[2];
+    short beta;
     move_t movetemp;
     chess_state_t state = *s;
     
@@ -43,12 +43,12 @@ int SEARCH_mtdf(const chess_state_t *s, search_state_t *search_state, short dept
     return guess;
 }
 
-int SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state, move_t *move)
+short SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state, move_t *move)
 {
 #define MAX_DEPTH 100
     short depth;
-    int results[MAX_DEPTH+1];
-    int guess;
+    short results[MAX_DEPTH+1];
+    short guess;
     move_t m;
     m = 0;
     
@@ -60,8 +60,8 @@ int SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state, 
         /* If results oscillate between depths, let guess be the result from two depths back */ 
         guess = results[depth-1];
         if(depth >= 3) {
-            int r1 = results[depth-1] - results[depth-2];
-            int r2 = results[depth-1] - results[depth-3];
+            short r1 = results[depth-1] - results[depth-2];
+            short r2 = results[depth-1] - results[depth-3];
             if(abs(r2) < abs(r1)) {
                 guess = results[depth-2];
             }
