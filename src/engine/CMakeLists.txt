@@ -6,7 +6,7 @@ set(files
     engine.h
     eval.c
     eval.h
-    eval_piecesquare.h
+    eval_piecesquare.c
     fen.c
     fen.h
     history.c

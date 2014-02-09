@@ -1,6 +1,3 @@
-#ifndef _EVAL_PIECESQUARE_H
-#define _EVAL_PIECESQUARE_H
-
 const int piecesquare[7][64] = {
     {   /* PAWN */
         0,  0,  0,  0,  0,  0,  0,  0, /* N/A */
@@ -74,4 +71,3 @@ const int piecesquare[7][64] = {
     }
 };
 
-#endif

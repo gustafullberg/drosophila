@@ -20,7 +20,7 @@ static void ENGINE_init()
 {
     static int first_run = 1;
     if(first_run) {
-        bitboard_init();
+        BITBOARD_init();
         first_run = 0;
     }
 }

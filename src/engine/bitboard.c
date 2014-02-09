@@ -29,9 +29,9 @@ bitboard_t bitboard_start_position[NUM_COLORS][NUM_TYPES-1];
 bitboard_t bitboard_zobrist[NUM_COLORS][NUM_TYPES-1][NUM_POSITIONS];
 bitboard_t bitboard_zorbist_color;
 
-static bitboard_t bitboard_random();
+static bitboard_t BITBOARD_random();
 
-void bitboard_init()
+void BITBOARD_init()
 {
     int i, tmp, rank, file, color, offset, base;
     
@@ -213,14 +213,14 @@ void bitboard_init()
         int type;
         for(type = 0; type < NUM_TYPES - 1; type++) {
             for(i = 0; i < NUM_POSITIONS; i++) {
-                bitboard_zobrist[color][type][i] = bitboard_random();
+                bitboard_zobrist[color][type][i] = BITBOARD_random();
             }
         }
     }
-    bitboard_zorbist_color = bitboard_random();
+    bitboard_zorbist_color = BITBOARD_random();
 }
 
-static bitboard_t bitboard_random()
+static bitboard_t BITBOARD_random()
 {
     bitboard_t b = 0;
     int i;
@@ -231,7 +231,7 @@ static bitboard_t bitboard_random()
     return b;
 }
 
-void bitboard_print_debug(bitboard_t bitboard)
+void BITBOARD_print_debug(bitboard_t bitboard)
 {
     int rank, file;
     for(rank = 7; rank >= 0; rank--) {

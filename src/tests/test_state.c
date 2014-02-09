@@ -46,7 +46,7 @@ void test_position_is_attacked()
 
 int main()
 {
-    bitboard_init();
+    BITBOARD_init();
     
     test_position_is_attacked();
     return 0;

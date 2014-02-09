@@ -111,7 +111,7 @@ void test_perft6()
 
 int main()
 {
-    bitboard_init();
+    BITBOARD_init();
     
     test_perft1();
     test_perft2();

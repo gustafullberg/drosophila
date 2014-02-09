@@ -24,7 +24,7 @@ int SEARCH_perform_search(const chess_state_t *s, ttable_t *ttable, history_t *h
 int SEARCH_is_check(const chess_state_t *s, int color)
 {
     int king_bitboard_index = color*NUM_TYPES + KING;
-    int king_pos = bitboard_find_bit(s->bitboard[king_bitboard_index]);
+    int king_pos = BITBOARD_find_bit(s->bitboard[king_bitboard_index]);
     return EVAL_position_is_attacked(s, color, king_pos);
 }
 

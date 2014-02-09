@@ -51,10 +51,10 @@ extern bitboard_t bitboard_start_position[NUM_COLORS][NUM_TYPES-1];
 extern bitboard_t bitboard_zobrist[NUM_COLORS][NUM_TYPES-1][NUM_POSITIONS];
 extern bitboard_t bitboard_zorbist_color;
 
-void bitboard_init();
-void bitboard_print_debug(bitboard_t bitboard);
+void BITBOARD_init();
+void BITBOARD_print_debug(bitboard_t bitboard);
 
-static inline int bitboard_find_bit(bitboard_t bitboard)
+static inline int BITBOARD_find_bit(bitboard_t bitboard)
 {
 #if __GNUC__
     return __builtin_ctzll(bitboard);
@@ -73,7 +73,7 @@ static inline int bitboard_find_bit(bitboard_t bitboard)
 #endif
 }
 
-static inline int bitboard_count_bits(bitboard_t bitboard)
+static inline int BITBOARD_count_bits(bitboard_t bitboard)
 {
 #if __GNUC__
     return __builtin_popcountll(bitboard);
