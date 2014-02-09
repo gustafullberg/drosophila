@@ -273,7 +273,6 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
         int pos_from        = MOVE_GET_POS_FROM(move);
         int pos_to          = MOVE_GET_POS_TO(move);
         int type            = MOVE_GET_TYPE(move);
-        int opponent_type   = MOVE_GET_CAPTURE_TYPE(move);
         int special         = MOVE_GET_SPECIAL_FLAGS(move);
 
         int player_index = player * NUM_TYPES;
@@ -298,6 +297,7 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
         
         /* Remove captured piece from the other side */
         if(special & MOVE_CAPTURE) {
+            int opponent_type = MOVE_GET_CAPTURE_TYPE(move);
             if(special == MOVE_EP_CAPTURE) {
                 /* En passant capture */
                 s->bitboard[opponent_index + PAWN] ^= bitboard_ep_capture[pos_to];
@@ -309,7 +309,6 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
                 /* Normal capture */
                 BITBOARD_CLEAR(s->bitboard[opponent_index + opponent_type], pos_to);
                 BITBOARD_CLEAR(s->bitboard[opponent_index + ALL], pos_to);
-            
             
                 /* Rook capture disables castling */
                 if((opponent_type == ROOK) && (BITBOARD_POSITION(pos_to) & bitboard_start_position[opponent][ROOK])) {
@@ -328,51 +327,33 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
             s->halfmove_clock = 0;
         }
         
-        /* Pushing pawn 2 squares opens for en passant */
-        if(special == MOVE_DOUBLE_PAWN_PUSH) {
-            s->flags[s->player^1] |= STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK;
-            s->flags[s->player^1] &= ~STATE_FLAGS_EN_PASSANT_FILE_MASK;
-            s->flags[s->player^1] |= BITBOARD_GET_FILE(pos_from) << STATE_FLAGS_EN_PASSANT_FILE_SHIFT;
-        }
-        
-        /* Pawn promotion */
-        if(MOVE_IS_PROMOTION(move)) {
-            int promotion_type = MOVE_PROMOTION_TYPE(move);
-            BITBOARD_CLEAR(s->bitboard[player_index + type], pos_to);
-            BITBOARD_SET(s->bitboard[player_index + promotion_type], pos_to);
-            
-            /* Update hash with promotion */
-            s->hash ^= bitboard_zobrist[player][PAWN][pos_to];
-            s->hash ^= bitboard_zobrist[player][promotion_type][pos_to];
-        }
-        
-        /* Castling */
-        if(special == MOVE_KING_CASTLE) {
-            /* Move rook */
-            s->bitboard[player_index + ALL] ^= s->bitboard[player_index + ROOK];
-            s->bitboard[player_index + ROOK] ^= s->bitboard[player_index + KING] << 1;
-            s->bitboard[player_index + ROOK] ^= s->bitboard[player_index + KING] >> 1;
-            s->bitboard[player_index + ALL] ^= s->bitboard[player_index + ROOK];
-            
-            /* Update hash with king-side castling */
-            s->hash ^= bitboard_zobrist[player][ROOK][pos_to+1];
-            s->hash ^= bitboard_zobrist[player][ROOK][pos_to-1];
-        }
-        if(special == MOVE_QUEEN_CASTLE) {
-            /* Move rook */
-            s->bitboard[player_index + ALL] ^= s->bitboard[player_index + ROOK];
-            s->bitboard[player_index + ROOK] ^= s->bitboard[player_index + KING] >> 2;
-            s->bitboard[player_index + ROOK] ^= s->bitboard[player_index + KING] << 1;
-            s->bitboard[player_index + ALL] ^= s->bitboard[player_index + ROOK];
-            
-            /* Update hash with king-side castling */
-            s->hash ^= bitboard_zobrist[player][ROOK][pos_to-2];
-            s->hash ^= bitboard_zobrist[player][ROOK][pos_to+1];
-        }
-        
         if(type == KING) {
             /* Disable castling */
             s->flags[player] &= ~(STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK | STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK);
+            
+            /* Castling */
+            if(special == MOVE_KING_CASTLE) {
+                /* Move rook */
+                s->bitboard[player_index + ALL] ^= s->bitboard[player_index + ROOK];
+                s->bitboard[player_index + ROOK] ^= s->bitboard[player_index + KING] << 1;
+                s->bitboard[player_index + ROOK] ^= s->bitboard[player_index + KING] >> 1;
+                s->bitboard[player_index + ALL] ^= s->bitboard[player_index + ROOK];
+                
+                /* Update hash with king-side castling */
+                s->hash ^= bitboard_zobrist[player][ROOK][pos_to+1];
+                s->hash ^= bitboard_zobrist[player][ROOK][pos_to-1];
+            }
+            if(special == MOVE_QUEEN_CASTLE) {
+                /* Move rook */
+                s->bitboard[player_index + ALL] ^= s->bitboard[player_index + ROOK];
+                s->bitboard[player_index + ROOK] ^= s->bitboard[player_index + KING] >> 2;
+                s->bitboard[player_index + ROOK] ^= s->bitboard[player_index + KING] << 1;
+                s->bitboard[player_index + ALL] ^= s->bitboard[player_index + ROOK];
+                
+                /* Update hash with king-side castling */
+                s->hash ^= bitboard_zobrist[player][ROOK][pos_to-2];
+                s->hash ^= bitboard_zobrist[player][ROOK][pos_to+1];
+            }
         }
         
         if(type == ROOK) {
@@ -389,6 +370,24 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
         if(type == PAWN) {
             /* Reset half-move clock when a pawn is moved */
             s->halfmove_clock = 0;
+            
+            /* Pushing pawn 2 squares opens for en passant */
+            if(special == MOVE_DOUBLE_PAWN_PUSH) {
+                s->flags[s->player^1] |= STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK;
+                s->flags[s->player^1] &= ~STATE_FLAGS_EN_PASSANT_FILE_MASK;
+                s->flags[s->player^1] |= BITBOARD_GET_FILE(pos_from) << STATE_FLAGS_EN_PASSANT_FILE_SHIFT;
+            }
+            
+            /* Pawn promotion */
+            if(MOVE_IS_PROMOTION(move)) {
+                int promotion_type = MOVE_PROMOTION_TYPE(move);
+                BITBOARD_CLEAR(s->bitboard[player_index + type], pos_to);
+                BITBOARD_SET(s->bitboard[player_index + promotion_type], pos_to);
+                
+                /* Update hash with promotion */
+                s->hash ^= bitboard_zobrist[player][PAWN][pos_to];
+                s->hash ^= bitboard_zobrist[player][promotion_type][pos_to];
+            }
         }
 
         /* Occupied by piece of any color */
