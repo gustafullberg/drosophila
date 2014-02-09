@@ -19,7 +19,7 @@ void TTABLE_destroy(ttable_t *t)
     free(t);
 }
 
-void TTABLE_store(ttable_t *t, bitboard_t hash, short depth, short type, short score, move_t best_move)
+void TTABLE_store(ttable_t *t, bitboard_t hash, unsigned char depth, unsigned char type, short score, move_t best_move)
 {
     int index = (int)(hash & t->key_mask);
     ttable_entry_t *entry = &t->entries[index];
@@ -27,7 +27,8 @@ void TTABLE_store(ttable_t *t, bitboard_t hash, short depth, short type, short s
     entry->hash = hash;
     entry->best_move = best_move;
     entry->score = score;
-    entry->depth_and_type = TTABLE_SET_DEPTH_AND_TYPE(depth, type);
+    entry->depth = depth;
+    entry->type = type;
 }
 
 ttable_entry_t *TTABLE_retrieve(ttable_t *t, bitboard_t hash)

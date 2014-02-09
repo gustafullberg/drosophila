@@ -4,11 +4,11 @@
 #include "moveorder.h"
 #include "time.h"
 
-static inline ttable_entry_t *SEARCH_transpositiontable_retrieve(ttable_t *ttable, bitboard_t hash, short depth, short *alpha, short *beta, move_t *best_move);
-static inline void SEARCH_transpositiontable_store(ttable_t *ttable, bitboard_t hash, short depth, short best_score, move_t best_move, short alpha, short beta);
+static inline ttable_entry_t *SEARCH_transpositiontable_retrieve(ttable_t *ttable, bitboard_t hash, unsigned char depth, short *alpha, short *beta, move_t *best_move);
+static inline void SEARCH_transpositiontable_store(ttable_t *ttable, bitboard_t hash, unsigned char depth, short best_score, move_t best_move, short alpha, short beta);
 
 /* Alpha-Beta search with Nega Max */
-short SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, short depth, move_t *move, short inalpha, short inbeta)
+short SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, unsigned char depth, move_t *move, short inalpha, short inbeta)
 {
     int num_moves;
     int num_legal_moves;
@@ -45,7 +45,7 @@ short SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state,
         depth += 1;
     }
 
-    if(depth <= 0) {
+    if(depth == 0) {
 #ifndef DISABLE_QUIESCENCE
         return SEARCH_alphabeta_quiescence(state, search_state, alpha, beta);
 #else
@@ -250,13 +250,13 @@ short SEARCH_alphabeta_quiescence(const chess_state_t *state, search_state_t *se
     return best_score;
 }
 
-static inline ttable_entry_t *SEARCH_transpositiontable_retrieve(ttable_t *ttable, bitboard_t hash, short depth, short *alpha, short *beta, move_t *best_move)
+static inline ttable_entry_t *SEARCH_transpositiontable_retrieve(ttable_t *ttable, bitboard_t hash, unsigned char depth, short *alpha, short *beta, move_t *best_move)
 {
     ttable_entry_t *ttentry = TTABLE_retrieve(ttable, hash);
     if(ttentry) {
-        if(TTABLE_GET_DEPTH(ttentry->depth_and_type) >= depth) {
+        if(ttentry->depth >= depth) {
             int score = ttentry->score;
-            if(TTABLE_GET_TYPE(ttentry->depth_and_type) == TTABLE_TYPE_UPPER_BOUND) {
+            if(ttentry->type == TTABLE_TYPE_UPPER_BOUND) {
                 if(score < *beta) {
                     short min = SEARCH_MIN_RESULT(depth);
                     *beta = (score < min) ? min : score;
@@ -274,7 +274,7 @@ static inline ttable_entry_t *SEARCH_transpositiontable_retrieve(ttable_t *ttabl
     return ttentry;
 }
 
-static inline void SEARCH_transpositiontable_store(ttable_t *ttable, bitboard_t hash, short depth, short best_score, move_t best_move, short alpha, short beta)
+static inline void SEARCH_transpositiontable_store(ttable_t *ttable, bitboard_t hash, unsigned char depth, short best_score, move_t best_move, short alpha, short beta)
 {
     best_move &= ~MOVE_SCORE_MASK;
     if(best_score <= alpha) {
