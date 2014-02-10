@@ -23,6 +23,8 @@ bitboard_t bitboard_pawn_move2[NUM_COLORS][NUM_POSITIONS];
 bitboard_t bitboard_pawn_capture[NUM_COLORS][NUM_POSITIONS];
 bitboard_t bitboard_ep_capture[NUM_POSITIONS];
 bitboard_t bitboard_ep_capturers[NUM_COLORS][NUM_FILES];
+bitboard_t bitboard_bishop[NUM_POSITIONS];
+bitboard_t bitboard_rook[NUM_POSITIONS];
 bitboard_t bitboard_king_castle_empty[NUM_COLORS];
 bitboard_t bitboard_queen_castle_empty[NUM_COLORS];
 bitboard_t bitboard_start_position[NUM_COLORS][NUM_TYPES-1];
@@ -186,6 +188,16 @@ void BITBOARD_init()
                 bitboard_ep_capturers[color][i] |= BITBOARD_RANK_FILE(rank, i+1);
             }
         }
+    }
+    
+    /* BISHOP */
+    for(i = 0; i < NUM_POSITIONS; i++) {
+        bitboard_bishop[i] = (bitboard_bltr[i] | bitboard_tlbr[i]) ^ BITBOARD_POSITION(i);
+    }
+    
+    /* ROOK */
+    for(i = 0; i < NUM_POSITIONS; i++) {
+        bitboard_rook[i] = (bitboard_rank[i] | bitboard_file[i]) ^ BITBOARD_POSITION(i);
     }
     
     /* CASTLING */

@@ -45,6 +45,8 @@ extern bitboard_t bitboard_pawn_move2[NUM_COLORS][NUM_POSITIONS];
 extern bitboard_t bitboard_pawn_capture[NUM_COLORS][NUM_POSITIONS];
 extern bitboard_t bitboard_ep_capture[NUM_POSITIONS];
 extern bitboard_t bitboard_ep_capturers[NUM_COLORS][NUM_FILES];
+extern bitboard_t bitboard_bishop[NUM_POSITIONS];
+extern bitboard_t bitboard_rook[NUM_POSITIONS];
 extern bitboard_t bitboard_king_castle_empty[NUM_COLORS];
 extern bitboard_t bitboard_queen_castle_empty[NUM_COLORS];
 extern bitboard_t bitboard_start_position[NUM_COLORS][NUM_TYPES-1];
