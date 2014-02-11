@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "search.h"
-#include "search_alphabeta.h"
 #include "search_mtdf.h"
 #include "eval.h"
 #include "time.h"

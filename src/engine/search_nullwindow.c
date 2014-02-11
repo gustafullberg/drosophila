@@ -1,14 +1,14 @@
-#include "search_alphabeta.h"
+#include "search_nullwindow.h"
 #include "search.h"
 #include "eval.h"
 #include "moveorder.h"
 #include "time.h"
 
-static inline ttable_entry_t *SEARCH_transpositiontable_retrieve(ttable_t *ttable, bitboard_t hash, unsigned char depth, short *alpha, short *beta, move_t *best_move);
-static inline void SEARCH_transpositiontable_store(ttable_t *ttable, bitboard_t hash, unsigned char depth, short best_score, move_t best_move, short alpha, short beta);
+static inline short SEARCH_transpositiontable_retrieve(ttable_t *ttable, bitboard_t hash, unsigned char depth, short *beta, move_t *best_move, int *cutoff);
+static inline void SEARCH_transpositiontable_store(ttable_t *ttable, bitboard_t hash, unsigned char depth, short best_score, move_t best_move, short beta);
 
-/* Alpha-Beta search with Nega Max */
-short SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state, unsigned char depth, move_t *move, short inalpha, short inbeta)
+/* Alpha-Beta search with Nega Max and null-window */
+short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state, unsigned char depth, move_t *move, short beta)
 {
     int num_moves;
     int num_legal_moves;
@@ -20,9 +20,9 @@ short SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state,
     chess_state_t next_state;
     move_t moves[256];
     int is_in_check;
+    short ttable_score;
+    int cutoff = 0;
 
-    short alpha = inalpha;
-    short beta = inbeta;
     *move = 0;
     
 #ifndef DISABLE_TIME_MANAGEMENT
@@ -47,18 +47,16 @@ short SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state,
 
     if(depth == 0) {
 #ifndef DISABLE_QUIESCENCE
-        return SEARCH_alphabeta_quiescence(state, search_state, alpha, beta);
+        return SEARCH_nullwindow_quiescence(state, search_state, beta);
 #else
         return EVAL_evaluate_board(state);
 #endif
     }
     
 #ifndef DISABLE_TRANSPOSITION_TABLE
-    SEARCH_transpositiontable_retrieve(search_state->ttable, state->hash, depth, &alpha, &beta, move);
-    if(alpha >= inbeta) return alpha;
-    if(beta <= inalpha) return beta;
-    if(alpha >= beta) {
-        return alpha;
+    ttable_score = SEARCH_transpositiontable_retrieve(search_state->ttable, state->hash, depth, &beta, move, &cutoff);
+    if(cutoff) {
+        return ttable_score;
     }
 #endif
 
@@ -67,7 +65,7 @@ short SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state,
         if(!SEARCH_is_check(state, state->player)) {
             next_state = *state;
             STATE_apply_move(&next_state, 0);
-            score = -SEARCH_alphabeta(&next_state, search_state, depth-3, &next_move, -beta, -alpha);
+            score = -SEARCH_nullwindow(&next_state, search_state, depth-3, &next_move, -beta+1);
             if(score >= beta) {
                 best_score = beta;
                 skip_move_generation = 1;
@@ -81,7 +79,7 @@ short SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state,
         next_state = *state;
         STATE_apply_move(&next_state, *move);
         if(!SEARCH_is_check(&next_state, state->player)) {
-            best_score = -SEARCH_alphabeta(&next_state, search_state, depth-1, &next_move, -beta, -alpha);
+            best_score = -SEARCH_nullwindow(&next_state, search_state, depth-1, &next_move, -beta+1);
             if(best_score >= beta) {
                 skip_move_generation = 1;
             }
@@ -121,15 +119,15 @@ short SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state,
                     !is_in_check)                              /* No LMR if in check                            */
                 {
                     /* Search at reduced depth */
-                    score = -SEARCH_alphabeta(&next_state, search_state, depth-2, &next_move, -beta, -alpha);
-                    if(score > alpha) {
-                        score = -SEARCH_alphabeta(&next_state, search_state, depth-1, &next_move, -beta, -alpha);
+                    score = -SEARCH_nullwindow(&next_state, search_state, depth-2, &next_move, -beta+1);
+                    if(score >= beta) {
+                        score = -SEARCH_nullwindow(&next_state, search_state, depth-1, &next_move, -beta+1);
                     }
                 } else {
-                    score = -SEARCH_alphabeta(&next_state, search_state, depth-1, &next_move, -beta, -alpha);
+                    score = -SEARCH_nullwindow(&next_state, search_state, depth-1, &next_move, -beta+1);
                 }
 #else
-                score = -SEARCH_alphabeta(&next_state, search_state, depth-1, &next_move, -beta, -alpha);
+                score = -SEARCH_nullwindow(&next_state, search_state, depth-1, &next_move, -beta+1);
 #endif
             }
             
@@ -140,9 +138,6 @@ short SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state,
                     /* Beta-cuttoff */
                     HISTORY_pop(search_state->history);
                     break;
-                }
-                if(best_score > alpha) {
-                    alpha = best_score;
                 }
             }
 
@@ -163,13 +158,13 @@ short SEARCH_alphabeta(const chess_state_t *state, search_state_t *search_state,
     }
     
 #ifndef DISABLE_TRANSPOSITION_TABLE
-    SEARCH_transpositiontable_store(search_state->ttable, state->hash, depth, best_score, *move, inalpha, inbeta);
+    SEARCH_transpositiontable_store(search_state->ttable, state->hash, depth, best_score, *move, beta);
 #endif
     return best_score;
 }
 
-/* Alpha-Beta quiescence search with Nega Max */
-short SEARCH_alphabeta_quiescence(const chess_state_t *state, search_state_t *search_state, short inalpha, short inbeta)
+/* Alpha-Beta quiescence search with Nega Max and null-window */
+short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *search_state, short beta)
 {
     int num_moves;
     int num_legal_moves;
@@ -180,33 +175,28 @@ short SEARCH_alphabeta_quiescence(const chess_state_t *state, search_state_t *se
     move_t move;
     chess_state_t next_state;
     move_t moves[256];
+    int cutoff = 0;
+    short ttable_score;
 
-    short alpha = inalpha;
-    short beta = inbeta;
     move = 0;
 
     /* Stand-pat */
     best_score = EVAL_evaluate_board(state);
-    if(best_score > alpha) {
-        if(best_score >= beta) {
-            return best_score;
-        }
-        alpha = best_score;
+    if(best_score >= beta) {
+        return best_score;
     }
     
 #ifndef DISABLE_TRANSPOSITION_TABLE
-    SEARCH_transpositiontable_retrieve(search_state->ttable, state->hash, 0, &alpha, &beta, &move);
-    if(alpha >= inbeta) return alpha;
-    if(beta <= inalpha) return beta;
-    if(alpha >= beta) {
-        return alpha;
+    ttable_score = SEARCH_transpositiontable_retrieve(search_state->ttable, state->hash, 0, &beta, &move, &cutoff);
+    if(cutoff) {
+        return ttable_score;
     }
     
     if(move) {
         next_state = *state;
         STATE_apply_move(&next_state, move);
         if(!SEARCH_is_check(&next_state, state->player)) {
-            best_score = -SEARCH_alphabeta_quiescence(&next_state, search_state, -beta, -alpha);
+            best_score = -SEARCH_nullwindow_quiescence(&next_state, search_state, -beta+1);
             if(best_score >= beta) {
                 skip_move_generation = 1;
             }
@@ -229,28 +219,25 @@ short SEARCH_alphabeta_quiescence(const chess_state_t *state, search_state_t *se
                 continue;
             }
             num_legal_moves++;
-            score = -SEARCH_alphabeta_quiescence(&next_state, search_state, -beta, -alpha);
+            score = -SEARCH_nullwindow_quiescence(&next_state, search_state, -beta+1);
             if(score > best_score) {
                 best_score = score;
                 if(best_score >= beta) {
                     /* Beta-cuttoff */
                     break;
                 }
-                if(best_score > alpha) {
-                    alpha = best_score;
-                }
             }
         }
     }
     
 #ifndef DISABLE_TRANSPOSITION_TABLE
-    SEARCH_transpositiontable_store(search_state->ttable, state->hash, 0, best_score, 0, inalpha, inbeta);
+    SEARCH_transpositiontable_store(search_state->ttable, state->hash, 0, best_score, 0, beta);
 #endif
     
     return best_score;
 }
 
-static inline ttable_entry_t *SEARCH_transpositiontable_retrieve(ttable_t *ttable, bitboard_t hash, unsigned char depth, short *alpha, short *beta, move_t *best_move)
+static inline short SEARCH_transpositiontable_retrieve(ttable_t *ttable, bitboard_t hash, unsigned char depth, short *beta, move_t *best_move, int *cutoff)
 {
     ttable_entry_t *ttentry = TTABLE_retrieve(ttable, hash);
     if(ttentry) {
@@ -259,25 +246,29 @@ static inline ttable_entry_t *SEARCH_transpositiontable_retrieve(ttable_t *ttabl
             if(ttentry->type == TTABLE_TYPE_UPPER_BOUND) {
                 if(score < *beta) {
                     short min = SEARCH_MIN_RESULT(depth);
-                    *beta = (score < min) ? min : score;
+                    *cutoff = 1;
+                    return (score < min) ? min : score;
                 }
             } else { /* TTABLE_TYPE_LOWER_BOUND */
-                if(score > *alpha) {
+                if(score >= *beta) {
                     short max = SEARCH_MAX_RESULT(depth);
-                    *alpha = (score > max) ? max : score;
+                    *cutoff = 1;
+                    return (score > max) ? max : score;
                 }
             }
         }
+        
+        *cutoff = 0;
         *best_move = ttentry->best_move;
     }
     
-    return ttentry;
+    return 0;
 }
 
-static inline void SEARCH_transpositiontable_store(ttable_t *ttable, bitboard_t hash, unsigned char depth, short best_score, move_t best_move, short alpha, short beta)
+static inline void SEARCH_transpositiontable_store(ttable_t *ttable, bitboard_t hash, unsigned char depth, short best_score, move_t best_move, short beta)
 {
     best_move &= ~MOVE_SCORE_MASK;
-    if(best_score <= alpha) {
+    if(best_score < beta) {
         TTABLE_store(ttable, hash, depth, TTABLE_TYPE_UPPER_BOUND, best_score, best_move);
     } else {
         TTABLE_store(ttable, hash, depth, TTABLE_TYPE_LOWER_BOUND, best_score, best_move);

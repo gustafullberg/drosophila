@@ -21,10 +21,10 @@ set(files
     san.h
     search.c
     search.h
-    search_alphabeta.c
-    search_alphabeta.h
     search_mtdf.c
     search_mtdf.h
+    search_nullwindow.c
+    search_nullwindow.h
     state.c
     state.h
     time.c

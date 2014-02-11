@@ -1,5 +1,5 @@
 #include "search_mtdf.h"
-#include "search_alphabeta.h"
+#include "search_nullwindow.h"
 #include "search.h"
 #include "eval.h"
 #include "time.h"
@@ -26,7 +26,7 @@ short SEARCH_mtdf(const chess_state_t *s, search_state_t *search_state, short de
             beta = guess;
         }
 
-        guess = SEARCH_alphabeta(&state, search_state, depth, &movetemp, beta-1, beta);
+        guess = SEARCH_nullwindow(&state, search_state, depth, &movetemp, beta);
 
         if(guess < beta) {
             bounds[1] = guess;
