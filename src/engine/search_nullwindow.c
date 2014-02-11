@@ -38,6 +38,10 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     }
 #endif
 
+#ifndef DISABLE_TRANSPOSITION_TABLE
+    TTABLE_prefetch(search_state->ttable, state->hash);
+#endif
+
     is_in_check = SEARCH_is_check(state, state->player);
     
     if(is_in_check) {
@@ -179,6 +183,10 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
     short ttable_score;
 
     move = 0;
+
+#ifndef DISABLE_TRANSPOSITION_TABLE
+    TTABLE_prefetch(search_state->ttable, state->hash);
+#endif
 
     /* Stand-pat */
     best_score = EVAL_evaluate_board(state);

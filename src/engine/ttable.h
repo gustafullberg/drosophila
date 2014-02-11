@@ -25,5 +25,13 @@ void TTABLE_destroy(ttable_t *t);
 void TTABLE_store(ttable_t *t, bitboard_t hash, unsigned char depth, unsigned char type, short score, move_t best_move);
 ttable_entry_t *TTABLE_retrieve(ttable_t *t, bitboard_t hash);
 
+static inline void TTABLE_prefetch(ttable_t *t, bitboard_t hash)
+{
+#if __GNUC__
+    int index = (int)(hash & t->key_mask);
+    __builtin_prefetch(&t->entries[index]);
+#endif
+}
+
 #endif
 
