@@ -15,6 +15,7 @@
 #define PAWN_DOUBLE_PAWN -50
 #define PAWN_TRIPLE_PAWN -100
 
+static const int piece_value[NUM_TYPES] = { 100, 300, 320, 500, 900, 0 };
 static const int sign[2] = { 1, -1 };
 
 static const int pawn_double_pawn_penalty[8] = {
@@ -77,13 +78,13 @@ static int EVAL_piecesquare(const chess_state_t *s)
         pieces = s->bitboard[WHITE_PIECES+type];
         while(pieces) {
             int pos = BITBOARD_find_bit(pieces);
-            result += psq[pos];
+            result += piece_value[type] + psq[pos];
             pieces ^= BITBOARD_POSITION(pos);
         }
         pieces = s->bitboard[BLACK_PIECES+type];
         while(pieces) {
             int pos = BITBOARD_find_bit(pieces);
-            result -= psq[pos^0x38];
+            result -= piece_value[type] + psq[pos^0x38];
             pieces ^= BITBOARD_POSITION(pos);
         }
     }
@@ -103,12 +104,6 @@ int EVAL_evaluate_board(const chess_state_t *s)
 {
     int score = 0;
 
-    score +=    900 * (BITBOARD_count_bits(s->bitboard[WHITE_PIECES+QUEEN])  - BITBOARD_count_bits(s->bitboard[BLACK_PIECES+QUEEN]));
-    score +=    500 * (BITBOARD_count_bits(s->bitboard[WHITE_PIECES+ROOK])   - BITBOARD_count_bits(s->bitboard[BLACK_PIECES+ROOK]));
-    score +=    320 * (BITBOARD_count_bits(s->bitboard[WHITE_PIECES+BISHOP]) - BITBOARD_count_bits(s->bitboard[BLACK_PIECES+BISHOP]));
-    score +=    300 * (BITBOARD_count_bits(s->bitboard[WHITE_PIECES+KNIGHT]) - BITBOARD_count_bits(s->bitboard[BLACK_PIECES+KNIGHT]));
-    score +=    100 * (BITBOARD_count_bits(s->bitboard[WHITE_PIECES+PAWN])   - BITBOARD_count_bits(s->bitboard[BLACK_PIECES+PAWN]));
-    
     score += EVAL_piecesquare(s);
     score += pawn_structure_assessment(s);
     
