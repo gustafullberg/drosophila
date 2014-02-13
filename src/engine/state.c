@@ -378,6 +378,10 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
             /* Reset half-move clock when a pawn is moved */
             s->halfmove_clock = 0;
             
+            /* Update pawn hash */
+            s->pawn_hash ^= bitboard_zobrist_pawn[player][pos_from];
+            s->pawn_hash ^= bitboard_zobrist_pawn[player][pos_to];
+            
             /* Pushing pawn 2 squares opens for en passant */
             if(special == MOVE_DOUBLE_PAWN_PUSH) {
                 s->flags[s->player^1] |= STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK;
@@ -394,11 +398,10 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
                 /* Update hash with promotion */
                 s->hash ^= bitboard_zobrist[player][PAWN][pos_to];
                 s->hash ^= bitboard_zobrist[player][promotion_type][pos_to];
+                
+                /* Remove pawn from hash */
+                s->pawn_hash ^= bitboard_zobrist_pawn[player][pos_to];
             }
-            
-            /* Update pawn hash */
-            s->pawn_hash ^= bitboard_zobrist_pawn[player][pos_from];
-            s->pawn_hash ^= bitboard_zobrist_pawn[player][pos_to];
         }
 
         /* Occupied by piece of any color */
