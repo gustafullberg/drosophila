@@ -30,8 +30,10 @@ bitboard_t bitboard_queen_castle_empty[NUM_COLORS];
 bitboard_t bitboard_start_position[NUM_COLORS][NUM_TYPES-1];
 bitboard_t bitboard_zobrist[NUM_COLORS][NUM_TYPES-1][NUM_POSITIONS];
 bitboard_t bitboard_zorbist_color;
+uint32_t   bitboard_zobrist_pawn[NUM_COLORS][NUM_POSITIONS];
 
 static bitboard_t BITBOARD_random();
+static uint32_t BITBOARD_random_uint32();
 
 void BITBOARD_init()
 {
@@ -230,6 +232,13 @@ void BITBOARD_init()
         }
     }
     bitboard_zorbist_color = BITBOARD_random();
+
+    /* ZORBIST KEYS FOR PAWN HASH TABLE */
+    for(color = 0; color < NUM_COLORS; color++) {
+        for(i = 0; i < NUM_POSITIONS; i++) {
+            bitboard_zobrist_pawn[color][i] = BITBOARD_random_uint32();
+        }
+    }
 }
 
 static bitboard_t BITBOARD_random()
@@ -240,6 +249,13 @@ static bitboard_t BITBOARD_random()
         b <<= 16;
         b |= (bitboard_t)(rand() & 0xFFFF);
     }
+    return b;
+}
+
+static uint32_t BITBOARD_random_uint32()
+{
+    uint32_t b;
+    b = ((rand() & 0xFFFF) << 16) | (rand() & 0xFFFF);
     return b;
 }
 

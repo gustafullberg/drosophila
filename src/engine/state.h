@@ -63,6 +63,7 @@ typedef uint32_t move_t;
 typedef struct chess_state_t {
     bitboard_t  bitboard[NUM_COLORS*NUM_TYPES+1];
     bitboard_t  hash;
+    uint32_t    pawn_hash;
     move_t      last_move;
     char        flags[2];
     char        player;

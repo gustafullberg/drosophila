@@ -5,16 +5,22 @@
 ttable_t *TTABLE_create(int log2_num_entries)
 {
     int num_entries = 1 << log2_num_entries;
+    int num_pawn_entries = 1 << 17;
     
     ttable_t *t = malloc(sizeof(ttable_t));
+    
     t->entries = calloc(num_entries, sizeof(ttable_entry_t));
     t->key_mask = num_entries - 1;
+    
+    t->pawn_entries = calloc(num_pawn_entries, sizeof(ptable_entry_t));
+    t->pawn_key_mask = num_pawn_entries - 1;
     
     return t;
 }
 
 void TTABLE_destroy(ttable_t *t)
 {
+    free(t->pawn_entries);
     free(t->entries);
     free(t);
 }
@@ -41,3 +47,21 @@ ttable_entry_t *TTABLE_retrieve(ttable_t *t, bitboard_t hash)
     return NULL;
 }
 
+void HASHTABLE_pawn_store(ttable_t *t, uint32_t hash, int score)
+{
+    int index = (int)(hash & t->pawn_key_mask);
+    ptable_entry_t *p = &t->pawn_entries[index];
+    
+    p->hash = hash;
+    p->score = score;
+}
+
+int HASHTABLE_pawn_retrieve(ttable_t *t, uint32_t hash, int *score)
+{
+    int index = (int)(hash & t->pawn_key_mask);
+    if(t->pawn_entries[index].hash == hash) {
+        *score = t->pawn_entries[index].score;
+        return 1;
+    }
+    return 0;
+}

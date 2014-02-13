@@ -299,12 +299,15 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
         if(special & MOVE_CAPTURE) {
             int opponent_type = MOVE_GET_CAPTURE_TYPE(move);
             if(special == MOVE_EP_CAPTURE) {
+                int pos_capture = BITBOARD_find_bit(bitboard_ep_capture[pos_to]);
+                
                 /* En passant capture */
                 s->bitboard[opponent_index + PAWN] ^= bitboard_ep_capture[pos_to];
                 s->bitboard[opponent_index + ALL] ^= bitboard_ep_capture[pos_to];
                 
-                /* Update hash with EP capture */
-                s->hash ^= bitboard_zobrist[opponent][opponent_type][BITBOARD_find_bit(bitboard_ep_capture[pos_to])];
+                /* Update hashes with EP capture */
+                s->hash ^= bitboard_zobrist[opponent][opponent_type][pos_capture];
+                s->pawn_hash ^= bitboard_zobrist_pawn[opponent][pos_capture];
             } else {
                 /* Normal capture */
                 BITBOARD_CLEAR(s->bitboard[opponent_index + opponent_type], pos_to);
@@ -321,6 +324,10 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
                 
                 /* Update hash with normal capture */
                 s->hash ^= bitboard_zobrist[opponent][opponent_type][pos_to];
+                
+                if(opponent_type == PAWN) {
+                    s->pawn_hash ^= bitboard_zobrist_pawn[opponent][pos_to];
+                }
             }
             
             /* Reset half-move clock when a piece is captured */
@@ -388,6 +395,10 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
                 s->hash ^= bitboard_zobrist[player][PAWN][pos_to];
                 s->hash ^= bitboard_zobrist[player][promotion_type][pos_to];
             }
+            
+            /* Update pawn hash */
+            s->pawn_hash ^= bitboard_zobrist_pawn[player][pos_from];
+            s->pawn_hash ^= bitboard_zobrist_pawn[player][pos_to];
         }
 
         /* Occupied by piece of any color */
@@ -414,6 +425,7 @@ void STATE_compute_hash(chess_state_t *s)
     bitboard_t pieces;
     
     s->hash = 0;
+    s->pawn_hash = 0;
     
     for(color = 0; color < NUM_COLORS; color++) {
         for(type = 0; type < NUM_TYPES - 1; type++) {
@@ -427,6 +439,14 @@ void STATE_compute_hash(chess_state_t *s)
                 
                 pieces ^= BITBOARD_POSITION(pos);
             }
+        }
+        
+        /* Update the pawn hash */
+        pieces = s->bitboard[color*NUM_TYPES + PAWN];
+        while(pieces) {
+            pos = BITBOARD_find_bit(pieces);
+            s->pawn_hash ^= bitboard_zobrist_pawn[color][pos];
+            pieces ^= BITBOARD_POSITION(pos);
         }
     }
     

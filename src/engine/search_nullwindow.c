@@ -53,7 +53,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
 #ifndef DISABLE_QUIESCENCE
         return SEARCH_nullwindow_quiescence(state, search_state, beta);
 #else
-        return EVAL_evaluate_board(state);
+        return EVAL_evaluate_board(state, search_state->ttable);
 #endif
     }
     
@@ -189,7 +189,7 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
 #endif
 
     /* Stand-pat */
-    best_score = EVAL_evaluate_board(state);
+    best_score = EVAL_evaluate_board(state, search_state->ttable);
     if(best_score >= beta) {
         return best_score;
     }

@@ -13,8 +13,15 @@ typedef struct {
 } ttable_entry_t;
 
 typedef struct {
+    uint32_t        hash;
+    int             score;
+} ptable_entry_t;
+
+typedef struct {
     ttable_entry_t *entries;
     bitboard_t      key_mask;
+    ptable_entry_t *pawn_entries;
+    uint32_t        pawn_key_mask;
 } ttable_t;
 
 #define TTABLE_TYPE_LOWER_BOUND     0
@@ -24,6 +31,8 @@ ttable_t *TTABLE_create(int log2_num_entries);
 void TTABLE_destroy(ttable_t *t);
 void TTABLE_store(ttable_t *t, bitboard_t hash, unsigned char depth, unsigned char type, short score, move_t best_move);
 ttable_entry_t *TTABLE_retrieve(ttable_t *t, bitboard_t hash);
+void HASHTABLE_pawn_store(ttable_t *t, uint32_t hash, int score);
+int HASHTABLE_pawn_retrieve(ttable_t *t, uint32_t hash, int *score);
 
 static inline void TTABLE_prefetch(ttable_t *t, bitboard_t hash)
 {

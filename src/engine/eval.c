@@ -72,7 +72,6 @@ static int EVAL_piecesquare(const chess_state_t *s)
     int type;
     int result = 0;
     
-    /* White pawns */
     for(type = PAWN; type < KING; type++) {
         const int *psq = piecesquare[type];
         pieces = s->bitboard[WHITE_PIECES+type];
@@ -98,14 +97,18 @@ static int EVAL_piecesquare(const chess_state_t *s)
     return result;
 }
 
-
-
-int EVAL_evaluate_board(const chess_state_t *s)
+int EVAL_evaluate_board(const chess_state_t *s, ttable_t *t)
 {
     int score = 0;
 
+    /* Query pawn hash table */
+    if(!HASHTABLE_pawn_retrieve(t, s->pawn_hash, &score)) {
+        /* Not found: evaluate pawn structure */
+        score += pawn_structure_assessment(s);
+        HASHTABLE_pawn_store(t, s->pawn_hash, score);
+    }
+    
     score += EVAL_piecesquare(s);
-    score += pawn_structure_assessment(s);
     
     /* Down-sample score for faster MTD(f) convergence */
     score = score >> 2;
