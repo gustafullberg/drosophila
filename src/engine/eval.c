@@ -97,7 +97,7 @@ static int EVAL_piecesquare(const chess_state_t *s)
     return result;
 }
 
-int EVAL_evaluate_board(const chess_state_t *s, ttable_t *t)
+int EVAL_evaluate_board(const chess_state_t *s, hashtable_t *t)
 {
     int score = 0;
 

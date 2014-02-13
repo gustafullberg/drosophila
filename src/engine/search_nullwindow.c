@@ -4,8 +4,8 @@
 #include "moveorder.h"
 #include "time.h"
 
-static inline short SEARCH_transpositiontable_retrieve(ttable_t *ttable, bitboard_t hash, unsigned char depth, short *beta, move_t *best_move, int *cutoff);
-static inline void SEARCH_transpositiontable_store(ttable_t *ttable, bitboard_t hash, unsigned char depth, short best_score, move_t best_move, short beta);
+static inline short SEARCH_transpositiontable_retrieve(hashtable_t *ttable, bitboard_t hash, unsigned char depth, short *beta, move_t *best_move, int *cutoff);
+static inline void SEARCH_transpositiontable_store(hashtable_t *ttable, bitboard_t hash, unsigned char depth, short best_score, move_t best_move, short beta);
 
 /* Alpha-Beta search with Nega Max and null-window */
 short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state, unsigned char depth, move_t *move, short beta)
@@ -39,7 +39,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
 #endif
 
 #ifndef DISABLE_TRANSPOSITION_TABLE
-    TTABLE_prefetch(search_state->ttable, state->hash);
+    HASHTABLE_transition_prefetch(search_state->hashtable, state->hash);
 #endif
 
     is_in_check = SEARCH_is_check(state, state->player);
@@ -53,12 +53,12 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
 #ifndef DISABLE_QUIESCENCE
         return SEARCH_nullwindow_quiescence(state, search_state, beta);
 #else
-        return EVAL_evaluate_board(state, search_state->ttable);
+        return EVAL_evaluate_board(state, search_state->hashtable);
 #endif
     }
     
 #ifndef DISABLE_TRANSPOSITION_TABLE
-    ttable_score = SEARCH_transpositiontable_retrieve(search_state->ttable, state->hash, depth, &beta, move, &cutoff);
+    ttable_score = SEARCH_transpositiontable_retrieve(search_state->hashtable, state->hash, depth, &beta, move, &cutoff);
     if(cutoff) {
         return ttable_score;
     }
@@ -162,7 +162,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     }
     
 #ifndef DISABLE_TRANSPOSITION_TABLE
-    SEARCH_transpositiontable_store(search_state->ttable, state->hash, depth, best_score, *move, beta);
+    SEARCH_transpositiontable_store(search_state->hashtable, state->hash, depth, best_score, *move, beta);
 #endif
     return best_score;
 }
@@ -185,17 +185,17 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
     move = 0;
 
 #ifndef DISABLE_TRANSPOSITION_TABLE
-    TTABLE_prefetch(search_state->ttable, state->hash);
+    HASHTABLE_transition_prefetch(search_state->hashtable, state->hash);
 #endif
 
     /* Stand-pat */
-    best_score = EVAL_evaluate_board(state, search_state->ttable);
+    best_score = EVAL_evaluate_board(state, search_state->hashtable);
     if(best_score >= beta) {
         return best_score;
     }
     
 #ifndef DISABLE_TRANSPOSITION_TABLE
-    ttable_score = SEARCH_transpositiontable_retrieve(search_state->ttable, state->hash, 0, &beta, &move, &cutoff);
+    ttable_score = SEARCH_transpositiontable_retrieve(search_state->hashtable, state->hash, 0, &beta, &move, &cutoff);
     if(cutoff) {
         return ttable_score;
     }
@@ -239,15 +239,15 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
     }
     
 #ifndef DISABLE_TRANSPOSITION_TABLE
-    SEARCH_transpositiontable_store(search_state->ttable, state->hash, 0, best_score, 0, beta);
+    SEARCH_transpositiontable_store(search_state->hashtable, state->hash, 0, best_score, 0, beta);
 #endif
     
     return best_score;
 }
 
-static inline short SEARCH_transpositiontable_retrieve(ttable_t *ttable, bitboard_t hash, unsigned char depth, short *beta, move_t *best_move, int *cutoff)
+static inline short SEARCH_transpositiontable_retrieve(hashtable_t *ttable, bitboard_t hash, unsigned char depth, short *beta, move_t *best_move, int *cutoff)
 {
-    ttable_entry_t *ttentry = TTABLE_retrieve(ttable, hash);
+    transposition_entry_t *ttentry = HASHTABLE_transition_retrieve(ttable, hash);
     if(ttentry) {
         if(ttentry->depth >= depth) {
             int score = ttentry->score;
@@ -273,12 +273,12 @@ static inline short SEARCH_transpositiontable_retrieve(ttable_t *ttable, bitboar
     return 0;
 }
 
-static inline void SEARCH_transpositiontable_store(ttable_t *ttable, bitboard_t hash, unsigned char depth, short best_score, move_t best_move, short beta)
+static inline void SEARCH_transpositiontable_store(hashtable_t *ttable, bitboard_t hash, unsigned char depth, short best_score, move_t best_move, short beta)
 {
     best_move &= ~MOVE_SCORE_MASK;
     if(best_score < beta) {
-        TTABLE_store(ttable, hash, depth, TTABLE_TYPE_UPPER_BOUND, best_score, best_move);
+        HASHTABLE_transition_store(ttable, hash, depth, TTABLE_TYPE_UPPER_BOUND, best_score, best_move);
     } else {
-        TTABLE_store(ttable, hash, depth, TTABLE_TYPE_LOWER_BOUND, best_score, best_move);
+        HASHTABLE_transition_store(ttable, hash, depth, TTABLE_TYPE_LOWER_BOUND, best_score, best_move);
     }
 }

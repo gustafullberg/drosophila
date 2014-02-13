@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "engine.h"
 #include "state.h"
-#include "ttable.h"
+#include "hashtable.h"
 #include "history.h"
 #include "openingbook.h"
 #include "search.h"
@@ -11,7 +11,7 @@
 
 struct engine_state {
     chess_state_t   *chess_state;
-    ttable_t        *ttable;
+    hashtable_t     *hashtable;
     history_t       *history;
     openingbook_t   *obook;
 };
@@ -29,7 +29,7 @@ void ENGINE_create(engine_state_t **state)
     ENGINE_init();
     *state = malloc(sizeof(engine_state_t));
     (*state)->chess_state = malloc(sizeof(chess_state_t));
-    (*state)->ttable = TTABLE_create(22);
+    (*state)->hashtable = HASHTABLE_create(22);
     (*state)->history = HISTORY_create();
     (*state)->obook = OPENINGBOOK_create("openingbook.dat");
     ENGINE_reset(*state);
@@ -37,7 +37,7 @@ void ENGINE_create(engine_state_t **state)
 
 void ENGINE_destroy(engine_state_t *state)
 {
-    TTABLE_destroy(state->ttable);
+    HASHTABLE_destroy(state->hashtable);
     HISTORY_destroy(state->history);
     OPENINGBOOK_destroy(state->obook);
     free(state->chess_state);
@@ -137,7 +137,7 @@ void ENGINE_think(engine_state_t *state, int moves_left_in_period, int time_left
 #endif
     {
         /* No move in the opening book. Search! */
-        move = SEARCH_perform_search(state->chess_state, state->ttable, state->history, time_for_move_ms, max_depth, &score);
+        move = SEARCH_perform_search(state->chess_state, state->hashtable, state->history, time_for_move_ms, max_depth, &score);
     }
 
     *pos_from = MOVE_GET_POS_FROM(move);

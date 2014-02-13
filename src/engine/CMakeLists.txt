@@ -9,6 +9,8 @@ set(files
     eval_piecesquare.c
     fen.c
     fen.h
+    hashtable.c
+    hashtable.h
     history.c
     history.h
     movegen.c
@@ -29,8 +31,6 @@ set(files
     state.h
     time.c
     time.h
-    ttable.c
-    ttable.h
 )
 
 add_library(
