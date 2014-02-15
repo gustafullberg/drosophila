@@ -131,7 +131,7 @@ static openingbook_node_t *OPENINGBOOK_read(const char *filename)
     openingbook_node_t *n = NULL;
     
     /* Open file for reading */
-    FILE *f = fopen(filename, "r");
+    FILE *f = fopen(filename, "rb");
     if(f) {
         /* Recursively create tree nodes from the file */
         n = OPENINGBOOK_read_node(f);

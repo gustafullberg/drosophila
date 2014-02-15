@@ -14,7 +14,7 @@ else()
     set(CPACK_GENERATOR TGZ)
 endif()
 
-if(${CMAKE_COMPILER_IS_GNUCC} OR "${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+if(CMAKE_COMPILER_IS_GNUCC OR "${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 elseif(MSVC)
     add_definitions(-Dinline=__inline)
