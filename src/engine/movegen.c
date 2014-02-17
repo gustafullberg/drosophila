@@ -27,13 +27,13 @@ void MOVEGEN_pawn(const int color, const int position, const bitboard_t own, con
     *pawn_capture &= ~BITBOARD_PROMOTION;
 }
 
-void MOVEGEN_knight(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
+void MOVEGEN_knight(const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
     *captures = bitboard_knight[position] & opponent;
     *moves = bitboard_knight[position] & ~(own | opponent);
 }
 
-void MOVEGEN_bishop(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
+void MOVEGEN_bishop(const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
     /* The move generation of bishops and rooks is inspired by Nagaskaki */
     /* http://www.mayothi.com/nagaskakichess6.html                       */
@@ -97,7 +97,7 @@ void MOVEGEN_bishop(const int color, const int position, const bitboard_t own, c
     *captures = bishop_moves & opponent;
 }
 
-void MOVEGEN_rook(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
+void MOVEGEN_rook(const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
     /* The move generation of bishops and rooks is inspired by Nagaskaki */
     /* http://www.mayothi.com/nagaskakichess6.html                       */
@@ -160,22 +160,22 @@ void MOVEGEN_rook(const int color, const int position, const bitboard_t own, con
     *captures = rook_moves & opponent;
 }
 
-void MOVEGEN_queen(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
+void MOVEGEN_queen(const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
     bitboard_t moves_tmp, captures_tmp;
-    MOVEGEN_bishop(color, position, own, opponent, moves, captures);
-    MOVEGEN_rook(color, position, own, opponent, &moves_tmp, &captures_tmp);
+    MOVEGEN_bishop(position, own, opponent, moves, captures);
+    MOVEGEN_rook(position, own, opponent, &moves_tmp, &captures_tmp);
     *moves |= moves_tmp;
     *captures |= captures_tmp;
 }
 
-void MOVEGEN_king(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
+void MOVEGEN_king(const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
     *moves = bitboard_king[position] & ~own & ~opponent;
     *captures = bitboard_king[position] & opponent;
 }
 
-void MOVEGEN_piece(const int color, const int type, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
+void MOVEGEN_piece(const int type, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
     switch(type) {
     case PAWN:
@@ -183,19 +183,19 @@ void MOVEGEN_piece(const int color, const int type, const int position, const bi
         assert(0);
         break;
     case KNIGHT:
-        MOVEGEN_knight(color, position, own, opponent, moves, captures);
+        MOVEGEN_knight(position, own, opponent, moves, captures);
         break;
     case BISHOP:
-        MOVEGEN_bishop(color, position, own, opponent, moves, captures);
+        MOVEGEN_bishop(position, own, opponent, moves, captures);
         break;
     case ROOK:
-        MOVEGEN_rook(color, position, own, opponent, moves, captures);
+        MOVEGEN_rook(position, own, opponent, moves, captures);
         break;
     case QUEEN:
-        MOVEGEN_queen(color, position, own, opponent, moves, captures);
+        MOVEGEN_queen(position, own, opponent, moves, captures);
         break;
     case KING:
-        MOVEGEN_king(color, position, own, opponent, moves, captures);
+        MOVEGEN_king(position, own, opponent, moves, captures);
         break;
     default:
         break;

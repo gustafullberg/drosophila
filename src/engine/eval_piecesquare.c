@@ -1,4 +1,4 @@
-const int piecesquare[7][64] = {
+const short piecesquare[7][64] = {
     {   /* PAWN */
         0,  0,  0,  0,  0,  0,  0,  0, /* N/A */
         0,  0,  0, -5, -5,  0,  0,  0,

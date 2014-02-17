@@ -27,8 +27,8 @@ static void ENGINE_init()
 void ENGINE_create(engine_state_t **state)
 {
     ENGINE_init();
-    *state = malloc(sizeof(engine_state_t));
-    (*state)->chess_state = malloc(sizeof(chess_state_t));
+    *state = (engine_state_t*)malloc(sizeof(engine_state_t));
+    (*state)->chess_state = (chess_state_t*)malloc(sizeof(chess_state_t));
     (*state)->hashtable = HASHTABLE_create(22);
     (*state)->history = HISTORY_create();
     (*state)->obook = OPENINGBOOK_create("openingbook.dat");
@@ -114,7 +114,7 @@ int ENGINE_apply_move_san(engine_state_t *state, const char *san)
     return ENGINE_RESULT_ILLEGAL_MOVE;
 }
 
-void ENGINE_think(engine_state_t *state, int moves_left_in_period, int time_left_ms, int time_incremental_ms, int *pos_from, int *pos_to, int *promotion_type, int max_depth)
+void ENGINE_think(engine_state_t *state, int moves_left_in_period, int time_left_ms, int time_incremental_ms, int *pos_from, int *pos_to, int *promotion_type, unsigned char max_depth)
 {
     int move;
     int special;

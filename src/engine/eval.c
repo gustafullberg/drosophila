@@ -15,22 +15,22 @@
 #define PAWN_DOUBLE_PAWN -50
 #define PAWN_TRIPLE_PAWN -100
 
-static const int piece_value[NUM_TYPES] = { 100, 300, 320, 500, 900, 0 };
-static const int sign[2] = { 1, -1 };
+static const short piece_value[NUM_TYPES] = { 100, 300, 320, 500, 900, 0 };
+static const short sign[2] = { 1, -1 };
 
-static const int pawn_double_pawn_penalty[8] = {
+static const short pawn_double_pawn_penalty[8] = {
     0, 0, PAWN_DOUBLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN
 };
 
-static int pawn_structure_assessment(const chess_state_t *s)
+static short pawn_structure_assessment(const chess_state_t *s)
 {
-    int score = 0;
+    short score = 0;
     int color;
     int file_number;
     
     for(color = WHITE; color <= BLACK; color++) {
         int opponent_color = color ^ 1;
-        int pawn_structure_score = 0;
+        short pawn_structure_score = 0;
         
         bitboard_t own_pawns = s->bitboard[color*NUM_TYPES + PAWN];
         
@@ -66,14 +66,14 @@ static int pawn_structure_assessment(const chess_state_t *s)
     return score;
 }
 
-static int EVAL_piecesquare(const chess_state_t *s)
+static short EVAL_piecesquare(const chess_state_t *s)
 {
     bitboard_t pieces;
     int type;
-    int result = 0;
+    short result = 0;
     
     for(type = PAWN; type < KING; type++) {
-        const int *psq = piecesquare[type];
+        const short *psq = piecesquare[type];
         pieces = s->bitboard[WHITE_PIECES+type];
         while(pieces) {
             int pos = BITBOARD_find_bit(pieces);
@@ -89,7 +89,7 @@ static int EVAL_piecesquare(const chess_state_t *s)
     }
     
     {
-        const int *psq = piecesquare[KING + STATE_is_endgame(s)];
+        const short *psq = piecesquare[KING + STATE_is_endgame(s)];
         result += psq[BITBOARD_find_bit(s->bitboard[WHITE_PIECES+KING])];
         result -= psq[BITBOARD_find_bit(s->bitboard[BLACK_PIECES+KING])^0x38];
     }
@@ -97,9 +97,9 @@ static int EVAL_piecesquare(const chess_state_t *s)
     return result;
 }
 
-int EVAL_evaluate_board(const chess_state_t *s, hashtable_t *t)
+short EVAL_evaluate_board(const chess_state_t *s, hashtable_t *t)
 {
-    int score = 0;
+    short score = 0;
 
     /* Query pawn hash table */
     if(!HASHTABLE_pawn_retrieve(t, s->pawn_hash, &score)) {
@@ -139,7 +139,7 @@ int EVAL_position_is_attacked(const chess_state_t *s, const int color, const int
     
     /* Is attacked by diagonal sliders (bishop, queen)? */
     if(bitboard_bishop[pos] & (s->bitboard[opponent_index + BISHOP] | s->bitboard[opponent_index + QUEEN])) {
-        MOVEGEN_bishop(player, pos, s->bitboard[own_index + ALL], s->bitboard[opponent_index + ALL], &dummy, &attackers);
+        MOVEGEN_bishop(pos, s->bitboard[own_index + ALL], s->bitboard[opponent_index + ALL], &dummy, &attackers);
         attackers &= (s->bitboard[opponent_index + BISHOP] | s->bitboard[opponent_index + QUEEN]);
         if(attackers) {
             return 1;
@@ -148,7 +148,7 @@ int EVAL_position_is_attacked(const chess_state_t *s, const int color, const int
 
     /* Is attacked by straight sliders (rook, queen)? */
     if(bitboard_rook[pos] & (s->bitboard[opponent_index + ROOK] | s->bitboard[opponent_index + QUEEN])) {
-        MOVEGEN_rook(player, pos, s->bitboard[own_index + ALL], s->bitboard[opponent_index + ALL], &dummy, &attackers);
+        MOVEGEN_rook(pos, s->bitboard[own_index + ALL], s->bitboard[opponent_index + ALL], &dummy, &attackers);
         attackers &= (s->bitboard[opponent_index + ROOK] | s->bitboard[opponent_index + QUEEN]);
         if(attackers) {
             return 1;

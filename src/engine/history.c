@@ -10,7 +10,7 @@ struct _history_t
 
 history_t *HISTORY_create()
 {
-    history_t *h = malloc(sizeof(history_t));
+    history_t *h = (history_t*)malloc(sizeof(history_t));
     HISTORY_reset(h);
     return h;
 }

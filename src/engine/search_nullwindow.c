@@ -250,7 +250,7 @@ static inline short SEARCH_transpositiontable_retrieve(hashtable_t *ttable, bitb
     transposition_entry_t *ttentry = HASHTABLE_transition_retrieve(ttable, hash);
     if(ttentry) {
         if(ttentry->depth >= depth) {
-            int score = ttentry->score;
+            short score = ttentry->score;
             if(ttentry->type == TTABLE_TYPE_UPPER_BOUND) {
                 if(score < *beta) {
                     short min = SEARCH_MIN_RESULT(depth);

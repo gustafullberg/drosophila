@@ -7,7 +7,7 @@ hashtable_t *HASHTABLE_create(int log2_num_entries)
     int num_entries = 1 << log2_num_entries;
     int num_pawn_entries = 1 << 17;
     
-    hashtable_t *h = malloc(sizeof(hashtable_t));
+    hashtable_t *h = (hashtable_t*)malloc(sizeof(hashtable_t));
     
     h->entries = calloc(num_entries, sizeof(transposition_entry_t));
     h->key_mask = num_entries - 1;
@@ -47,7 +47,7 @@ transposition_entry_t *HASHTABLE_transition_retrieve(hashtable_t *h, bitboard_t 
     return NULL;
 }
 
-void HASHTABLE_pawn_store(hashtable_t *h, uint32_t hash, int score)
+void HASHTABLE_pawn_store(hashtable_t *h, uint32_t hash, short score)
 {
     int index = (int)(hash & h->pawn_key_mask);
     pawn_entry_t *p = &h->pawn_entries[index];
@@ -56,7 +56,7 @@ void HASHTABLE_pawn_store(hashtable_t *h, uint32_t hash, int score)
     p->score = score;
 }
 
-int HASHTABLE_pawn_retrieve(hashtable_t *h, uint32_t hash, int *score)
+int HASHTABLE_pawn_retrieve(hashtable_t *h, uint32_t hash, short *score)
 {
     int index = (int)(hash & h->pawn_key_mask);
     if(h->pawn_entries[index].hash == hash) {

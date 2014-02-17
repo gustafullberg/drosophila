@@ -4,7 +4,7 @@
 #include "state.h"
 #include "search.h"
 
-short SEARCH_mtdf(const chess_state_t *s, search_state_t *search_state, short depth, move_t *move, short guess);
+short SEARCH_mtdf(const chess_state_t *s, search_state_t *search_state, unsigned char depth, move_t *move, short guess);
 short SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state, move_t *move);
 
 #endif

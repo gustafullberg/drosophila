@@ -14,7 +14,7 @@ typedef struct {
 
 typedef struct {
     uint32_t        hash;
-    int             score;
+    short           score;
 } pawn_entry_t;
 
 typedef struct {
@@ -31,14 +31,16 @@ hashtable_t *HASHTABLE_create(int log2_num_entries);
 void HASHTABLE_destroy(hashtable_t *h);
 void HASHTABLE_transition_store(hashtable_t *h, bitboard_t hash, unsigned char depth, unsigned char type, short score, move_t best_move);
 transposition_entry_t *HASHTABLE_transition_retrieve(hashtable_t *h, bitboard_t hash);
-void HASHTABLE_pawn_store(hashtable_t *h, uint32_t hash, int score);
-int HASHTABLE_pawn_retrieve(hashtable_t *h, uint32_t hash, int *score);
+void HASHTABLE_pawn_store(hashtable_t *h, uint32_t hash, short score);
+int HASHTABLE_pawn_retrieve(hashtable_t *h, uint32_t hash, short *score);
 
 static inline void HASHTABLE_transition_prefetch(hashtable_t *h, bitboard_t hash)
 {
-#if __GNUC__
     int index = (int)(hash & h->key_mask);
+#if __GNUC__
     __builtin_prefetch(&h->entries[index]);
+#elif _MSC_VER
+	_mm_prefetch((const char*)&h->entries[index], _MM_HINT_T0);
 #endif
 }
 
