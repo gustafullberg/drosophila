@@ -47,7 +47,7 @@ void OPENINGBOOK_reset(openingbook_t *o)
     o->current_node = o->tree;
 }
 
-move_t OPENINGBOOK_get_move(openingbook_t *o, chess_state_t *s)
+move_t OPENINGBOOK_get_move(openingbook_t *o, const chess_state_t *s)
 {
     move_t move = 0;
     
@@ -75,7 +75,7 @@ move_t OPENINGBOOK_get_move(openingbook_t *o, chess_state_t *s)
     return move;
 }
 
-void OPENINGBOOK_apply_move(openingbook_t *o, move_t move)
+void OPENINGBOOK_apply_move(openingbook_t *o, const move_t move)
 {
     if(o->current_node) {
         if(o->current_node->num_subnodes) {

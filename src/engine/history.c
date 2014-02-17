@@ -28,7 +28,7 @@ void HISTORY_reset(history_t *h)
     HISTORY_push(h, s.hash);
 }
 
-void HISTORY_push(history_t *h, bitboard_t hash)
+void HISTORY_push(history_t *h, const bitboard_t hash)
 {
     h->hash[++(h->idx)] = hash;
 }
@@ -38,7 +38,7 @@ void HISTORY_pop(history_t *h)
     h->idx--;
 }
 
-int HISTORY_is_repetition(history_t *h, int halfmove_clock)
+int HISTORY_is_repetition(const history_t *h, const int halfmove_clock)
 {
     int i;
     const bitboard_t hash = h->hash[h->idx];

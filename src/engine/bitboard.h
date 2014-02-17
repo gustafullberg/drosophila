@@ -55,9 +55,9 @@ extern bitboard_t bitboard_zorbist_color;
 extern uint32_t   bitboard_zobrist_pawn[NUM_COLORS][NUM_POSITIONS];
 
 void BITBOARD_init();
-void BITBOARD_print_debug(bitboard_t bitboard);
+void BITBOARD_print_debug(const bitboard_t bitboard);
 
-static inline int BITBOARD_find_bit(bitboard_t bitboard)
+static inline int BITBOARD_find_bit(const bitboard_t bitboard)
 {
 #if __GNUC__
     return __builtin_ctzll(bitboard);
@@ -76,7 +76,7 @@ static inline int BITBOARD_find_bit(bitboard_t bitboard)
 #endif
 }
 
-static inline int BITBOARD_count_bits(bitboard_t bitboard)
+static inline int BITBOARD_count_bits(const bitboard_t bitboard)
 {
 #if __GNUC__
     return __builtin_popcountll(bitboard);

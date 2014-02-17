@@ -19,7 +19,7 @@ int64_t TIME_now()
     return time_ms;
 }
 
-int64_t TIME_passed(int64_t start_time_ms)
+int64_t TIME_passed(const int64_t start_time_ms)
 {
     int64_t time_passed_ms;
     time_passed_ms = TIME_now() - start_time_ms;

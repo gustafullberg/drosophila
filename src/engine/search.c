@@ -4,11 +4,11 @@
 #include "eval.h"
 #include "time.h"
 
-int SEARCH_perform_search(const chess_state_t *s, hashtable_t *ttable, history_t *history, int time_for_move_ms, unsigned char max_depth, short *score)
+int SEARCH_perform_search(const chess_state_t *s, hashtable_t *hashtable, history_t *history, const int time_for_move_ms, const unsigned char max_depth, short *score)
 {
     move_t move = 0;
     search_state_t search_state;
-    search_state.hashtable = ttable;
+    search_state.hashtable = hashtable;
     search_state.history = history;
     search_state.abort_search = 0;
     search_state.next_clock_check = SEARCH_ITERATIONS_BETWEEN_CLOCK_CHECK;
@@ -20,10 +20,10 @@ int SEARCH_perform_search(const chess_state_t *s, hashtable_t *ttable, history_t
     return move;
 }
 
-int SEARCH_is_check(const chess_state_t *s, int color)
+int SEARCH_is_check(const chess_state_t *s, const int color)
 {
-    int king_bitboard_index = color*NUM_TYPES + KING;
-    int king_pos = BITBOARD_find_bit(s->bitboard[king_bitboard_index]);
+    const int king_bitboard_index = color*NUM_TYPES + KING;
+    const int king_pos = BITBOARD_find_bit(s->bitboard[king_bitboard_index]);
     return EVAL_position_is_attacked(s, color, king_pos);
 }
 

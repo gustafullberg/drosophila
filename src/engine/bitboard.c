@@ -259,7 +259,7 @@ static uint32_t BITBOARD_random_uint32()
     return b;
 }
 
-void BITBOARD_print_debug(bitboard_t bitboard)
+void BITBOARD_print_debug(const bitboard_t bitboard)
 {
     int rank, file;
     for(rank = 7; rank >= 0; rank--) {

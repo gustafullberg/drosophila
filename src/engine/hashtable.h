@@ -27,14 +27,14 @@ typedef struct {
 #define TTABLE_TYPE_LOWER_BOUND     0
 #define TTABLE_TYPE_UPPER_BOUND     1
 
-hashtable_t *HASHTABLE_create(int log2_num_entries);
+hashtable_t *HASHTABLE_create(const int log2_num_entries);
 void HASHTABLE_destroy(hashtable_t *h);
-void HASHTABLE_transition_store(hashtable_t *h, bitboard_t hash, unsigned char depth, unsigned char type, short score, move_t best_move);
-transposition_entry_t *HASHTABLE_transition_retrieve(hashtable_t *h, bitboard_t hash);
-void HASHTABLE_pawn_store(hashtable_t *h, uint32_t hash, short score);
-int HASHTABLE_pawn_retrieve(hashtable_t *h, uint32_t hash, short *score);
+void HASHTABLE_transition_store(hashtable_t *h, const bitboard_t hash, const unsigned char depth, const unsigned char type, const short score, const move_t best_move);
+transposition_entry_t *HASHTABLE_transition_retrieve(const hashtable_t *h, const bitboard_t hash);
+void HASHTABLE_pawn_store(hashtable_t *h, const uint32_t hash, const short score);
+int HASHTABLE_pawn_retrieve(const hashtable_t *h, const uint32_t hash, short *score);
 
-static inline void HASHTABLE_transition_prefetch(hashtable_t *h, bitboard_t hash)
+static inline void HASHTABLE_transition_prefetch(const hashtable_t *h, const bitboard_t hash)
 {
     int index = (int)(hash & h->key_mask);
 #if __GNUC__

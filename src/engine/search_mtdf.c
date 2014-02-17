@@ -6,7 +6,7 @@
 
 #define abs(x) ((x) >= 0 ? (x) : -(x))
 
-short SEARCH_mtdf(const chess_state_t *s, search_state_t *search_state, unsigned char depth, move_t *move, short guess)
+short SEARCH_mtdf(const chess_state_t *s, search_state_t *search_state, const unsigned char depth, move_t *move, short guess)
 {
     short bounds[2];
     short beta;

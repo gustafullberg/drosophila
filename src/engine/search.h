@@ -21,8 +21,8 @@ typedef struct {
     unsigned char   max_depth;
 } search_state_t;
 
-int SEARCH_perform_search(const chess_state_t *s, hashtable_t *ttable, history_t *history, int time_for_move_ms, unsigned char max_depth, short *score);
-int SEARCH_is_check(const chess_state_t *s, int color);
+int SEARCH_perform_search(const chess_state_t *s, hashtable_t *hashtable, history_t *history, const int time_for_move_ms, const unsigned char max_depth, short *score);
+int SEARCH_is_check(const chess_state_t *s, const int color);
 int SEARCH_is_mate(const chess_state_t *state);
 
 #endif

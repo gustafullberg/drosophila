@@ -1,7 +1,7 @@
 #include "moveorder.h"
 
 /* MVV-LVA: Capture bonus + Value of captured piece - Value of own piece */
-static int capture_score[6][6] = {
+static const int capture_score[6][6] = {
     { 10 + 1 - 1, 10 + 3 - 1, 10 + 3 - 1, 10 + 5 - 1, 10 + 9 - 1, 10 + 10 - 1 },
     { 10 + 1 - 3, 10 + 3 - 3, 10 + 3 - 3, 10 + 5 - 3, 10 + 9 - 3, 10 + 10 - 3 },
     { 10 + 1 - 3, 10 + 3 - 3, 10 + 3 - 3, 10 + 5 - 3, 10 + 9 - 3, 10 + 10 - 3 },
@@ -10,7 +10,7 @@ static int capture_score[6][6] = {
     { 10 + 1 -10, 10 + 3 -10, 10 + 3 -10, 10 + 5 -10, 10 + 9 -10, 10 + 10 -10 }
 };
 
-static int MOVEORDER_compute_score(const chess_state_t *s, move_t move)
+static int MOVEORDER_compute_score(const chess_state_t *s, const move_t move)
 {
     const unsigned int max = MOVE_SCORE_MASK >> MOVE_SCORE_SHIFT;
     unsigned int score = 0;
@@ -42,7 +42,7 @@ static int MOVEORDER_compute_score(const chess_state_t *s, move_t move)
     return score;
 }
 
-static void MOVEORDER_sort(move_t moves[], int num_moves)
+static void MOVEORDER_sort(move_t moves[], const int num_moves)
 {
 #define MAX_NUM_MOVE_TO_SORT 4
     int i, j;
@@ -66,7 +66,7 @@ static void MOVEORDER_sort(move_t moves[], int num_moves)
     }
 }
 
-int MOVEORDER_order_moves(const chess_state_t *s, move_t moves[], int num_moves, move_t best_guess)
+int MOVEORDER_order_moves(const chess_state_t *s, move_t moves[], int num_moves, const move_t best_guess)
 {
     int i;
     
