@@ -15,8 +15,8 @@
 #define PAWN_DOUBLE_PAWN -50
 #define PAWN_TRIPLE_PAWN -100
 
-static const short piece_value[NUM_TYPES] = { 100, 300, 320, 500, 900, 0 };
-static const short sign[2] = { 1, -1 };
+const short piece_value[NUM_TYPES] = { 100, 300, 320, 500, 900, 0 };
+const short sign[2] = { 1, -1 };
 
 static const short pawn_double_pawn_penalty[8] = {
     0, 0, PAWN_DOUBLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN
@@ -108,7 +108,15 @@ short EVAL_evaluate_board(const chess_state_t *s, hashtable_t *t)
         HASHTABLE_pawn_store(t, s->pawn_hash, score);
     }
     
-    score += EVAL_piecesquare(s);
+    score += s->ps_score * sign[(int)(s->player)];
+    if(STATE_is_endgame(s)) {
+        int white_king_pos = BITBOARD_find_bit(s->bitboard[WHITE_PIECES+KING]);
+        int black_king_pos = BITBOARD_find_bit(s->bitboard[BLACK_PIECES+KING]);
+        score -= EVAL_get_piecesquare(WHITE, KING, white_king_pos);
+        score += EVAL_get_piecesquare(WHITE, KING+1, white_king_pos);
+        score += EVAL_get_piecesquare(BLACK, KING, black_king_pos);
+        score -= EVAL_get_piecesquare(BLACK, KING+1, black_king_pos);
+    }
     
     /* Down-sample score for faster MTD(f) convergence */
     score = score >> 2;
