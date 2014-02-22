@@ -1,21 +1,12 @@
 #include "eval.h"
 #include "movegen.h"
 
-#define PAWN_RANK0 0
-#define PAWN_RANK1 0
-#define PAWN_RANK2 5
-#define PAWN_RANK3 10
-#define PAWN_RANK4 18
-#define PAWN_RANK5 30
-#define PAWN_RANK6 50
-#define PAWN_RANK7 0
+#define PAWN_GUARDED_BY_PAWN 4
 
-#define PAWN_GUARDED_BY_PAWN 20
+#define PAWN_DOUBLE_PAWN -10
+#define PAWN_TRIPLE_PAWN -20
 
-#define PAWN_DOUBLE_PAWN -50
-#define PAWN_TRIPLE_PAWN -100
-
-const short piece_value[NUM_TYPES] = { 100, 300, 320, 500, 900, 0 };
+const short piece_value[NUM_TYPES] = { 20, 60, 64, 100, 180, 0 };
 const short sign[2] = { 1, -1 };
 
 static const short pawn_double_pawn_penalty[8] = {
@@ -66,7 +57,7 @@ static short EVAL_pawn_structure_assessment(const chess_state_t *s)
     return score;
 }
 
-short EVAL_material(const chess_state_t *s)
+short EVAL_material_midgame(const chess_state_t *s)
 {
     bitboard_t pieces;
     int type;
@@ -107,9 +98,10 @@ short EVAL_evaluate_board(const chess_state_t *s, hashtable_t *t)
         score += EVAL_pawn_structure_assessment(s);
         HASHTABLE_pawn_store(t, s->pawn_hash, score);
     }
+    score *= sign[(int)(s->player)];
     
     /* Material score */
-    score += s->score_material * sign[(int)(s->player)];
+    score += s->score_material;
     
     /* Adjust material score for endgame */
     if(STATE_is_endgame(s)) {
@@ -121,11 +113,7 @@ short EVAL_evaluate_board(const chess_state_t *s, hashtable_t *t)
         score -= EVAL_get_piecesquare(BLACK, KING+1, black_king_pos);
     }
     
-    /* Down-sample score for faster MTD(f) convergence */
-    score = score >> 2;
-    
-    /* Switch sign of evaluation if it is black's turn */
-    return score * sign[(int)(s->player)];
+    return score;
 }
 
 int EVAL_position_is_attacked(const chess_state_t *s, const int color, const int pos)
