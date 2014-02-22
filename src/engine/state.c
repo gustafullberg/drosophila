@@ -25,7 +25,7 @@ void STATE_reset(chess_state_t *s)
     
     s->last_move = 0;
     s->halfmove_clock = 0;
-    s->ps_score = 0;
+    s->score_material = 0;
 }
 
 static int STATE_add_moves_to_list(bitboard_t bitboard_to, int pos_from, int type, int captured_type, int special, move_t *moves)
@@ -297,8 +297,8 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
         s->hash ^= bitboard_zobrist[player][type][pos_to];
         
         /* Update piece-square score */
-        s->ps_score -= EVAL_get_piecesquare(player, type, pos_from);
-        s->ps_score += EVAL_get_piecesquare(player, type, pos_to);
+        s->score_material -= EVAL_get_piecesquare(player, type, pos_from);
+        s->score_material += EVAL_get_piecesquare(player, type, pos_to);
         
         /* Remove captured piece from the other side */
         if(special & MOVE_CAPTURE) {
@@ -315,8 +315,8 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
                 s->pawn_hash ^= bitboard_zobrist_pawn[opponent][pos_capture];
                 
                 /* Update piece-square score with EP capture */
-                s->ps_score += EVAL_get_piecesquare(opponent, opponent_type, pos_capture);
-                s->ps_score += piece_value[PAWN];
+                s->score_material += EVAL_get_piecesquare(opponent, opponent_type, pos_capture);
+                s->score_material += piece_value[PAWN];
             } else {
                 /* Normal capture */
                 BITBOARD_CLEAR(s->bitboard[opponent_index + opponent_type], pos_to);
@@ -339,8 +339,8 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
                 }
                 
                 /* Update piece-square score with capture */
-                s->ps_score += EVAL_get_piecesquare(opponent, opponent_type, pos_to);
-                s->ps_score += piece_value[opponent_type];
+                s->score_material += EVAL_get_piecesquare(opponent, opponent_type, pos_to);
+                s->score_material += piece_value[opponent_type];
             }
             
             /* Reset half-move clock when a piece is captured */
@@ -364,8 +364,8 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
                 s->hash ^= bitboard_zobrist[player][ROOK][pos_to-1];
                 
                 /* Update piece-square score with king-side castling */
-                s->ps_score -= EVAL_get_piecesquare(player, ROOK, pos_to + 1);
-                s->ps_score += EVAL_get_piecesquare(player, ROOK, pos_to - 1);
+                s->score_material -= EVAL_get_piecesquare(player, ROOK, pos_to + 1);
+                s->score_material += EVAL_get_piecesquare(player, ROOK, pos_to - 1);
             }
             if(special == MOVE_QUEEN_CASTLE) {
                 /* Move rook */
@@ -379,8 +379,8 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
                 s->hash ^= bitboard_zobrist[player][ROOK][pos_to+1];
 
                 /* Update piece-square score with king-side castling */
-                s->ps_score -= EVAL_get_piecesquare(player, ROOK, pos_to - 2);
-                s->ps_score += EVAL_get_piecesquare(player, ROOK, pos_to + 1);
+                s->score_material -= EVAL_get_piecesquare(player, ROOK, pos_to - 2);
+                s->score_material += EVAL_get_piecesquare(player, ROOK, pos_to + 1);
             }
         }
         
@@ -424,10 +424,10 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
                 s->pawn_hash ^= bitboard_zobrist_pawn[player][pos_to];
                 
                 /* Update piece-square table with promotion */
-                s->ps_score -= EVAL_get_piecesquare(player, PAWN, pos_from);
-                s->ps_score += EVAL_get_piecesquare(player, promotion_type, pos_to);
-                s->ps_score -= piece_value[PAWN];
-                s->ps_score += piece_value[promotion_type];
+                s->score_material -= EVAL_get_piecesquare(player, PAWN, pos_from);
+                s->score_material += EVAL_get_piecesquare(player, promotion_type, pos_to);
+                s->score_material -= piece_value[PAWN];
+                s->score_material += piece_value[promotion_type];
             }
         }
 
@@ -440,7 +440,7 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
     /* Switch side to play */
     s->player = (char)opponent;
     s->hash ^= bitboard_zorbist_color;
-    s->ps_score = -(s->ps_score);
+    s->score_material = -(s->score_material);
     
     /* Store last move */
     s->last_move = move;
@@ -481,8 +481,12 @@ void STATE_compute_hash(chess_state_t *s)
         }
     }
     
+    /* Compute material score */
+    s->score_material = EVAL_material(s);
+    
     if(s->player) {
         s->hash ^= bitboard_zorbist_color;
+        s->score_material = -(s->score_material);
     }
 }
 

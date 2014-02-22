@@ -10,6 +10,7 @@ extern const short sign[2];
 
 short EVAL_evaluate_board(const chess_state_t *s, hashtable_t *t);
 int   EVAL_position_is_attacked(const chess_state_t *s, const int color, const int pos);
+short EVAL_material(const chess_state_t *s);
 
 static inline short EVAL_get_piecesquare(const int color, const int type, const int pos)
 {

@@ -22,7 +22,7 @@ static const short pawn_double_pawn_penalty[8] = {
     0, 0, PAWN_DOUBLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN
 };
 
-static short pawn_structure_assessment(const chess_state_t *s)
+static short EVAL_pawn_structure_assessment(const chess_state_t *s)
 {
     short score = 0;
     int color;
@@ -66,13 +66,13 @@ static short pawn_structure_assessment(const chess_state_t *s)
     return score;
 }
 
-static short EVAL_piecesquare(const chess_state_t *s)
+short EVAL_material(const chess_state_t *s)
 {
     bitboard_t pieces;
     int type;
     short result = 0;
     
-    for(type = PAWN; type < KING; type++) {
+    for(type = PAWN; type <= KING; type++) {
         const short *psq = piecesquare[type];
         pieces = s->bitboard[WHITE_PIECES+type];
         while(pieces) {
@@ -87,13 +87,13 @@ static short EVAL_piecesquare(const chess_state_t *s)
             pieces ^= BITBOARD_POSITION(pos);
         }
     }
-    
+    /*
     {
         const short *psq = piecesquare[KING + STATE_is_endgame(s)];
         result += psq[BITBOARD_find_bit(s->bitboard[WHITE_PIECES+KING])];
         result -= psq[BITBOARD_find_bit(s->bitboard[BLACK_PIECES+KING])^0x38];
     }
-
+    */
     return result;
 }
 
@@ -104,11 +104,14 @@ short EVAL_evaluate_board(const chess_state_t *s, hashtable_t *t)
     /* Query pawn hash table */
     if(!HASHTABLE_pawn_retrieve(t, s->pawn_hash, &score)) {
         /* Not found: evaluate pawn structure */
-        score += pawn_structure_assessment(s);
+        score += EVAL_pawn_structure_assessment(s);
         HASHTABLE_pawn_store(t, s->pawn_hash, score);
     }
     
-    score += s->ps_score * sign[(int)(s->player)];
+    /* Material score */
+    score += s->score_material * sign[(int)(s->player)];
+    
+    /* Adjust material score for endgame */
     if(STATE_is_endgame(s)) {
         int white_king_pos = BITBOARD_find_bit(s->bitboard[WHITE_PIECES+KING]);
         int black_king_pos = BITBOARD_find_bit(s->bitboard[BLACK_PIECES+KING]);
