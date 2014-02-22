@@ -200,7 +200,7 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
         return ttable_score;
     }
     
-    if(move) {
+    if(MOVE_IS_CAPTURE_OR_PROMOTION(move)) {
         next_state = *state;
         STATE_apply_move(&next_state, move);
         if(!SEARCH_is_check(&next_state, state->player)) {
