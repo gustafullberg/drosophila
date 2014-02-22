@@ -7,7 +7,7 @@
 #define PAWN_TRIPLE_PAWN -20
 
 const short piece_value[NUM_TYPES] = { 20, 60, 64, 100, 180, 0 };
-const short sign[2] = { 1, -1 };
+static const short sign[2] = { 1, -1 };
 
 static const short pawn_double_pawn_penalty[8] = {
     0, 0, PAWN_DOUBLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN
@@ -78,13 +78,7 @@ short EVAL_material_midgame(const chess_state_t *s)
             pieces ^= BITBOARD_POSITION(pos);
         }
     }
-    /*
-    {
-        const short *psq = piecesquare[KING + STATE_is_endgame(s)];
-        result += psq[BITBOARD_find_bit(s->bitboard[WHITE_PIECES+KING])];
-        result -= psq[BITBOARD_find_bit(s->bitboard[BLACK_PIECES+KING])^0x38];
-    }
-    */
+    
     return result;
 }
 
