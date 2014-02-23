@@ -69,6 +69,7 @@ typedef struct chess_state_t {
     char        player;
     char        halfmove_clock;
     short       score_material;
+    short       score_pawn;
 } chess_state_t;
 
 #define WHITE_PIECES    0

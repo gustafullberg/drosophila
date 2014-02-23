@@ -26,6 +26,7 @@ void STATE_reset(chess_state_t *s)
     s->last_move = 0;
     s->halfmove_clock = 0;
     s->score_material = 0;
+    s->score_pawn = 0;
 }
 
 static int STATE_add_moves_to_list(bitboard_t bitboard_to, int pos_from, int type, int captured_type, int special, move_t *moves)
@@ -481,8 +482,9 @@ void STATE_compute_hash(chess_state_t *s)
         }
     }
     
-    /* Compute material score */
+    /* Compute material and pawn scores */
     s->score_material = EVAL_material_midgame(s);
+    s->score_pawn = EVAL_pawn_structure_assessment(s);
     
     if(s->player) {
         s->hash ^= bitboard_zorbist_color;

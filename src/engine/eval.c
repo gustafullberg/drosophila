@@ -13,7 +13,7 @@ static const short pawn_double_pawn_penalty[8] = {
     0, 0, PAWN_DOUBLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN
 };
 
-static short EVAL_pawn_structure_assessment(const chess_state_t *s)
+short EVAL_pawn_structure_assessment(const chess_state_t *s)
 {
     short score = 0;
     int color;
@@ -57,6 +57,21 @@ static short EVAL_pawn_structure_assessment(const chess_state_t *s)
     return score;
 }
 
+short EVAL_get_pawn_score(const chess_state_t *s, hashtable_t *hashtable)
+{
+    short score = 0;
+
+    /* Query pawn hash table */
+    if(HASHTABLE_pawn_retrieve(hashtable, s->pawn_hash, &score)) {
+        return score;
+    }
+
+    /* Not found: evaluate pawn structure */
+    score = EVAL_pawn_structure_assessment(s);
+    HASHTABLE_pawn_store(hashtable, s->pawn_hash, score);
+    return score;
+}
+
 short EVAL_material_midgame(const chess_state_t *s)
 {
     bitboard_t pieces;
@@ -82,17 +97,12 @@ short EVAL_material_midgame(const chess_state_t *s)
     return result;
 }
 
-short EVAL_evaluate_board(const chess_state_t *s, hashtable_t *t)
+short EVAL_evaluate_board(const chess_state_t *s)
 {
-    short score = 0;
+    short score;
 
-    /* Query pawn hash table */
-    if(!HASHTABLE_pawn_retrieve(t, s->pawn_hash, &score)) {
-        /* Not found: evaluate pawn structure */
-        score += EVAL_pawn_structure_assessment(s);
-        HASHTABLE_pawn_store(t, s->pawn_hash, score);
-    }
-    score *= sign[(int)(s->player)];
+    /* Pawn score */
+    score = s->score_pawn * sign[(int)(s->player)];
     
     /* Material score */
     score += s->score_material;
