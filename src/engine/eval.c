@@ -110,11 +110,13 @@ short EVAL_evaluate_board(const chess_state_t *s)
     /* Adjust material score for endgame */
     if(STATE_is_endgame(s)) {
         int white_king_pos = BITBOARD_find_bit(s->bitboard[WHITE_PIECES+KING]);
-        int black_king_pos = BITBOARD_find_bit(s->bitboard[BLACK_PIECES+KING]);
-        score -= EVAL_get_piecesquare(WHITE, KING, white_king_pos);
-        score += EVAL_get_piecesquare(WHITE, KING+1, white_king_pos);
-        score += EVAL_get_piecesquare(BLACK, KING, black_king_pos);
-        score -= EVAL_get_piecesquare(BLACK, KING+1, black_king_pos);
+        int black_king_pos = BITBOARD_find_bit(s->bitboard[BLACK_PIECES+KING]) ^ 0x38;
+        score += (
+            -piecesquare[KING][white_king_pos]
+            +piecesquare[KING+1][white_king_pos]
+            +piecesquare[KING][black_king_pos]
+            -piecesquare[KING+1][black_king_pos]
+        ) * sign[(int)(s->player)];
     }
     
     return score;
