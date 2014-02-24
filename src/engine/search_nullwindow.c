@@ -24,6 +24,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     int is_in_check;
     short ttable_score;
     int cutoff = 0;
+    int do_futility_pruning = 0;
 
     *move = 0;
     
@@ -101,8 +102,23 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         num_moves = MOVEORDER_order_moves(state, moves, num_moves, *move);
 #endif
 
+        /* Check if node is sutable for futility pruning */
+        if(depth == 1 && !is_in_check) {
+            if(beta >= EVAL_evaluate_board(state) + 10) {
+                do_futility_pruning = 1;
+            }
+        }
+
         num_legal_moves = 0;
         for(i = 0; i < num_moves; i++) {
+
+            /* Futility pruning */
+            if(do_futility_pruning) {
+                if(num_legal_moves > 1 && !MOVE_IS_CAPTURE_OR_PROMOTION(moves[i])) {
+                    continue;
+                }
+            }
+
             next_state = *state;
             STATE_apply_move(&next_state, moves[i]);
             if(SEARCH_is_check(&next_state, state->player)) {

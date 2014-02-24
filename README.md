@@ -40,6 +40,7 @@ Search:
 * Transposition table
 * Move ordering
 * Null move pruning
+* Futility pruning
 * Late move reductions
 * Opening book
 
