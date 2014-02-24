@@ -28,7 +28,6 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
 
     *move = 0;
     
-#ifndef DISABLE_TIME_MANAGEMENT
     search_state->next_clock_check--;
     if(search_state->next_clock_check <= 0) {
         search_state->next_clock_check = SEARCH_ITERATIONS_BETWEEN_CLOCK_CHECK;
@@ -39,11 +38,8 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     if(search_state->abort_search) {
         return 0;
     }
-#endif
 
-#ifndef DISABLE_TRANSPOSITION_TABLE
     HASHTABLE_transition_prefetch(search_state->hashtable, state->hash);
-#endif
 
     is_in_check = SEARCH_is_check(state, state->player);
     
@@ -53,21 +49,16 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     }
 
     if(depth == 0) {
-#ifndef DISABLE_QUIESCENCE
+        /* Quiescence search */
         return SEARCH_nullwindow_quiescence(state, search_state, beta);
-#else
-        return EVAL_evaluate_board(state, search_state->hashtable);
-#endif
     }
     
-#ifndef DISABLE_TRANSPOSITION_TABLE
     ttable_score = SEARCH_transpositiontable_retrieve(search_state->hashtable, state->hash, depth, beta, move, &cutoff);
     if(cutoff) {
         return ttable_score;
     }
-#endif
 
-#ifndef DISABLE_NULL_MOVE
+    /* Null move pruning */
     if(depth > 4 && state->last_move && !STATE_is_endgame(state)) {
         if(!SEARCH_is_check(state, state->player)) {
             next_state = *state;
@@ -79,9 +70,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
             }
         }
     }
-#endif
 
-#ifndef DISABLE_TRANSPOSITION_TABLE
     if(!skip_move_generation && *move) {
         next_state = *state;
         STATE_apply_move(&next_state, *move);
@@ -93,14 +82,10 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
             }
         }
     }
-#endif
 
     if(!skip_move_generation) {
         num_moves = STATE_generate_moves(state, moves);
-        
-#ifndef DISABLE_MOVE_ORDERING
         num_moves = MOVEORDER_order_moves(state, moves, num_moves, *move);
-#endif
 
         /* Check if node is sutable for futility pruning */
         if(depth == 1 && !is_in_check) {
@@ -127,15 +112,12 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
             UPDATE_PAWN_SCORE(next_state, state->score_pawn, search_state->hashtable)
             num_legal_moves++;
             
-#ifndef DISABLE_HISTORY
+
             HISTORY_push(search_state->history, next_state.hash);
             if(HISTORY_is_repetition(search_state->history, next_state.halfmove_clock)) {
+                /* Repetition detected */
                 score = 0;
-            } else
-#endif
-            {
-
-#ifndef DISABLE_LATE_MOVE_REDUCTION
+            } else {
                 /* Late move reduction */
                 if( num_legal_moves > 4                     && /* Four moves have been searched at full depth   */
                     depth >= 3                              && /* No LMR in the last plies                      */
@@ -148,11 +130,9 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                         score = -SEARCH_nullwindow(&next_state, search_state, depth-1, &next_move, -beta+1);
                     }
                 } else {
+                    /* Normal search */
                     score = -SEARCH_nullwindow(&next_state, search_state, depth-1, &next_move, -beta+1);
                 }
-#else
-                score = -SEARCH_nullwindow(&next_state, search_state, depth-1, &next_move, -beta+1);
-#endif
             }
             
             if(score > best_score) {
@@ -165,9 +145,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                 }
             }
 
-#ifndef DISABLE_HISTORY
             HISTORY_pop(search_state->history);
-#endif
         }
         
         /* Detect checkmate and stalemate */
@@ -181,9 +159,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         }
     }
     
-#ifndef DISABLE_TRANSPOSITION_TABLE
     SEARCH_transpositiontable_store(search_state->hashtable, state->hash, depth, best_score, *move, beta);
-#endif
     return best_score;
 }
 
@@ -204,9 +180,7 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
 
     move = 0;
 
-#ifndef DISABLE_TRANSPOSITION_TABLE
     HASHTABLE_transition_prefetch(search_state->hashtable, state->hash);
-#endif
 
     /* Stand-pat */
     best_score = EVAL_evaluate_board(state);
@@ -214,7 +188,6 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
         return best_score;
     }
     
-#ifndef DISABLE_TRANSPOSITION_TABLE
     ttable_score = SEARCH_transpositiontable_retrieve(search_state->hashtable, state->hash, 0, beta, &move, &cutoff);
     if(cutoff) {
         return ttable_score;
@@ -231,14 +204,10 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
             }
         }
     }
-#endif
 
     if(!skip_move_generation) {    
         num_moves = STATE_generate_moves_quiescence(state, moves);
-        
-#ifndef DISABLE_MOVE_ORDERING
         num_moves = MOVEORDER_order_moves(state, moves, num_moves, move);
-#endif
         
         num_legal_moves = 0;
         for(i = 0; i < num_moves; i++) {
@@ -260,10 +229,7 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
         }
     }
     
-#ifndef DISABLE_TRANSPOSITION_TABLE
     SEARCH_transpositiontable_store(search_state->hashtable, state->hash, 0, best_score, 0, beta);
-#endif
-    
     return best_score;
 }
 

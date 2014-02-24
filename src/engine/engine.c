@@ -130,12 +130,9 @@ void ENGINE_think(engine_state_t *state, const int moves_left_in_period, const i
         time_for_move_ms = time_left_ms * 2 / 100;
     }
 
-#ifndef DISABLE_OPENING_BOOK
     /* Look for a move in the opening book */
     move = OPENINGBOOK_get_move(state->obook, state->chess_state);
-    if(!move)
-#endif
-    {
+    if(!move) {
         /* No move in the opening book. Search! */
         move = SEARCH_perform_search(state->chess_state, state->hashtable, state->history, time_for_move_ms, max_depth, &score);
     }
