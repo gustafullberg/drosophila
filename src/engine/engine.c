@@ -10,10 +10,11 @@
 #include "defines.h"
 
 struct engine_state {
-    chess_state_t   *chess_state;
-    hashtable_t     *hashtable;
-    history_t       *history;
-    openingbook_t   *obook;
+    chess_state_t       *chess_state;
+    hashtable_t         *hashtable;
+    history_t           *history;
+    openingbook_t       *obook;
+    thinking_output_cb  think_cb;
 };
 
 static void ENGINE_init()
@@ -32,6 +33,7 @@ void ENGINE_create(engine_state_t **state)
     (*state)->hashtable = HASHTABLE_create(22);
     (*state)->history = HISTORY_create();
     (*state)->obook = OPENINGBOOK_create("openingbook.dat");
+    (*state)->think_cb = NULL;
     ENGINE_reset(*state);
 }
 
@@ -134,7 +136,7 @@ void ENGINE_think(engine_state_t *state, const int moves_left_in_period, const i
     move = OPENINGBOOK_get_move(state->obook, state->chess_state);
     if(!move) {
         /* No move in the opening book. Search! */
-        move = SEARCH_perform_search(state->chess_state, state->hashtable, state->history, time_for_move_ms, max_depth, &score);
+        move = SEARCH_perform_search(state->chess_state, state->hashtable, state->history, time_for_move_ms, max_depth, &score, state->think_cb);
     }
 
     *pos_from = MOVE_GET_POS_FROM(move);
@@ -184,4 +186,9 @@ int ENGINE_result(const engine_state_t *state)
     }
     
     return ENGINE_RESULT_NONE;
+}
+
+void ENGINE_register_thinking_output_cb(engine_state_t *state, thinking_output_cb think_cb)
+{
+    state->think_cb = think_cb;
 }

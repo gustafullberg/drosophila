@@ -175,6 +175,11 @@ void parse_time_control(state_t *state, const char *level)
     state->time_incremental_seconds = inc_seconds;
 }
 
+void thinking_output(int ply, int score)
+{
+    fprintf(stdout, "%d %d 0 0\n", ply, score);
+}
+
 static void process_command(engine_state_t *engine, char *command, state_t *state)
 {
     /* Commands that do reqire action from the engine */
@@ -282,6 +287,7 @@ int main(int argc, char **argv)
     
     /* Create engine instance */
     ENGINE_create(&engine);
+    ENGINE_register_thinking_output_cb(engine, &thinking_output);
 
     /* Welcome */
     fprintf(stdout, "# Welcome to Pawned\n");

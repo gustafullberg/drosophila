@@ -75,6 +75,10 @@ short SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state
         }
         
         *move = m;
+        
+        if(search_state->think_cb) {
+            (*search_state->think_cb)(depth, 5 * (int)results[depth]);
+        }
 
         if(2 * TIME_passed(search_state->start_time_ms) > search_state->time_for_move_ms) {
             break;
