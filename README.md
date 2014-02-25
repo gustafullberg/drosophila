@@ -9,7 +9,7 @@ You need a **Git** client, **CMake** and a **C compiler** (GCC, Clang or Visual 
 
 ### Linux, Mac OS, etc
 ```
-git clone https://github.com/docentdamp/pawned.git
+git clone https://github.com/gustafullberg/pawned.git
 cd pawned
 mkdir build
 cd build
@@ -18,7 +18,7 @@ make
 ```
 ### Windows (assuming a 64-bit build with Visual Studio 2012)
 ```
-git clone https://github.com/docentdamp/pawned.git
+git clone https://github.com/gustafullberg/pawned.git
 cd pawned
 mkdir build
 cd build
