@@ -87,9 +87,9 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         num_moves = STATE_generate_moves(state, moves);
         num_moves = MOVEORDER_order_moves(state, moves, num_moves, *move);
 
-        /* Check if node is sutable for futility pruning */
+        /* Check if node is eligible for futility pruning */
         if(depth == 1 && !is_in_check) {
-            if(beta >= EVAL_evaluate_board(state) + 10) {
+            if(beta > EVAL_evaluate_board(state) + 10) {
                 do_futility_pruning = 1;
             }
         }
