@@ -150,6 +150,7 @@ static void OPENINGBOOK_free_node(openingbook_node_t *n)
             OPENINGBOOK_free_node(n->subnodes[i]);
         }
         
+        free(n->subnodes);
         free(n);
     }
 }
