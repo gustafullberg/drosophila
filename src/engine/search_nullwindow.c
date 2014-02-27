@@ -71,12 +71,15 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         }
     }
 
+    /* Try hash move */
     if(!skip_move_generation && *move) {
         next_state = *state;
         STATE_apply_move(&next_state, *move);
         if(!SEARCH_is_check(&next_state, state->player)) {
             UPDATE_PAWN_SCORE(next_state, state->score_pawn, search_state->hashtable)
+            HISTORY_push(search_state->history, next_state.hash);
             best_score = -SEARCH_nullwindow(&next_state, search_state, depth-1, &next_move, -beta+1);
+            HISTORY_pop(search_state->history);
             if(best_score >= beta) {
                 skip_move_generation = 1;
             }
