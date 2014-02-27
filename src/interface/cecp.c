@@ -175,9 +175,27 @@ void parse_time_control(state_t *state, const char *level)
     state->time_incremental_seconds = inc_seconds;
 }
 
-void thinking_output(int ply, int score)
+void thinking_output(int ply, int score, int pv_length, int *pos_from, int *pos_to, int *promotion_type)
 {
-    fprintf(stdout, "%d %d 0 0\n", ply, score);
+    int i;
+    fprintf(stdout, "%d %d 0 0", ply, score);
+    for(i = 0; i < pv_length; i++) {
+        int from = pos_from[i];
+        int to = pos_to[i];
+        int promotion = promotion_type[i];
+        
+        if(promotion) {
+            char pt = 0;
+            if(promotion == 1) pt = 'n';
+            else if(promotion == 2) pt = 'b';
+            else if(promotion == 3) pt = 'r';
+            else if(promotion == 4) pt = 'q';
+            fprintf(stdout, " %c%c%c%c%c", (from%8)+'a', (from/8)+'1', (to%8)+'a', (to/8)+'1', pt);
+        } else {
+            fprintf(stdout, " %c%c%c%c", (from%8)+'a', (from/8)+'1', (to%8)+'a', (to/8)+'1');
+        }
+    }
+    fprintf(stdout, "\n");
 }
 
 static void process_command(engine_state_t *engine, char *command, state_t *state)

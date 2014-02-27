@@ -14,7 +14,7 @@
 #define ENGINE_PROMOTION_QUEEN      4
 
 typedef struct engine_state engine_state_t;
-typedef void (*thinking_output_cb)(int, int);
+typedef void (*thinking_output_cb)(int ply, int score, int pv_length, int *pos_from, int *pos_to, int *promotion_type);
 
 void ENGINE_create(engine_state_t **state);
 void ENGINE_destroy(engine_state_t *state);
