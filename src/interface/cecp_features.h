@@ -16,6 +16,7 @@ const char *cecp_features[] =
     "name=0",
     "nps=0",
     "debug=1",
+    "memory=1",
     "smp=1",
     "done=1",
     0

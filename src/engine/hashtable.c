@@ -2,9 +2,16 @@
 #include "hashtable.h"
 #include "search.h"
 
-hashtable_t *HASHTABLE_create(const int log2_num_entries)
+static int log2i(int n)
 {
-    int num_entries = 1 << log2_num_entries;
+    int l = 0;
+    while(n >>= 1) l++;
+    return l;
+}
+
+hashtable_t *HASHTABLE_create(const int size_mb)
+{
+    int num_entries = 1 << log2i(size_mb * 1024 * 1024 / sizeof(transposition_entry_t));
     int num_pawn_entries = 1 << 17;
     
     hashtable_t *h = (hashtable_t*)malloc(sizeof(hashtable_t));

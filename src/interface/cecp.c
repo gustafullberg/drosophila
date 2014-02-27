@@ -231,7 +231,13 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
         state->time_left_centiseconds = centiseconds;
     }
     
-    
+    /* memory */
+    else if(strncmp(command, "memory ", 7) == 0) {
+        int hash_size_mb = 0;
+        sscanf(command + 7, "%d\n", &hash_size_mb);
+        ENGINE_resize_hashtable(engine, hash_size_mb);
+    }
+        
     /* Commands that do not reqire action from the engine (or not implemented) */
     
     /* xboard */

@@ -30,7 +30,7 @@ void ENGINE_create(engine_state_t **state)
     ENGINE_init();
     *state = (engine_state_t*)malloc(sizeof(engine_state_t));
     (*state)->chess_state = (chess_state_t*)malloc(sizeof(chess_state_t));
-    (*state)->hashtable = HASHTABLE_create(22);
+    (*state)->hashtable = HASHTABLE_create(64);
     (*state)->history = HISTORY_create();
     (*state)->obook = OPENINGBOOK_create("openingbook.dat");
     (*state)->think_cb = NULL;
@@ -191,4 +191,10 @@ int ENGINE_result(const engine_state_t *state)
 void ENGINE_register_thinking_output_cb(engine_state_t *state, thinking_output_cb think_cb)
 {
     state->think_cb = think_cb;
+}
+
+void ENGINE_resize_hashtable(engine_state_t *state, const int size_mb)
+{
+    HASHTABLE_destroy(state->hashtable);
+    state->hashtable = HASHTABLE_create(size_mb);
 }
