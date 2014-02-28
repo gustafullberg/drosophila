@@ -314,7 +314,7 @@ int main(int argc, char **argv)
     ENGINE_register_thinking_output_cb(engine, &thinking_output);
 
     /* Welcome */
-    fprintf(stdout, "# Welcome to Pawned\n");
+    fprintf(stdout, "# Welcome to Pawned " _VERSION "\n");
     fprintf(stdout, "# This program supports the Chess Engine Communication Protocol\n");
     fprintf(stdout, "# and should be run from XBoard or similar\n");
     

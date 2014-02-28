@@ -11,6 +11,7 @@ const char *cecp_features[] =
     "draw=0",
     "sigint=0",
     "analyze=0",
+    "myname=\"Pawned " _VERSION "\"",
     "variants=\"normal\"",
     "colors=0",
     "name=0",

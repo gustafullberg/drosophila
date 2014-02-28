@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 project(pawned)
+add_definitions(-D_VERSION="1.0")
 
 include(cmake/options.cmake)
 
