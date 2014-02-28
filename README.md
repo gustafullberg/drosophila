@@ -1,8 +1,13 @@
 # Pawned
 A chess engine by Gustaf Ullberg.
 
-Pawned is an open source chess engine. You can use it with any chess GUI supporting the Xboard/Winboard protocol.
-If you are developing a chess GUI you can compile the engine as a library and use it within your application.
+## Introduction
+Pawned is an open source chess engine. You can use it with any chess GUI supporting the Chess Engine Communication Protocol, such as Xboard or Arena.
+
+If you are developing a chess GUI, you also can compile the engine as a library and use it within your application.
+
+## Releases
+**1.0** - First release
 
 ## How to build from source code
 You need a **Git** client, **CMake** and a **C compiler** (GCC, Clang or Visual Studio) to obtain and build the source code.
