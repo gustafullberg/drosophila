@@ -92,7 +92,7 @@ int main(int argc, char **argv)
     node *n = (node*)malloc(sizeof(node));
     memset(n, 0, sizeof(node));
     
-    bitboard_init();
+    BITBOARD_init();
     
     if(argc != 2) {
         fprintf(stderr, "Usage: %s openings.txt\n", argv[0]);
