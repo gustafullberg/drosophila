@@ -20,6 +20,7 @@ typedef struct {
     int64_t             start_time_ms;
     int64_t             time_for_move_ms;
     unsigned char       max_depth;
+    unsigned int        num_nodes_searched;
     thinking_output_cb  think_cb;
 } search_state_t;
 

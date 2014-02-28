@@ -50,6 +50,7 @@ short SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state
     short results[MAX_DEPTH+1];
     short guess;
     move_t m;
+    int64_t time_passed_ms = 0;
     m = 0;
     
     results[0] = SEARCH_mtdf(s, search_state, 0, &m, 0);
@@ -76,14 +77,15 @@ short SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state
         
         *move = m;
         
+        time_passed_ms = TIME_passed(search_state->start_time_ms);
         if(search_state->think_cb) {
             int pos_from = MOVE_GET_POS_FROM(m);
             int pos_to = MOVE_GET_POS_TO(m);
             int promotion_type = MOVE_PROMOTION_TYPE(m);
-            (*search_state->think_cb)(depth, 5 * (int)results[depth], 1, &pos_from, &pos_to, &promotion_type);
+            (*search_state->think_cb)(depth, 5 * (int)results[depth], time_passed_ms, search_state->num_nodes_searched, 1, &pos_from, &pos_to, &promotion_type);
         }
 
-        if(2 * TIME_passed(search_state->start_time_ms) > search_state->time_for_move_ms) {
+        if(2 * time_passed_ms > search_state->time_for_move_ms) {
             break;
         }
     }

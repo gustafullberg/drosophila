@@ -15,6 +15,7 @@ int SEARCH_perform_search(const chess_state_t *s, hashtable_t *hashtable, histor
     search_state.start_time_ms = TIME_now();
     search_state.time_for_move_ms = time_for_move_ms;
     search_state.max_depth = max_depth;
+    search_state.num_nodes_searched = 0;
     search_state.think_cb = think_cb;
     
     *score = SEARCH_mtdf_iterative(s, &search_state, &move);

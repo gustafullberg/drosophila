@@ -187,6 +187,7 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
 
     /* Stand-pat */
     best_score = EVAL_evaluate_board(state);
+    search_state->num_nodes_searched++;
     if(best_score >= beta) {
         return best_score;
     }
