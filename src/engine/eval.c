@@ -97,18 +97,55 @@ short EVAL_material_midgame(const chess_state_t *s)
     return result;
 }
 
+short EVAL_pawn_shield(const chess_state_t *s)
+{
+#define PAWN_SHIELD_1 5
+#define PAWN_SHIELD_2 2
+#define BITBOARD_WHITE_QUEENSIDE 0x0000000000000006
+#define BITBOARD_WHITE_KINGSIDE  0x00000000000000E0
+#define BITBOARD_BLACK_QUEENSIDE 0x0600000000000000
+#define BITBOARD_BLACK_KINGSIDE  0xE000000000000000
+    short score = 0;
+
+    if(s->bitboard[WHITE_PIECES+KING] & BITBOARD_WHITE_QUEENSIDE) {
+        score += BITBOARD_count_bits((BITBOARD_WHITE_QUEENSIDE <<  8) & s->bitboard[WHITE_PIECES+PAWN]) * PAWN_SHIELD_1;
+        score += BITBOARD_count_bits((BITBOARD_WHITE_QUEENSIDE << 16) & s->bitboard[WHITE_PIECES+PAWN]) * PAWN_SHIELD_2;
+    } else if(s->bitboard[WHITE_PIECES+KING] & BITBOARD_WHITE_KINGSIDE) {
+        score += BITBOARD_count_bits((BITBOARD_WHITE_KINGSIDE <<  8) & s->bitboard[WHITE_PIECES+PAWN]) * PAWN_SHIELD_1;
+        score += BITBOARD_count_bits((BITBOARD_WHITE_KINGSIDE << 16) & s->bitboard[WHITE_PIECES+PAWN]) * PAWN_SHIELD_2;
+    }
+
+    if(s->bitboard[BLACK_PIECES+KING] & BITBOARD_BLACK_QUEENSIDE) {
+        score -= BITBOARD_count_bits((BITBOARD_BLACK_QUEENSIDE >>  8) & s->bitboard[BLACK_PIECES+PAWN]) * PAWN_SHIELD_1;
+        score -= BITBOARD_count_bits((BITBOARD_BLACK_QUEENSIDE >> 16) & s->bitboard[BLACK_PIECES+PAWN]) * PAWN_SHIELD_2;
+    } else if(s->bitboard[BLACK_PIECES+KING] & BITBOARD_BLACK_KINGSIDE) {
+        score -= BITBOARD_count_bits((BITBOARD_BLACK_KINGSIDE >>  8) & s->bitboard[BLACK_PIECES+PAWN]) * PAWN_SHIELD_1;
+        score -= BITBOARD_count_bits((BITBOARD_BLACK_KINGSIDE >> 16) & s->bitboard[BLACK_PIECES+PAWN]) * PAWN_SHIELD_2;
+    }
+    
+    return score;
+}
+
 short EVAL_evaluate_board(const chess_state_t *s)
 {
     short score;
+    int is_endgame = STATE_is_endgame(s);
 
     /* Pawn score */
-    score = s->score_pawn * sign[(int)(s->player)];
+    score = s->score_pawn;
+    
+    /* Pawn shield */
+    if(!is_endgame) {
+        score += EVAL_pawn_shield(s);
+    }
+    
+    score *= sign[(int)(s->player)];
     
     /* Material score */
     score += s->score_material;
     
     /* Adjust material score for endgame */
-    if(STATE_is_endgame(s)) {
+    if(is_endgame) {
         int white_king_pos = BITBOARD_find_bit(s->bitboard[WHITE_PIECES+KING]);
         int black_king_pos = BITBOARD_find_bit(s->bitboard[BLACK_PIECES+KING]) ^ 0x38;
         score += (
