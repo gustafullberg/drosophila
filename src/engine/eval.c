@@ -6,6 +6,9 @@
 #define PAWN_DOUBLE_PAWN -10
 #define PAWN_TRIPLE_PAWN -20
 
+#define PAWN_SHIELD_1 5
+#define PAWN_SHIELD_2 2
+
 const short piece_value[NUM_TYPES] = { 20, 60, 64, 100, 180, 0 };
 static const short sign[2] = { 1, -1 };
 
@@ -13,7 +16,7 @@ static const short pawn_double_pawn_penalty[8] = {
     0, 0, PAWN_DOUBLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN
 };
 
-short EVAL_pawn_structure_assessment(const chess_state_t *s)
+short EVAL_pawn_structure(const chess_state_t *s)
 {
     short score = 0;
     int color;
@@ -67,7 +70,7 @@ short EVAL_get_pawn_score(const chess_state_t *s, hashtable_t *hashtable)
     }
 
     /* Not found: evaluate pawn structure */
-    score = EVAL_pawn_structure_assessment(s);
+    score = EVAL_pawn_structure(s);
     HASHTABLE_pawn_store(hashtable, s->pawn_hash, score);
     return score;
 }
@@ -99,28 +102,26 @@ short EVAL_material_midgame(const chess_state_t *s)
 
 short EVAL_pawn_shield(const chess_state_t *s)
 {
-#define PAWN_SHIELD_1 5
-#define PAWN_SHIELD_2 2
-#define BITBOARD_WHITE_QUEENSIDE 0x0000000000000006
-#define BITBOARD_WHITE_KINGSIDE  0x00000000000000E0
-#define BITBOARD_BLACK_QUEENSIDE 0x0600000000000000
-#define BITBOARD_BLACK_KINGSIDE  0xE000000000000000
+    const bitboard_t white_queenside = 0x0000000000000006;
+    const bitboard_t white_kingside  = 0x00000000000000E0;
+    const bitboard_t black_queenside = 0x0600000000000000;
+    const bitboard_t black_kingside  = 0xE000000000000000;
     short score = 0;
 
-    if(s->bitboard[WHITE_PIECES+KING] & BITBOARD_WHITE_QUEENSIDE) {
-        score += BITBOARD_count_bits((BITBOARD_WHITE_QUEENSIDE <<  8) & s->bitboard[WHITE_PIECES+PAWN]) * PAWN_SHIELD_1;
-        score += BITBOARD_count_bits((BITBOARD_WHITE_QUEENSIDE << 16) & s->bitboard[WHITE_PIECES+PAWN]) * PAWN_SHIELD_2;
-    } else if(s->bitboard[WHITE_PIECES+KING] & BITBOARD_WHITE_KINGSIDE) {
-        score += BITBOARD_count_bits((BITBOARD_WHITE_KINGSIDE <<  8) & s->bitboard[WHITE_PIECES+PAWN]) * PAWN_SHIELD_1;
-        score += BITBOARD_count_bits((BITBOARD_WHITE_KINGSIDE << 16) & s->bitboard[WHITE_PIECES+PAWN]) * PAWN_SHIELD_2;
+    if(s->bitboard[WHITE_PIECES+KING] & white_queenside) {
+        score += BITBOARD_count_bits((white_queenside <<  8) & s->bitboard[WHITE_PIECES+PAWN]) * PAWN_SHIELD_1;
+        score += BITBOARD_count_bits((white_queenside << 16) & s->bitboard[WHITE_PIECES+PAWN]) * PAWN_SHIELD_2;
+    } else if(s->bitboard[WHITE_PIECES+KING] & white_kingside) {
+        score += BITBOARD_count_bits((white_kingside <<  8) & s->bitboard[WHITE_PIECES+PAWN]) * PAWN_SHIELD_1;
+        score += BITBOARD_count_bits((white_kingside << 16) & s->bitboard[WHITE_PIECES+PAWN]) * PAWN_SHIELD_2;
     }
 
-    if(s->bitboard[BLACK_PIECES+KING] & BITBOARD_BLACK_QUEENSIDE) {
-        score -= BITBOARD_count_bits((BITBOARD_BLACK_QUEENSIDE >>  8) & s->bitboard[BLACK_PIECES+PAWN]) * PAWN_SHIELD_1;
-        score -= BITBOARD_count_bits((BITBOARD_BLACK_QUEENSIDE >> 16) & s->bitboard[BLACK_PIECES+PAWN]) * PAWN_SHIELD_2;
-    } else if(s->bitboard[BLACK_PIECES+KING] & BITBOARD_BLACK_KINGSIDE) {
-        score -= BITBOARD_count_bits((BITBOARD_BLACK_KINGSIDE >>  8) & s->bitboard[BLACK_PIECES+PAWN]) * PAWN_SHIELD_1;
-        score -= BITBOARD_count_bits((BITBOARD_BLACK_KINGSIDE >> 16) & s->bitboard[BLACK_PIECES+PAWN]) * PAWN_SHIELD_2;
+    if(s->bitboard[BLACK_PIECES+KING] & black_queenside) {
+        score -= BITBOARD_count_bits((black_queenside >>  8) & s->bitboard[BLACK_PIECES+PAWN]) * PAWN_SHIELD_1;
+        score -= BITBOARD_count_bits((black_queenside >> 16) & s->bitboard[BLACK_PIECES+PAWN]) * PAWN_SHIELD_2;
+    } else if(s->bitboard[BLACK_PIECES+KING] & black_kingside) {
+        score -= BITBOARD_count_bits((black_kingside >>  8) & s->bitboard[BLACK_PIECES+PAWN]) * PAWN_SHIELD_1;
+        score -= BITBOARD_count_bits((black_kingside >> 16) & s->bitboard[BLACK_PIECES+PAWN]) * PAWN_SHIELD_2;
     }
     
     return score;

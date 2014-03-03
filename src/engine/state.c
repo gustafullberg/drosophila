@@ -484,7 +484,7 @@ void STATE_compute_hash(chess_state_t *s)
     
     /* Compute material and pawn scores */
     s->score_material = EVAL_material_midgame(s);
-    s->score_pawn = EVAL_pawn_structure_assessment(s);
+    s->score_pawn = EVAL_pawn_structure(s);
     
     if(s->player) {
         s->hash ^= bitboard_zorbist_color;
