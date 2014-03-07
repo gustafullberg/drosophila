@@ -100,16 +100,21 @@ void OPENINGBOOK_apply_move(openingbook_t *o, const move_t move)
 static openingbook_node_t *OPENINGBOOK_read_node(FILE *f)
 {
     int i;
-    
+    size_t num_read;
+
     /* Allocate memory for the node */
     openingbook_node_t *n = (openingbook_node_t*)malloc(sizeof(openingbook_node_t));
     
     /* Read positions (from and to) */
-    fread(&n->pos_from, sizeof(n->pos_from), 1, f);
-    fread(&n->pos_to, sizeof(n->pos_to), 1, f);
+    num_read = fread(&n->pos_from, sizeof(n->pos_from), 1, f);
+    num_read = fread(&n->pos_to, sizeof(n->pos_to), 1, f);
     
     /* Read the number of subnodes */
-    fread(&n->num_subnodes, sizeof(n->num_subnodes), 1, f);
+    num_read = fread(&n->num_subnodes, sizeof(n->num_subnodes), 1, f);
+    if(num_read != 1) {
+        free(n);
+        return NULL;
+    }
     
     /* Allocate memory for subnodes array */
     if(n->num_subnodes) {
