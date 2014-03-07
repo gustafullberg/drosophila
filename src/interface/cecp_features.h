@@ -7,6 +7,7 @@
 const char *cecp_features[] =
 {
     "done=0",
+    "setboard=1",
     "usermove=1",
     "draw=0",
     "sigint=0",

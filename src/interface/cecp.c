@@ -255,7 +255,14 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
         sscanf(command + 7, "%d\n", &hash_size_mb);
         ENGINE_resize_hashtable(engine, hash_size_mb);
     }
-        
+
+    /* setboard */
+    else if(strncmp(command, "setboard ", 9) == 0) {
+        if(ENGINE_set_board(engine, command + 9) != 0) {
+            fprintf(stdout, "tellusererror Illegal position\n");
+        }
+    }
+
     /* Commands that do not reqire action from the engine (or not implemented) */
     
     /* xboard */

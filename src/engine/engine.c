@@ -7,6 +7,7 @@
 #include "openingbook.h"
 #include "search.h"
 #include "san.h"
+#include "fen.h"
 #include "defines.h"
 
 struct engine_state {
@@ -197,4 +198,9 @@ void ENGINE_resize_hashtable(engine_state_t *state, const int size_mb)
 {
     HASHTABLE_destroy(state->hashtable);
     state->hashtable = HASHTABLE_create(size_mb);
+}
+
+int ENGINE_set_board(engine_state_t *state, const char *fen)
+{
+    return FEN_read(state->chess_state, fen) != 1;
 }

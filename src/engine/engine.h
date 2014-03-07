@@ -25,5 +25,6 @@ void ENGINE_think(engine_state_t *state, const int moves_left_in_period, const i
 int  ENGINE_result(const engine_state_t *state);
 void ENGINE_register_thinking_output_cb(engine_state_t *state, thinking_output_cb think_cb);
 void ENGINE_resize_hashtable(engine_state_t *state, const int size_mb);
+int  ENGINE_set_board(engine_state_t *state, const char *fen);
 
 #endif
