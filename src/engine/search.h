@@ -27,6 +27,7 @@ typedef struct {
 int SEARCH_perform_search(const chess_state_t *s, hashtable_t *hashtable, history_t *history, const int time_for_move_ms, const unsigned char max_depth, short *score, thinking_output_cb think_cb);
 int SEARCH_is_check(const chess_state_t *s, const int color);
 int SEARCH_is_mate(const chess_state_t *state);
+int SEARCH_find_pv(const chess_state_t *state, hashtable_t *hashtable, int depth, int *pos_from, int *pos_to, int *promotion_type);
 
 #endif
 

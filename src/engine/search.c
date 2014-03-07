@@ -49,3 +49,23 @@ int SEARCH_is_mate(const chess_state_t *state)
     /* No legal moves => mate */
     return 1;
 }
+
+int SEARCH_find_pv(const chess_state_t *state, hashtable_t *hashtable, int depth, int *pos_from, int *pos_to, int *promotion_type)
+{
+    if(depth > 0) {
+        transposition_entry_t *entry = HASHTABLE_transition_retrieve(hashtable, state->hash);
+        if(entry) {
+            if(entry->best_move && entry->depth >= depth) {
+                move_t move = entry->best_move;
+                chess_state_t next_state = *state;
+                STATE_apply_move(&next_state, move);
+                *pos_from       = MOVE_GET_POS_FROM(move);
+                *pos_to         = MOVE_GET_POS_TO(move);
+                *promotion_type = MOVE_PROMOTION_TYPE(move);
+                return 1 + SEARCH_find_pv(&next_state, hashtable, depth-1, pos_from+1, pos_to+1, promotion_type+1);
+            }
+        }
+    }
+
+    return 0;
+}

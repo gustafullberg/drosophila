@@ -178,7 +178,7 @@ void parse_time_control(state_t *state, const char *level)
 void thinking_output(int ply, int score, int time_ms, unsigned int nodes, int pv_length, int *pos_from, int *pos_to, int *promotion_type)
 {
     int i;
-    fprintf(stdout, "%d %d %.2f %d", ply, score, (float)time_ms / 1000.0f, nodes);
+    fprintf(stdout, "%d %d %d %d", ply, score, time_ms / 10, nodes);
     for(i = 0; i < pv_length; i++) {
         int from = pos_from[i];
         int to = pos_to[i];
