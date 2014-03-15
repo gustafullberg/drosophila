@@ -16,6 +16,7 @@ bitboard_t bitboard_up_left[NUM_POSITIONS];
 bitboard_t bitboard_up_right[NUM_POSITIONS];
 bitboard_t bitboard_down_left[NUM_POSITIONS];
 bitboard_t bitboard_down_right[NUM_POSITIONS];
+bitboard_t bitboard_between[NUM_POSITIONS][NUM_POSITIONS];
 bitboard_t bitboard_king[NUM_POSITIONS];
 bitboard_t bitboard_knight[NUM_POSITIONS];
 bitboard_t bitboard_pawn_move[NUM_COLORS][NUM_POSITIONS];
@@ -37,7 +38,7 @@ static uint32_t BITBOARD_random_uint32();
 
 void BITBOARD_init()
 {
-    int i, tmp, rank, file, color, offset, base;
+    int i, j, tmp, rank, file, color, offset, base;
     
     /* LESS THAN */
     bitboard_less_than[0] = 0;
@@ -114,6 +115,24 @@ void BITBOARD_init()
     for(i = 0; i < NUM_POSITIONS; i++)
         bitboard_down_right[i] = bitboard_tlbr[i] & bitboard_less_than[i];
     
+    /* BETWEEN */
+    for(i = 0; i < NUM_POSITIONS; i++) {
+        for(j = 0; j < NUM_POSITIONS; j++) {
+            bitboard_between[i][j] = 0;
+            if(BITBOARD_POSITION(j) & bitboard_bltr[i]) bitboard_between[i][j] = bitboard_bltr[i];
+            if(BITBOARD_POSITION(j) & bitboard_tlbr[i]) bitboard_between[i][j] = bitboard_tlbr[i];
+            if(BITBOARD_POSITION(j) & bitboard_file[i]) bitboard_between[i][j] = bitboard_file[i];
+            if(BITBOARD_POSITION(j) & bitboard_rank[i]) bitboard_between[i][j] = bitboard_rank[i];
+            if(bitboard_between[i][j]) {
+                if(i < j) {
+                    bitboard_between[i][j] &= bitboard_more_than[i] & bitboard_less_than[j];
+                } else {
+                    bitboard_between[i][j] &= bitboard_more_than[j] & bitboard_less_than[i];
+                }
+            }
+        }
+    }
+
     /* KING */
     for(i = 0; i < NUM_POSITIONS; i++) {
         rank = BITBOARD_GET_RANK(i);

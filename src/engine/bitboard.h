@@ -38,6 +38,7 @@ extern bitboard_t bitboard_up_left[NUM_POSITIONS];
 extern bitboard_t bitboard_up_right[NUM_POSITIONS];
 extern bitboard_t bitboard_down_left[NUM_POSITIONS];
 extern bitboard_t bitboard_down_right[NUM_POSITIONS];
+extern bitboard_t bitboard_between[NUM_POSITIONS][NUM_POSITIONS];
 extern bitboard_t bitboard_king[NUM_POSITIONS];
 extern bitboard_t bitboard_knight[NUM_POSITIONS];
 extern bitboard_t bitboard_pawn_move[NUM_COLORS][NUM_POSITIONS];

@@ -193,7 +193,7 @@ int EVAL_position_is_attacked(const chess_state_t *s, const int color, const int
     const int own_index = player * NUM_TYPES;
     const int opponent_index = NUM_TYPES - own_index;
     
-    bitboard_t attackers, dummy;
+    bitboard_t attackers;
     
     /* Is attacked by pawns */
     attackers = bitboard_pawn_capture[player][pos] & s->bitboard[opponent_index + PAWN];
@@ -207,22 +207,15 @@ int EVAL_position_is_attacked(const chess_state_t *s, const int color, const int
         return 1;
     }
     
-    /* Is attacked by diagonal sliders (bishop, queen)? */
-    if(bitboard_bishop[pos] & (s->bitboard[opponent_index + BISHOP] | s->bitboard[opponent_index + QUEEN])) {
-        MOVEGEN_bishop(pos, s->bitboard[own_index + ALL], s->bitboard[opponent_index + ALL], &dummy, &attackers);
-        attackers &= (s->bitboard[opponent_index + BISHOP] | s->bitboard[opponent_index + QUEEN]);
-        if(attackers) {
+    /* Is attacked by sliders (bishop, rook, queen)? */
+    attackers = (bitboard_bishop[pos] & (s->bitboard[opponent_index + BISHOP] | s->bitboard[opponent_index + QUEEN])) |
+                (bitboard_rook[pos]   & (s->bitboard[opponent_index + ROOK]   | s->bitboard[opponent_index + QUEEN]));
+    while(attackers) {
+        int attack_pos = BITBOARD_find_bit(attackers);
+        if((bitboard_between[attack_pos][pos] & s->bitboard[OCCUPIED]) == 0) {
             return 1;
         }
-    }
-
-    /* Is attacked by straight sliders (rook, queen)? */
-    if(bitboard_rook[pos] & (s->bitboard[opponent_index + ROOK] | s->bitboard[opponent_index + QUEEN])) {
-        MOVEGEN_rook(pos, s->bitboard[own_index + ALL], s->bitboard[opponent_index + ALL], &dummy, &attackers);
-        attackers &= (s->bitboard[opponent_index + ROOK] | s->bitboard[opponent_index + QUEEN]);
-        if(attackers) {
-            return 1;
-        }
+        attackers ^= BITBOARD_POSITION(attack_pos);
     }
     
     /* Is attacked by king */
