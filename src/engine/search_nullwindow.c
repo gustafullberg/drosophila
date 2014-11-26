@@ -170,7 +170,6 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
 short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *search_state, short beta)
 {
     int num_moves;
-    int num_legal_moves;
     int i;
     short score;
     short best_score;
@@ -190,7 +189,6 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
     num_moves = STATE_generate_moves_quiescence(state, moves);
     num_moves = MOVEORDER_order_moves(state, moves, num_moves, move);
     
-    num_legal_moves = 0;
     for(i = 0; i < num_moves; i++) {
         next_state = *state;
         STATE_apply_move(&next_state, moves[i]);
@@ -198,7 +196,6 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
             continue;
         }
         UPDATE_PAWN_SCORE(next_state, state->score_pawn, search_state->hashtable)
-        num_legal_moves++;
         score = -SEARCH_nullwindow_quiescence(&next_state, search_state, -beta+1);
         if(score > best_score) {
             best_score = score;
