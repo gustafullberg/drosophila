@@ -7,7 +7,7 @@
 static inline short SEARCH_transpositiontable_retrieve(const hashtable_t *hashtable, const bitboard_t hash, const unsigned char depth, short beta, move_t *best_move, int *cutoff);
 static inline void SEARCH_transpositiontable_store(hashtable_t *hashtable, const bitboard_t hash, const unsigned char depth, const short best_score, move_t best_move, const short beta);
 
-#define UPDATE_PAWN_SCORE(s, old_score, hashtable) /*if(old_score != s.score_pawn) s.score_pawn = EVAL_get_pawn_score(&s, hashtable);*/
+#define UPDATE_PAWN_SCORE(s, old_hash, hashtable) /*if(old_hash != s.pawn_hash) s.score_pawn = EVAL_get_pawn_score(&s, hashtable);*/
 
 /* Alpha-Beta search with Nega Max and null-window */
 short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state, unsigned char depth, move_t *move, short beta)
@@ -76,7 +76,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         next_state = *state;
         STATE_apply_move(&next_state, *move);
         if(!SEARCH_is_check(&next_state, state->player)) {
-            UPDATE_PAWN_SCORE(next_state, state->score_pawn, search_state->hashtable)
+            UPDATE_PAWN_SCORE(next_state, state->pawn_hash, search_state->hashtable)
             HISTORY_push(search_state->history, next_state.hash);
             best_score = -SEARCH_nullwindow(&next_state, search_state, depth-1, &next_move, -beta+1);
             HISTORY_pop(search_state->history);
@@ -112,7 +112,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
             if(SEARCH_is_check(&next_state, state->player)) {
                 continue;
             }
-            UPDATE_PAWN_SCORE(next_state, state->score_pawn, search_state->hashtable)
+            UPDATE_PAWN_SCORE(next_state, state->pawn_hash, search_state->hashtable)
             num_legal_moves++;
             
 
@@ -195,7 +195,7 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
         if(SEARCH_is_check(&next_state, state->player)) {
             continue;
         }
-        UPDATE_PAWN_SCORE(next_state, state->score_pawn, search_state->hashtable)
+        UPDATE_PAWN_SCORE(next_state, state->pawn_hash, search_state->hashtable)
         score = -SEARCH_nullwindow_quiescence(&next_state, search_state, -beta+1);
         if(score > best_score) {
             best_score = score;
