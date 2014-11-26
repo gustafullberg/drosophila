@@ -174,16 +174,11 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
     int i;
     short score;
     short best_score;
-    int skip_move_generation = 0;
     move_t move;
     chess_state_t next_state;
     move_t moves[256];
-    int cutoff = 0;
-    short ttable_score;
 
     move = 0;
-
-    HASHTABLE_transition_prefetch(search_state->hashtable, state->hash);
 
     /* Stand-pat */
     best_score = EVAL_evaluate_board(state);
@@ -192,48 +187,28 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
         return best_score;
     }
     
-    ttable_score = SEARCH_transpositiontable_retrieve(search_state->hashtable, state->hash, 0, beta, &move, &cutoff);
-    if(cutoff) {
-        return ttable_score;
-    }
+    num_moves = STATE_generate_moves_quiescence(state, moves);
+    num_moves = MOVEORDER_order_moves(state, moves, num_moves, move);
     
-    if(MOVE_IS_CAPTURE_OR_PROMOTION(move)) {
+    num_legal_moves = 0;
+    for(i = 0; i < num_moves; i++) {
         next_state = *state;
-        STATE_apply_move(&next_state, move);
-        if(!SEARCH_is_check(&next_state, state->player)) {
-            UPDATE_PAWN_SCORE(next_state, state->score_pawn, search_state->hashtable)
-            best_score = -SEARCH_nullwindow_quiescence(&next_state, search_state, -beta+1);
-            if(best_score >= beta) {
-                skip_move_generation = 1;
-            }
+        STATE_apply_move(&next_state, moves[i]);
+        if(SEARCH_is_check(&next_state, state->player)) {
+            continue;
         }
-    }
-
-    if(!skip_move_generation) {    
-        num_moves = STATE_generate_moves_quiescence(state, moves);
-        num_moves = MOVEORDER_order_moves(state, moves, num_moves, move);
-        
-        num_legal_moves = 0;
-        for(i = 0; i < num_moves; i++) {
-            next_state = *state;
-            STATE_apply_move(&next_state, moves[i]);
-            if(SEARCH_is_check(&next_state, state->player)) {
-                continue;
-            }
-            UPDATE_PAWN_SCORE(next_state, state->score_pawn, search_state->hashtable)
-            num_legal_moves++;
-            score = -SEARCH_nullwindow_quiescence(&next_state, search_state, -beta+1);
-            if(score > best_score) {
-                best_score = score;
-                if(best_score >= beta) {
-                    /* Beta-cuttoff */
-                    break;
-                }
+        UPDATE_PAWN_SCORE(next_state, state->score_pawn, search_state->hashtable)
+        num_legal_moves++;
+        score = -SEARCH_nullwindow_quiescence(&next_state, search_state, -beta+1);
+        if(score > best_score) {
+            best_score = score;
+            if(best_score >= beta) {
+                /* Beta-cuttoff */
+                break;
             }
         }
     }
     
-    SEARCH_transpositiontable_store(search_state->hashtable, state->hash, 0, best_score, 0, beta);
     return best_score;
 }
 
