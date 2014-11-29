@@ -16,6 +16,7 @@ static const short pawn_double_pawn_penalty[8] = {
     0, 0, PAWN_DOUBLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN
 };
 
+#if 0
 short EVAL_pawn_structure(const chess_state_t *s)
 {
     short score = 0;
@@ -74,6 +75,7 @@ short EVAL_get_pawn_score(const chess_state_t *s, hashtable_t *hashtable)
     HASHTABLE_pawn_store(hashtable, s->pawn_hash, score);
     return score;
 }
+#endif
 
 short EVAL_material_midgame(const chess_state_t *s)
 {
@@ -129,11 +131,11 @@ short EVAL_pawn_shield(const chess_state_t *s)
 
 short EVAL_evaluate_board(const chess_state_t *s)
 {
-    short score;
+    short score = 0;
     int is_endgame = STATE_is_endgame(s);
 
     /* Pawn score */
-    score = s->score_pawn;
+    //score = s->score_pawn;
     
     /* Pawn shield */
     if(!is_endgame) {

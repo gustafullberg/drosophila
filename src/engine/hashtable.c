@@ -12,22 +12,22 @@ static int log2i(int n)
 hashtable_t *HASHTABLE_create(const int size_mb)
 {
     int num_entries = 1 << log2i(size_mb * 1024 * 1024 / sizeof(transposition_entry_t));
-    int num_pawn_entries = 1 << 17;
+    //int num_pawn_entries = 1 << 17;
     
     hashtable_t *h = (hashtable_t*)malloc(sizeof(hashtable_t));
     
     h->entries = calloc(num_entries, sizeof(transposition_entry_t));
     h->key_mask = num_entries - 1;
     
-    h->pawn_entries = calloc(num_pawn_entries, sizeof(pawn_entry_t));
-    h->pawn_key_mask = num_pawn_entries - 1;
+    //h->pawn_entries = calloc(num_pawn_entries, sizeof(pawn_entry_t));
+    //h->pawn_key_mask = num_pawn_entries - 1;
     
     return h;
 }
 
 void HASHTABLE_destroy(hashtable_t *h)
 {
-    free(h->pawn_entries);
+    //free(h->pawn_entries);
     free(h->entries);
     free(h);
 }
@@ -54,6 +54,7 @@ transposition_entry_t *HASHTABLE_transition_retrieve(const hashtable_t *h, const
     return NULL;
 }
 
+#if 0
 void HASHTABLE_pawn_store(hashtable_t *h, const uint32_t hash, const short score)
 {
     int index = (int)(hash & h->pawn_key_mask);
@@ -72,3 +73,4 @@ int HASHTABLE_pawn_retrieve(const hashtable_t *h, const uint32_t hash, short *sc
     }
     return 0;
 }
+#endif
