@@ -35,128 +35,80 @@ void MOVEGEN_knight(const int position, const bitboard_t own, const bitboard_t o
 
 void MOVEGEN_bishop(const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
-    /* The move generation of bishops and rooks is inspired by Nagaskaki */
-    /* http://www.mayothi.com/nagaskakichess6.html                       */
     bitboard_t occupied;
     bitboard_t ul_moves, ur_moves, dl_moves, dr_moves;
     bitboard_t bishop_moves;
+    bitboard_t blockers;
+    int blocker_pos;
     
     occupied = own | opponent;
     
     /* UP-LEFT */
-    ul_moves = bitboard_up_left[position] & occupied;
-    ul_moves = ul_moves << 7 |
-               ul_moves << 14 |
-               ul_moves << 21 |
-               ul_moves << 28 |
-               ul_moves << 35 |
-               ul_moves << 42;
-    ul_moves &= bitboard_up_left[position];
-    ul_moves ^= bitboard_up_left[position];
-    ul_moves &= ~own;
+    ul_moves = bitboard_up_left[position];
+    blockers = ul_moves & occupied;
+    blocker_pos = BITBOARD_find_bit(blockers | (bitboard_t)0x8000000000000000);
+    ul_moves ^= bitboard_up_left[blocker_pos];
     
     /* UP-RIGHT */
-    ur_moves = bitboard_up_right[position] & occupied;
-    ur_moves = ur_moves << 9 |
-               ur_moves << 18 |
-               ur_moves << 27 |
-               ur_moves << 36 |
-               ur_moves << 45 |
-               ur_moves << 54;
-    ur_moves &= bitboard_up_right[position];
-    ur_moves ^= bitboard_up_right[position];
-    ur_moves &= ~own;
-    
+    ur_moves = bitboard_up_right[position];
+    blockers = ur_moves & occupied;
+    blocker_pos = BITBOARD_find_bit(blockers | (bitboard_t)0x8000000000000000);
+    ur_moves ^= bitboard_up_right[blocker_pos];
+
     /* DOWN-LEFT */
-    dl_moves = bitboard_down_left[position] & occupied;
-    dl_moves = dl_moves >> 9 |
-               dl_moves >> 18 |
-               dl_moves >> 27 |
-               dl_moves >> 36 |
-               dl_moves >> 45 |
-               dl_moves >> 54;
-    dl_moves &= bitboard_down_left[position];
-    dl_moves ^= bitboard_down_left[position];
-    dl_moves &= ~own;
-    
+    dl_moves = bitboard_down_left[position];
+    blockers = dl_moves & occupied;
+    blocker_pos = BITBOARD_find_bit_reversed(blockers | 1);
+    dl_moves ^= bitboard_down_left[blocker_pos];
+
     /* DOWN-RIGHT */
-    dr_moves = bitboard_down_right[position] & occupied;
-    dr_moves = dr_moves >> 7 |
-               dr_moves >> 14 |
-               dr_moves >> 21 |
-               dr_moves >> 28 |
-               dr_moves >> 35 |
-               dr_moves >> 42;
-    dr_moves &= bitboard_down_right[position];
-    dr_moves ^= bitboard_down_right[position];
-    dr_moves &= ~own;
+    dr_moves = bitboard_down_right[position];
+    blockers = dr_moves & occupied;
+    blocker_pos = BITBOARD_find_bit_reversed(blockers | 1);
+    dr_moves ^= bitboard_down_right[blocker_pos];
     
     bishop_moves = ul_moves | ur_moves | dl_moves | dr_moves;
     
-    *moves = bishop_moves & ~opponent;
+    *moves = bishop_moves & ~occupied;
     *captures = bishop_moves & opponent;
 }
 
 void MOVEGEN_rook(const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
-    /* The move generation of bishops and rooks is inspired by Nagaskaki */
-    /* http://www.mayothi.com/nagaskakichess6.html                       */
     bitboard_t occupied;
     bitboard_t left_moves, right_moves, up_moves, down_moves;
     bitboard_t rook_moves;
+    bitboard_t blockers;
+    int blocker_pos;
     
     occupied = own | opponent;
     
     /* LEFT */
-    left_moves = bitboard_left[position] & occupied;
-    left_moves = left_moves >> 1 |
-                 left_moves >> 2 |
-                 left_moves >> 3 |
-                 left_moves >> 4 |
-                 left_moves >> 5 |
-                 left_moves >> 6;
-    left_moves &= bitboard_left[position];
-    left_moves ^= bitboard_left[position];
-    left_moves &= ~own;
-    
+    left_moves = bitboard_left[position];
+    blockers = left_moves & occupied;
+    blocker_pos = BITBOARD_find_bit_reversed(blockers | 1);
+    left_moves ^= bitboard_left[blocker_pos];
+
     /* RIGHT */
-    right_moves = bitboard_right[position] & occupied;
-    right_moves = right_moves << 1 |
-                  right_moves << 2 |
-                  right_moves << 3 |
-                  right_moves << 4 |
-                  right_moves << 5 |
-                  right_moves << 6;
-    right_moves &= bitboard_right[position];
-    right_moves ^= bitboard_right[position];
-    right_moves &= ~own;
+    right_moves = bitboard_right[position];
+    blockers = right_moves & occupied;
+    blocker_pos = BITBOARD_find_bit(blockers | (bitboard_t)0x8000000000000000);
+    right_moves ^= bitboard_right[blocker_pos];
     
     /* UP */
-    up_moves = bitboard_up[position] & occupied;
-    up_moves = up_moves << 8 |
-               up_moves << 16 |
-               up_moves << 24 |
-               up_moves << 32 |
-               up_moves << 40 |
-               up_moves << 48;
-    up_moves &= bitboard_up[position];
-    up_moves ^= bitboard_up[position];
-    up_moves &= ~own;
+    up_moves = bitboard_up[position];
+    blockers = up_moves & occupied;
+    blocker_pos = BITBOARD_find_bit(blockers | (bitboard_t)0x8000000000000000);
+    up_moves ^= bitboard_up[blocker_pos];
     
     /* DOWN */
-    down_moves = bitboard_down[position] & occupied;
-    down_moves = down_moves >> 8 |
-               down_moves >> 16 |
-               down_moves >> 24 |
-               down_moves >> 32 |
-               down_moves >> 40 |
-               down_moves >> 48;
-    down_moves &= bitboard_down[position];
-    down_moves ^= bitboard_down[position];
-    down_moves &= ~own;
+    down_moves = bitboard_down[position];
+    blockers = down_moves & occupied;
+    blocker_pos = BITBOARD_find_bit_reversed(blockers | 1);
+    down_moves ^= bitboard_down[blocker_pos];
     
     rook_moves = left_moves | right_moves | up_moves | down_moves;
-    *moves = rook_moves & ~opponent;
+    *moves = rook_moves & ~occupied;
     *captures = rook_moves & opponent;
 }
 

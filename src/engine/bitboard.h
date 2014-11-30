@@ -77,6 +77,25 @@ static inline int BITBOARD_find_bit(const bitboard_t bitboard)
 #endif
 }
 
+static inline int BITBOARD_find_bit_reversed(const bitboard_t bitboard)
+{
+#if __GNUC__
+    return 63 - __builtin_clzll(bitboard);
+#elif _MSC_VER && _WIN64
+    unsigned long index;
+    _BitScanReverse64(&index, bitboard);
+    return index;
+#else
+    int i;
+    for(i = NUM_POSITIONS-1; i >= 0; i++) {
+        if(bitboard & ((bitboard_t)1 << i)) {
+            return i;
+        }
+    }
+    return 0;
+#endif
+}
+
 static inline int BITBOARD_count_bits(const bitboard_t bitboard)
 {
 #if __GNUC__
