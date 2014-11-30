@@ -1,7 +1,8 @@
 #include "eval.h"
 #include "movegen.h"
 
-#define PAWN_GUARDED_BY_PAWN 4
+#define PAWN_GUARDS_MINOR 3
+#define PAWN_GUARDS_PAWN 4
 
 #define PAWN_DOUBLE_PAWN -10
 #define PAWN_TRIPLE_PAWN -20
@@ -36,7 +37,7 @@ short EVAL_pawn_structure(const chess_state_t *s)
 
             /* Bonus for being guarded by other pawn */
             if(bitboard_pawn_capture[opponent_color][pos] & own_pawns) {
-                pawn_structure_score += PAWN_GUARDED_BY_PAWN;
+                pawn_structure_score += PAWN_GUARDS_PAWN;
             }
             
             /* Clear position from bitboard */
@@ -102,7 +103,7 @@ short EVAL_material_midgame(const chess_state_t *s)
     return result;
 }
 
-short EVAL_pawn_shield(const chess_state_t *s)
+static short EVAL_pawn_shield(const chess_state_t *s)
 {
     const bitboard_t white_queenside = 0x0000000000000006;
     const bitboard_t white_kingside  = 0x00000000000000E0;
@@ -129,23 +130,46 @@ short EVAL_pawn_shield(const chess_state_t *s)
     return score;
 }
 
+static inline short EVAL_pawn_guards_minor_piece(const chess_state_t *s)
+{
+    short score = 0;
+    int color;
+
+    for(color = WHITE; color <= BLACK; color++) {
+        int opponent_color = color ^ 1;
+        short bonus = 0;
+        
+        bitboard_t own_minor = s->bitboard[color*NUM_TYPES + KNIGHT] | s->bitboard[color*NUM_TYPES + BISHOP];
+        bitboard_t own_pawns = s->bitboard[color*NUM_TYPES + PAWN];
+        
+        bitboard_t minor = own_minor;
+        while(minor) {
+            /* Get one position from the bitboard */
+            int pos = BITBOARD_find_bit(minor);
+
+            /* Bonus for being guarded by pawn */
+            if(bitboard_pawn_capture[opponent_color][pos] & own_pawns) {
+                bonus += PAWN_GUARDS_MINOR;
+            }
+            
+            /* Clear position from bitboard */
+            minor ^= BITBOARD_POSITION(pos);
+        }
+        
+        /* Sign of score depends on color */
+        score += bonus * sign[color];
+    }
+    
+    return score;
+}
+
 short EVAL_evaluate_board(const chess_state_t *s)
 {
     short score = 0;
     int is_endgame = STATE_is_endgame(s);
 
     /* Pawn score */
-    //score = s->score_pawn;
-    
-    /* Pawn shield */
-    if(!is_endgame) {
-        score += EVAL_pawn_shield(s);
-    }
-    
-    score *= sign[(int)(s->player)];
-    
-    /* Material score */
-    score += s->score_material;
+    //score += s->score_pawn;
     
     /* Adjust material score for endgame */
     if(is_endgame) {
@@ -156,8 +180,20 @@ short EVAL_evaluate_board(const chess_state_t *s)
             +piecesquare[KING+1][white_king_pos]
             +piecesquare[KING][black_king_pos]
             -piecesquare[KING+1][black_king_pos]
-        ) * sign[(int)(s->player)];
+        );
+    } else {
+        /* Pawn shield */
+        score += EVAL_pawn_shield(s);
+
+        /* Pawns guarding minor pieces */
+        score += EVAL_pawn_guards_minor_piece(s);
     }
+
+    /* Invert score for black player */
+    score *= sign[(int)(s->player)];
+    
+    /* Material score */
+    score += s->score_material;
     
     return score;
 }
