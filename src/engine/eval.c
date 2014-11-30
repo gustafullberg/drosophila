@@ -132,35 +132,22 @@ static short EVAL_pawn_shield(const chess_state_t *s)
 
 static inline short EVAL_pawn_guards_minor_piece(const chess_state_t *s)
 {
-    short score = 0;
-    int color;
-
-    for(color = WHITE; color <= BLACK; color++) {
-        int opponent_color = color ^ 1;
-        short bonus = 0;
-        
-        bitboard_t own_minor = s->bitboard[color*NUM_TYPES + KNIGHT] | s->bitboard[color*NUM_TYPES + BISHOP];
-        bitboard_t own_pawns = s->bitboard[color*NUM_TYPES + PAWN];
-        
-        bitboard_t minor = own_minor;
-        while(minor) {
-            /* Get one position from the bitboard */
-            int pos = BITBOARD_find_bit(minor);
-
-            /* Bonus for being guarded by pawn */
-            if(bitboard_pawn_capture[opponent_color][pos] & own_pawns) {
-                bonus += PAWN_GUARDS_MINOR;
-            }
-            
-            /* Clear position from bitboard */
-            minor ^= BITBOARD_POSITION(pos);
-        }
-        
-        /* Sign of score depends on color */
-        score += bonus * sign[color];
-    }
+    /* Bitboards with knights and bishops */
+    bitboard_t white_minor = s->bitboard[WHITE_PIECES + KNIGHT] | s->bitboard[WHITE_PIECES + BISHOP];
+    bitboard_t black_minor = s->bitboard[BLACK_PIECES + KNIGHT] | s->bitboard[BLACK_PIECES + BISHOP];
     
-    return score;
+    /* Bitboards with pawns */
+    bitboard_t white_pawn = s->bitboard[WHITE_PIECES + PAWN];
+    bitboard_t black_pawn = s->bitboard[BLACK_PIECES + PAWN];
+    
+    /* Pawn guard squares */
+    bitboard_t white_guard = (white_pawn & ~(BITBOARD_FILE << 0)) << 7 |
+                             (white_pawn & ~(BITBOARD_FILE << 7)) << 9;
+    bitboard_t black_guard = (black_pawn & ~(BITBOARD_FILE << 0)) >> 9 |
+                             (black_pawn & ~(BITBOARD_FILE << 7)) >> 7;
+    
+    /* Number of minor pieces guarded by pawns */
+    return PAWN_GUARDS_MINOR * (BITBOARD_count_bits(white_guard & white_minor) - BITBOARD_count_bits(black_guard & black_minor));
 }
 
 short EVAL_evaluate_board(const chess_state_t *s)
