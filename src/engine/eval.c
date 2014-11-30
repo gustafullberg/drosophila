@@ -17,7 +17,7 @@ static const short pawn_double_pawn_penalty[8] = {
     0, 0, PAWN_DOUBLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN
 };
 
-#if 0
+#ifdef PAWN_STRUCTURE
 short EVAL_pawn_structure(const chess_state_t *s)
 {
     short score = 0;
@@ -169,7 +169,9 @@ short EVAL_evaluate_board(const chess_state_t *s)
     int is_endgame = STATE_is_endgame(s);
 
     /* Pawn score */
-    //score += s->score_pawn;
+#ifdef PAWN_STRUCTURE
+    score += s->score_pawn;
+#endif
     
     /* Adjust material score for endgame */
     if(is_endgame) {

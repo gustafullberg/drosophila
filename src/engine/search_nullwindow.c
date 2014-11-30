@@ -7,7 +7,11 @@
 static inline short SEARCH_transpositiontable_retrieve(const hashtable_t *hashtable, const bitboard_t hash, const unsigned char depth, short beta, move_t *best_move, int *cutoff);
 static inline void SEARCH_transpositiontable_store(hashtable_t *hashtable, const bitboard_t hash, const unsigned char depth, const short best_score, move_t best_move, const short beta);
 
-#define UPDATE_PAWN_SCORE(s, old_hash, hashtable) /*if(old_hash != s.pawn_hash) s.score_pawn = EVAL_get_pawn_score(&s, hashtable);*/
+#ifdef PAWN_STRUCTURE
+#define UPDATE_PAWN_SCORE(s, old_hash, hashtable) if(old_hash != s.pawn_hash) s.score_pawn = EVAL_get_pawn_score(&s, hashtable);
+#else
+#define UPDATE_PAWN_SCORE(s, old_hash, hashtable)
+#endif
 
 /* Alpha-Beta search with Nega Max and null-window */
 short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state, unsigned char depth, move_t *move, short beta)
