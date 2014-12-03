@@ -76,7 +76,8 @@ void make_move(state_t *state, engine_state_t *engine)
         moves_left_in_period = state->time_period - (num_moves % state->time_period);
     }
     
-    ENGINE_think(engine, moves_left_in_period, time_left_ms, time_incremental_ms, &pos_from, &pos_to, &promotion_type, 100);
+    ENGINE_think_start(engine, moves_left_in_period, time_left_ms, time_incremental_ms, 100);
+    ENGINE_think_get_result(engine, &pos_from, &pos_to, &promotion_type);
     result = ENGINE_apply_move(engine, pos_from, pos_to, promotion_type);
     if(promotion_type) {
         char pt = 0;

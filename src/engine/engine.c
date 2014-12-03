@@ -16,12 +16,7 @@ struct engine_state {
     history_t           *history;
     openingbook_t       *obook;
     thinking_output_cb  think_cb;
-    struct {
-        int state;
-        move_t move;
-        int time_for_move_ms;
-        unsigned char max_depth;
-    } search_thread_state;
+    search_state_t      *search_state;
 };
 
 static void ENGINE_init()
@@ -41,6 +36,7 @@ void ENGINE_create(engine_state_t **state)
     (*state)->history = HISTORY_create();
     (*state)->obook = OPENINGBOOK_create("openingbook.dat");
     (*state)->think_cb = NULL;
+    (*state)->search_state = NULL;
     ENGINE_reset(*state);
 }
 
@@ -49,6 +45,7 @@ void ENGINE_destroy(engine_state_t *state)
     HASHTABLE_destroy(state->hashtable);
     HISTORY_destroy(state->history);
     OPENINGBOOK_destroy(state->obook);
+    if(state->search_state) free(state->search_state);
     free(state->chess_state);
     free(state);
 }
@@ -58,7 +55,10 @@ void ENGINE_reset(engine_state_t *state)
     STATE_reset(state->chess_state);
     HISTORY_reset(state->history);
     OPENINGBOOK_reset(state->obook);
-    state->search_thread_state.state = ENGINE_SEARCH_DONE;
+    if(state->search_state) {
+        free(state->search_state);
+        state->search_state = NULL;
+    }
 }
 
 int ENGINE_apply_move(engine_state_t *state, const int pos_from, const int pos_to, const int promotion_type)
@@ -124,13 +124,39 @@ int ENGINE_apply_move_san(engine_state_t *state, const char *san)
     return ENGINE_RESULT_ILLEGAL_MOVE;
 }
 
-void ENGINE_think(engine_state_t *state, const int moves_left_in_period, const int time_left_ms, const int time_incremental_ms, int *pos_from, int *pos_to, int *promotion_type, const unsigned char max_depth)
+static void *ENGINE_think_thread(void *arg)
 {
-    int move;
-    int special;
+    engine_state_t *state = (engine_state_t*)arg;
+
+    move_t move;
     short score;
-    int time_for_move_ms;
     
+    /* Look for a move in the opening book */
+    move = OPENINGBOOK_get_move(state->obook, state->chess_state);
+    if(!move) {
+        /* No move in the opening book. Search! */
+        move = SEARCH_perform_search(state->chess_state, state->search_state, &score);
+    }
+    
+    state->search_state->move = move;
+    state->search_state->status = ENGINE_SEARCH_DONE;
+
+    return NULL;
+}
+
+void ENGINE_think_start(engine_state_t *state, const int moves_left_in_period, const int time_left_ms, const int time_incremental_ms, const unsigned char max_depth)
+{
+    int64_t time_for_move_ms;
+
+    if(state->search_state) {
+        /* Search already in progress => abort */
+        return;
+    }
+
+    /* Create search state */
+    state->search_state = calloc(1, sizeof(search_state_t));
+
+    /* Calculate time for this move */
     if(moves_left_in_period) {
         time_for_move_ms = time_left_ms / moves_left_in_period;
         if(time_for_move_ms > time_left_ms - 100) {
@@ -140,59 +166,91 @@ void ENGINE_think(engine_state_t *state, const int moves_left_in_period, const i
         time_for_move_ms = time_left_ms * 2 / 100;
     }
 
-    /* Look for a move in the opening book */
-    move = OPENINGBOOK_get_move(state->obook, state->chess_state);
-    if(!move) {
-        /* No move in the opening book. Search! */
-        move = SEARCH_perform_search(state->chess_state, state->hashtable, state->history, time_for_move_ms, max_depth, &score, state->think_cb);
+    /* Set members of search_state */
+    state->search_state->hashtable = state->hashtable;
+    state->search_state->history = state->history;
+    state->search_state->abort_search = 0;
+    state->search_state->next_clock_check = SEARCH_ITERATIONS_BETWEEN_CLOCK_CHECK;
+    state->search_state->start_time_ms = TIME_now();
+    state->search_state->time_for_move_ms = time_for_move_ms;
+    state->search_state->max_depth = max_depth;
+    state->search_state->num_nodes_searched = 0;
+    state->search_state->think_cb = state->think_cb;
+    state->search_state->move = 0;
+    state->search_state->status = ENGINE_SEARCH_RUNNING;
+
+    /* Spawn search thread */
+    THREAD_create(&state->search_state->thread, &ENGINE_think_thread, (void*)state);
+}
+
+void ENGINE_think_stop(engine_state_t *state)
+{
+    if(state->search_state) {
+        state->search_state->abort_search = 1;
     }
+}
+
+int  ENGINE_think_get_status(engine_state_t *state)
+{
+    if(state->search_state) {
+        return state->search_state->status;
+    } else {
+        return ENGINE_SEARCH_DONE;
+    }
+}
+
+void ENGINE_think_get_result(engine_state_t *state, int *pos_from, int *pos_to, int *promotion_type)
+{
+    move_t move;
+    int special;
+
+    if(!state->search_state) {
+        /* No search to get result from */
+        return;
+    }
+
+    /* Join search thread */
+    THREAD_join(state->search_state->thread);
+
+    /* Get best move */
+    move = state->search_state->move;
+
+    /* Free memory in search state */
+    free(state->search_state);
+    state->search_state = NULL;
 
     *pos_from = MOVE_GET_POS_FROM(move);
     *pos_to = MOVE_GET_POS_TO(move);
     special = MOVE_GET_SPECIAL_FLAGS(move);
-    
+
+    /* Translate move to: pos_from, pos_to, promotion_type */
+
     switch(special)
     {
         case MOVE_KNIGHT_PROMOTION:
         case MOVE_KNIGHT_PROMOTION_CAPTURE:
         *promotion_type = ENGINE_PROMOTION_KNIGHT;
         break;
-        
+
         case MOVE_BISHOP_PROMOTION:
         case MOVE_BISHOP_PROMOTION_CAPTURE:
         *promotion_type = ENGINE_PROMOTION_BISHOP;
         break;
-        
+
         case MOVE_ROOK_PROMOTION:
         case MOVE_ROOK_PROMOTION_CAPTURE:
         *promotion_type = ENGINE_PROMOTION_ROOK;
         break;
-        
+
         case MOVE_QUEEN_PROMOTION:
         case MOVE_QUEEN_PROMOTION_CAPTURE:
         *promotion_type = ENGINE_PROMOTION_QUEEN;
         break;
-        
+
         default:
         *promotion_type = ENGINE_PROMOTION_NONE;
         break;
     }
-}
-
-static void ENGINE_think_thread(void *arg){
-    engine_state_t *state = (engine_state_t*)arg;
-    move_t move;
-    short score;
-    
-    /* Look for a move in the opening book */
-    move = OPENINGBOOK_get_move(state->obook, state->chess_state);
-    if(!move) {
-        /* No move in the opening book. Search! */
-        move = SEARCH_perform_search(state->chess_state, state->hashtable, state->history, state->search_thread_state.time_for_move_ms, state->search_thread_state.max_depth, &score, state->think_cb);
-    }
-    
-    state->search_thread_state.move = move;
-    state->search_thread_state.state = ENGINE_SEARCH_DONE;
 }
 
 int ENGINE_result(const engine_state_t *state)

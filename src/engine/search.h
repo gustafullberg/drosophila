@@ -6,6 +6,7 @@
 #include "hashtable.h"
 #include "history.h"
 #include "engine.h"
+#include "thread.h"
 
 #define SEARCH_MIN_RESULT(depth) (-1000-((short)depth))
 #define SEARCH_MAX_RESULT(depth) (1000+((short)depth))
@@ -22,9 +23,12 @@ typedef struct {
     unsigned char       max_depth;
     unsigned int        num_nodes_searched;
     thinking_output_cb  think_cb;
+    thread_t            thread;
+    move_t              move;
+    int                 status;
 } search_state_t;
 
-int SEARCH_perform_search(const chess_state_t *s, hashtable_t *hashtable, history_t *history, const int time_for_move_ms, const unsigned char max_depth, short *score, thinking_output_cb think_cb);
+int SEARCH_perform_search(const chess_state_t *s, search_state_t *search_state, short *score);
 int SEARCH_is_check(const chess_state_t *s, const int color);
 int SEARCH_is_mate(const chess_state_t *state);
 int SEARCH_find_pv(const chess_state_t *state, hashtable_t *hashtable, int depth, int *pos_from, int *pos_to, int *promotion_type);
