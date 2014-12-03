@@ -31,6 +31,8 @@ set(files
     state.h
     time.c
     time.h
+    thread.c
+    thread.h
 )
 
 add_library(
