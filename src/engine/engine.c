@@ -16,6 +16,12 @@ struct engine_state {
     history_t           *history;
     openingbook_t       *obook;
     thinking_output_cb  think_cb;
+    struct {
+        int state;
+        move_t move;
+        int time_for_move_ms;
+        unsigned char max_depth;
+    } search_thread_state;
 };
 
 static void ENGINE_init()
@@ -29,7 +35,7 @@ static void ENGINE_init()
 void ENGINE_create(engine_state_t **state)
 {
     ENGINE_init();
-    *state = (engine_state_t*)malloc(sizeof(engine_state_t));
+    *state = (engine_state_t*)calloc(1, sizeof(engine_state_t));
     (*state)->chess_state = (chess_state_t*)malloc(sizeof(chess_state_t));
     (*state)->hashtable = HASHTABLE_create(64);
     (*state)->history = HISTORY_create();
@@ -52,6 +58,7 @@ void ENGINE_reset(engine_state_t *state)
     STATE_reset(state->chess_state);
     HISTORY_reset(state->history);
     OPENINGBOOK_reset(state->obook);
+    state->search_thread_state.state = ENGINE_SEARCH_DONE;
 }
 
 int ENGINE_apply_move(engine_state_t *state, const int pos_from, const int pos_to, const int promotion_type)
@@ -170,6 +177,22 @@ void ENGINE_think(engine_state_t *state, const int moves_left_in_period, const i
         *promotion_type = ENGINE_PROMOTION_NONE;
         break;
     }
+}
+
+static void ENGINE_think_thread(void *arg){
+    engine_state_t *state = (engine_state_t*)arg;
+    move_t move;
+    short score;
+    
+    /* Look for a move in the opening book */
+    move = OPENINGBOOK_get_move(state->obook, state->chess_state);
+    if(!move) {
+        /* No move in the opening book. Search! */
+        move = SEARCH_perform_search(state->chess_state, state->hashtable, state->history, state->search_thread_state.time_for_move_ms, state->search_thread_state.max_depth, &score, state->think_cb);
+    }
+    
+    state->search_thread_state.move = move;
+    state->search_thread_state.state = ENGINE_SEARCH_DONE;
 }
 
 int ENGINE_result(const engine_state_t *state)
