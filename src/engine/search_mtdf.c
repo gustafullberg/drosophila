@@ -83,7 +83,7 @@ short SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state
             int pos_to[100];
             int promotion_type[100];
             int pv_length = SEARCH_find_pv(s, search_state->hashtable, depth, pos_from, pos_to, promotion_type);
-            (*search_state->think_cb)(depth, 5 * (int)results[depth], time_passed_ms, search_state->num_nodes_searched, pv_length, pos_from, pos_to, promotion_type);
+            (*search_state->think_cb)(depth, 5 * (int)results[depth], (int)time_passed_ms, search_state->num_nodes_searched, pv_length, pos_from, pos_to, promotion_type);
         }
 
         if(2 * time_passed_ms > search_state->time_for_move_ms) {

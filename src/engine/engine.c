@@ -8,6 +8,7 @@
 #include "search.h"
 #include "san.h"
 #include "fen.h"
+#include "time.h"
 #include "defines.h"
 
 struct engine_state {
