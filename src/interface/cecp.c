@@ -9,6 +9,7 @@
 typedef struct {
     int flag_forced;
     int flag_quit;
+    int flag_pondering;             /* Ponder between moves                             */
     int time_period;                /* Time control period (number of turns)            */
     int time_seconds;               /* Seconds per control period                       */
     int time_incremental_seconds;   /* Seconds added per turn                           */
@@ -20,6 +21,7 @@ void state_clear(state_t *state)
 {
     state->flag_forced = 0;
     state->flag_quit = 0;
+    state->flag_pondering = 0;
     state->time_period = 0;
     state->time_seconds = 0;
     state->time_incremental_seconds = 0;
@@ -64,6 +66,22 @@ void send_result(int result)
     }
 }
 
+void pondering_start(state_t *state, engine_state_t *engine)
+{
+    if(state->flag_pondering) {
+        ENGINE_think_start(engine, 1, 3600*1000, 0, 100);
+    }
+}
+
+void pondering_stop(state_t *state, engine_state_t *engine)
+{
+    if(ENGINE_think_get_status(engine) != ENGINE_SEARCH_NONE) {
+        int pos_from, pos_to, promotion_type;
+        ENGINE_think_stop(engine);
+        ENGINE_think_get_result(engine, &pos_from, &pos_to, &promotion_type);
+    }
+}
+
 void make_move(state_t *state, engine_state_t *engine)
 {
     int pos_from, pos_to, promotion_type, result;
@@ -92,6 +110,8 @@ void make_move(state_t *state, engine_state_t *engine)
     
     state->num_half_moves++;
     send_result(result);
+
+    pondering_start(state, engine);
 }
 
 void str_remove_newline(char *p)
@@ -133,6 +153,10 @@ void user_move(state_t *state, engine_state_t *engine, const char *move_str, int
 {
     int result;
     int pos_from, pos_to, promotion_type;
+
+    pondering_stop(state, engine);
+
+    /* Parse the user move */
     parse_move(move_str, &pos_from, &pos_to, &promotion_type);
 
     /* Move piece */
@@ -231,11 +255,13 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
     /*  quit */
     else if(strcmp(command, "quit\n") == 0) {
         state->flag_quit = 1;
+        pondering_stop(state, engine);
     }
     
     /* force */
     else if(strcmp(command, "force\n") == 0) {
         state->flag_forced = 1;
+        pondering_stop(state, engine);
     }
     
     /* level */
@@ -264,6 +290,21 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
         }
     }
 
+    /* easy */
+    else if(strcmp(command, "easy\n") == 0) {
+        state->flag_pondering = 0;
+    }
+
+    /* hard */
+    else if(strcmp(command, "hard\n") == 0) {
+        state->flag_pondering = 1;
+    }
+
+    /* result */
+    else if(strncmp(command, "result ", 7) == 0) {
+        pondering_stop(state, engine);
+    }
+
     /* Commands that do not reqire action from the engine (or not implemented) */
     
     /* xboard */
@@ -278,14 +319,8 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
     /* post */
     else if(strcmp(command, "post\n") == 0) {}
     
-    /* hard */
-    else if(strcmp(command, "hard\n") == 0) {}
-    
     /* cores */
     else if(strncmp(command, "cores ", 6) == 0) {}
-    
-    /* result */
-    else if(strncmp(command, "result ", 7) == 0) {}
     
     /* computer */
     else if(strcmp(command, "computer\n") == 0) {}

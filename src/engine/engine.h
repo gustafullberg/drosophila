@@ -13,8 +13,9 @@
 #define ENGINE_PROMOTION_ROOK       3
 #define ENGINE_PROMOTION_QUEEN      4
 
-#define ENGINE_SEARCH_DONE          0
+#define ENGINE_SEARCH_NONE          0
 #define ENGINE_SEARCH_RUNNING       1
+#define ENGINE_SEARCH_COMPLETED     2
 
 typedef struct engine_state engine_state_t;
 typedef void (*thinking_output_cb)(int ply, int score, int time_ms, unsigned int nodes, int pv_length, int *pos_from, int *pos_to, int *promotion_type);

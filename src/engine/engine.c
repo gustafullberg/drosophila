@@ -140,7 +140,7 @@ static void *ENGINE_think_thread(void *arg)
     }
     
     state->search_state->move = move;
-    state->search_state->status = ENGINE_SEARCH_DONE;
+    state->search_state->status = ENGINE_SEARCH_COMPLETED;
 
     return NULL;
 }
@@ -196,7 +196,7 @@ int  ENGINE_think_get_status(engine_state_t *state)
     if(state->search_state) {
         return state->search_state->status;
     } else {
-        return ENGINE_SEARCH_DONE;
+        return ENGINE_SEARCH_NONE;
     }
 }
 
