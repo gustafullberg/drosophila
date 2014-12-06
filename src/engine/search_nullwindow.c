@@ -17,7 +17,7 @@ static inline void SEARCH_transpositiontable_store(hashtable_t *hashtable, const
 short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state, unsigned char depth, move_t *move, short beta)
 {
     int num_moves;
-    int num_legal_moves;
+    int num_legal_moves = 0;
     int i;
     short score;
     short best_score = SEARCH_MIN_RESULT(depth);
@@ -81,6 +81,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         STATE_apply_move(&next_state, *move);
         if(!SEARCH_is_check(&next_state, state->player)) {
             UPDATE_PAWN_SCORE(next_state, state->pawn_hash, search_state->hashtable)
+            num_legal_moves++;
             HISTORY_push(search_state->history, next_state.hash);
             best_score = -SEARCH_nullwindow(&next_state, search_state, depth-1, &next_move, -beta+1);
             HISTORY_pop(search_state->history);
@@ -101,7 +102,6 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
             }
         }
 
-        num_legal_moves = 0;
         for(i = 0; i < num_moves; i++) {
 
             /* Futility pruning */
