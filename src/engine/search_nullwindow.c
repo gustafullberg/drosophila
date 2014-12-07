@@ -165,8 +165,8 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
             }
         }
     }
-    
-    SEARCH_transpositiontable_store(search_state->hashtable, state->hash, depth, best_score, *move, beta);
+
+    if(*move) SEARCH_transpositiontable_store(search_state->hashtable, state->hash, depth, best_score, *move, beta);
     return best_score;
 }
 
@@ -217,25 +217,26 @@ static inline short SEARCH_transpositiontable_retrieve(const hashtable_t *hashta
 {
     transposition_entry_t *ttentry = HASHTABLE_transition_retrieve(hashtable, hash);
     if(ttentry) {
+        *best_move = ttentry->best_move;
+
         if(ttentry->depth >= depth) {
             short score = ttentry->score;
             if(ttentry->type == TTABLE_TYPE_UPPER_BOUND) {
                 if(score < beta) {
-                    short min = SEARCH_MIN_RESULT(depth);
+                    short min = SEARCH_MIN_RESULT(0);
                     *cutoff = 1;
-                    return (score < min) ? min : score;
+                    return (score <= min) ? score + ttentry->depth - depth : score;
                 }
             } else { /* TTABLE_TYPE_LOWER_BOUND */
                 if(score >= beta) {
-                    short max = SEARCH_MAX_RESULT(depth);
+                    short max = SEARCH_MAX_RESULT(0);
                     *cutoff = 1;
-                    return (score > max) ? max : score;
+                    return (score >= max) ? score - ttentry->depth + depth : score;
                 }
             }
         }
         
         *cutoff = 0;
-        *best_move = ttentry->best_move;
     }
     
     return 0;
