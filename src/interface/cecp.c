@@ -111,7 +111,9 @@ void make_move(state_t *state, engine_state_t *engine)
     state->num_half_moves++;
     send_result(result);
 
-    pondering_start(state, engine);
+    if(result == ENGINE_RESULT_NONE) {
+        pondering_start(state, engine);
+    }
 }
 
 void str_remove_newline(char *p)
