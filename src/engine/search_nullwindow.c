@@ -166,7 +166,9 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         }
     }
 
-    if(*move) SEARCH_transpositiontable_store(search_state->hashtable, state->hash, depth, best_score, *move, beta);
+    if(!search_state->abort_search && *move) {
+        SEARCH_transpositiontable_store(search_state->hashtable, state->hash, depth, best_score, *move, beta);
+    }
     return best_score;
 }
 
