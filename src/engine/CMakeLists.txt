@@ -19,6 +19,8 @@ set(files
     moveorder.h
     openingbook.c
     openingbook.h
+    polyglot.c
+    polyglot.h
     san.c
     san.h
     search.c
