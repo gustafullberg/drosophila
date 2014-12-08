@@ -59,7 +59,9 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     
     ttable_score = SEARCH_transpositiontable_retrieve(search_state->hashtable, state->hash, depth, beta, move, &cutoff);
     if(cutoff) {
-        return ttable_score;
+        if(*move || state->last_move) {
+            return ttable_score;
+        }
     }
 
     /* Null move pruning */
@@ -166,7 +168,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         }
     }
 
-    if(!search_state->abort_search && *move) {
+    if(!search_state->abort_search) {
         SEARCH_transpositiontable_store(search_state->hashtable, state->hash, depth, best_score, *move, beta);
     }
     return best_score;
