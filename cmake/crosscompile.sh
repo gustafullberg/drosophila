@@ -2,7 +2,7 @@
 
 # RUN THIS SCRIPT FROM THE PROJECT'S ROOT LEVEL DIRECTORY
 
-INSTALL_DIR=pawned-1.0
+INSTALL_DIR=pawned-1.1
 
 mkdir -p release_build
 cd release_build

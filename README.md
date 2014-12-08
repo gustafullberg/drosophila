@@ -7,7 +7,17 @@ Pawned is an open source chess engine. You can use it with any chess GUI support
 If you are developing a chess GUI, you also can compile the engine as a library and use it within your application.
 
 ## Releases
-**1.0** - First release
+**1.1** - 2014-12-08
+
+* Pondering (thinking during the opponent's turn)
+* Full principal variation in thinking output
+* Support for the "setboard" command
+* Pawn shield
+* Performance improvements
+
+**1.0** - 2014-02-28
+
+* First release
 
 ## How to build from source code
 You need a **Git** client, **CMake** and a **C compiler** (GCC, Clang or Visual Studio) to obtain and build the source code.
@@ -47,15 +57,15 @@ Search:
 * Null move pruning
 * Futility pruning
 * Late move reductions
+* Pondering
 * Opening book
 
 Evaluation:
 
 * Material
 * Piece-square tables
-* Pawn structure 
-   * Doubled / trippled pawns
-   * Pawns defending each other
+* Pawns defending minor pieces
+* Pawn shield
 
 ## License
 Pawned is released under the MIT License. 
