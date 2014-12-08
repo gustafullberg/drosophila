@@ -96,7 +96,7 @@ static inline int BITBOARD_find_bit_reversed(const bitboard_t bitboard)
 #endif
 }
 
-static inline int BITBOARD_count_bits(const bitboard_t bitboard)
+static inline int BITBOARD_count_bits(bitboard_t bitboard)
 {
 #if __GNUC__
     return __builtin_popcountll(bitboard);

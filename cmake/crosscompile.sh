@@ -10,7 +10,7 @@ mkdir binaries
 
 mkdir -p win64
 cd win64
-cmake ../.. -DTARGET_SUFFIX="win64" -DCMAKE_TOOLCHAIN_FILE=../../cmake/win64.cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../${INSTALL_DIR}
+cmake ../.. -DTARGET_SUFFIX="win64" -DCMAKE_TOOLCHAIN_FILE=../../cmake/win64.cmake -DCMAKE_C_FLAGS="-march=core2 -mpopcnt" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../${INSTALL_DIR}
 make install
 cd ..
 
@@ -22,7 +22,7 @@ cd ..
 
 mkdir -p linux64
 cd linux64
-cmake ../.. -DTARGET_SUFFIX="linux64" -DCMAKE_C_FLAGS="-m64" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../${INSTALL_DIR}
+cmake ../.. -DTARGET_SUFFIX="linux64" -DCMAKE_C_FLAGS="-m64 -march=core2 -mpopcnt" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../${INSTALL_DIR}
 make install
 cd ..
 
