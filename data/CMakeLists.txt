@@ -1,1 +1,1 @@
-install(FILES openingbook.dat DESTINATION .)
+install(FILES book.bin DESTINATION .)

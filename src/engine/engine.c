@@ -35,7 +35,7 @@ void ENGINE_create(engine_state_t **state)
     (*state)->chess_state = (chess_state_t*)malloc(sizeof(chess_state_t));
     (*state)->hashtable = HASHTABLE_create(64);
     (*state)->history = HISTORY_create();
-    (*state)->obook = OPENINGBOOK_create("openingbook.dat");
+    (*state)->obook = OPENINGBOOK_create("book.bin");
     (*state)->think_cb = NULL;
     (*state)->search_state = NULL;
     ENGINE_reset(*state);
@@ -55,7 +55,6 @@ void ENGINE_reset(engine_state_t *state)
 {
     STATE_reset(state->chess_state);
     HISTORY_reset(state->history);
-    OPENINGBOOK_reset(state->obook);
     if(state->search_state) {
         free(state->search_state);
         state->search_state = NULL;
@@ -92,7 +91,6 @@ int ENGINE_apply_move(engine_state_t *state, const int pos_from, const int pos_t
         /* Legal */
         *state->chess_state = temporary_state;
         HISTORY_push(state->history, state->chess_state->hash);
-        OPENINGBOOK_apply_move(state->obook, move);
         return ENGINE_result(state);
     }
     
@@ -116,7 +114,6 @@ int ENGINE_apply_move_san(engine_state_t *state, const char *san)
             /* Legal */
             *state->chess_state = temporary_state;
             HISTORY_push(state->history, state->chess_state->hash);
-            OPENINGBOOK_apply_move(state->obook, move);
             return ENGINE_result(state);
         }
     }

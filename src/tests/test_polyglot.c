@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include "fen.h"
-#include "polyglot.h"
+#include "openingbook.h"
 
 void hash_test(const char *fen, uint64_t hash)
 {
@@ -14,7 +14,7 @@ void hash_test(const char *fen, uint64_t hash)
     uint64_t hash_test;
 
     FEN_read(&state, fen);
-    hash_test = POLYGLOT_get_hash(&state);
+    hash_test = OPENINGBOOK_get_hash(&state);
     assert(hash == hash_test);
 }
 
