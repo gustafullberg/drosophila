@@ -37,9 +37,9 @@ uint64_t POLYGLOT_get_hash(chess_state_t *state)
     if(state->flags[BLACK] & STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK) hash ^= RandomCastle[3];
 
     /* En passent */
-    if(state->flags[player^1] & STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK) {
-        int file = (state->flags[player^1] & STATE_FLAGS_EN_PASSANT_FILE_MASK) >> STATE_FLAGS_EN_PASSANT_FILE_SHIFT;
-        if(bitboard_ep_capturers[player][file] & state->bitboard[player+PAWN]) {
+    if(state->flags[player] & STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK) {
+        int file = (state->flags[player] & STATE_FLAGS_EN_PASSANT_FILE_MASK) >> STATE_FLAGS_EN_PASSANT_FILE_SHIFT;
+        if(bitboard_ep_capturers[player][file] & state->bitboard[player*NUM_TYPES+PAWN]) {
             hash ^= RandomEnPassant[file];
         }
     }
