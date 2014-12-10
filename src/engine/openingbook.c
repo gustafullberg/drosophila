@@ -20,6 +20,7 @@ static const uint64_t *RandomEnPassant = Random64+772;
 static const uint64_t *RandomTurn = Random64+780;
 
 static void OPENINGBOOK_read_node(FILE *f, openingbook_node_t *node);
+static int OPENINGBOOK_find_node(const openingbook_t *o, uint64_t hash, int *first_node_index);
 static move_t OPENINGBOOK_translate_move(const chess_state_t *s, uint16_t m);
 
 openingbook_t *OPENINGBOOK_create(const char *filename)
@@ -72,18 +73,21 @@ move_t OPENINGBOOK_get_move(const openingbook_t *o, const chess_state_t *s)
 {
     uint64_t hash = 0;
     move_t move = 0;
-    int i;
+    int first_node_index;
+    int num_nodes;
 
     /* Get hash of current state */
     hash = OPENINGBOOK_get_hash(s);
 
-    /* Simple linear search */
-    for(i = 0; i < o->num_nodes; i++) {
-        if(o->nodes[i].hash == hash) {
-            /* Node found */
-            printf("# Opening book entry found with move: 0x%x\n", o->nodes[i].move);
-            move = OPENINGBOOK_translate_move(s, o->nodes[i].move);
-        }
+    /* Find matching nodes */
+    num_nodes = OPENINGBOOK_find_node(o, hash, &first_node_index);
+
+    if(num_nodes) {
+        /* Select one random node */
+        int offset = rand() % num_nodes;
+
+        /* Translate it to engines move syntax */
+        move = OPENINGBOOK_translate_move(s, o->nodes[first_node_index+offset].move);
     }
 
     return move;
@@ -110,34 +114,102 @@ static void OPENINGBOOK_read_node(FILE *f, openingbook_node_t *node)
         node->move <<= 8;
         node->move |= buffer[i];
     }
+}
 
-    /* Skip "weight" and "learn" (bytes 10-15) */
+static int OPENINGBOOK_find_node(const openingbook_t *o, uint64_t hash, int *first_node_index)
+{
+    int index[2];
+    int guess;
+    int num_nodes = 0;
+
+    /* Binary search for ONE matching node */
+    index[0] = 0;
+    index[1] = o->num_nodes - 1;
+    *first_node_index = -1;
+
+    while(index[0] <= index[1]) {
+        guess = (index[0] + index[1]) >> 1;
+        if(o->nodes[guess].hash < hash)         index[0] = guess + 1;
+        else if(o->nodes[guess].hash > hash)    index[1] = guess - 1;
+        else if(o->nodes[guess].hash == hash)   break;
+    }
+
+    if(index[0] > index[1]) {
+        /* Hash not found */
+        return num_nodes;
+    }
+
+    /* Find FIRST matching node */
+    num_nodes = 1;
+    while(guess > 0 && o->nodes[guess-1].hash == hash) {
+        guess--;
+        num_nodes++;
+    }
+    *first_node_index = guess;
+
+    /* Find NUMBER of matching nodes */
+    guess += num_nodes;
+    while(guess < o->num_nodes && o->nodes[guess].hash == hash) {
+        guess++;
+        num_nodes++;
+    }
+
+    return num_nodes;
 }
 
 static move_t OPENINGBOOK_translate_move(const chess_state_t *s, uint16_t m)
 {
-    move_t move = 0;
+    int i;
+    int num_moves;
+    move_t moves[256];
     int pos_to = m & 0x3F;
     int pos_from = (m >> 6) & 0x3F;
     int promotion_type = (m >> 12) & 7;
 
-    printf("# FROM %d, TO %d, PROM %d\n", pos_from, pos_to, promotion_type);
+    /* Generate all possible moves */
+    num_moves = STATE_generate_moves(s, moves);
 
-    return move;
+    /* Loop through all generated moves to find the right one */
+    for(i = 0; i < num_moves; i++) {
+        int move = moves[i];
+
+        /* Position from has to match */
+        if(MOVE_GET_POS_FROM(move) != pos_from) continue;
+
+        /* Promotion type has to match */
+        if(MOVE_PROMOTION_TYPE(move) != promotion_type) continue;
+
+        /* Position to has to match... */
+        if(MOVE_GET_POS_TO(move) == pos_to) {
+            return move;
+        }
+
+        /* ...unless it is castling */
+        if(MOVE_GET_TYPE(move) == KING) {
+            if((MOVE_GET_POS_TO(move) == pos_from + 2 && pos_to == pos_from + 3) /* King side */
+                || (MOVE_GET_POS_TO(move) == pos_from - 2 && pos_to == pos_from - 4)) /* Queen side */
+            {
+                return move;
+            }
+        }
+    }
+
+    /* No valid move found */
+    return 0;
 }
 
-uint64_t OPENINGBOOK_get_hash(const chess_state_t *state)
+uint64_t OPENINGBOOK_get_hash(const chess_state_t *s)
 {
     int color;
     int type;
     uint64_t hash = 0;
-    int player = state->player;
+    int player = s->player;
 
     /* Pieces */
     for(color = WHITE; color <= BLACK; color++) {
         for(type = PAWN; type <= KING; type++) {
             int kind_of_piece = (color^1) + 2*type;
-            bitboard_t pieces = state->bitboard[color*NUM_TYPES + type];
+            bitboard_t pieces = s->bitboard[color*NUM_TYPES + type];
 
             while(pieces) {
                 int pos = BITBOARD_find_bit(pieces);
@@ -151,15 +223,15 @@ uint64_t OPENINGBOOK_get_hash(const chess_state_t *state)
     }
 
     /* Castling rights */
-    if(state->flags[WHITE] & STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK) hash ^= RandomCastle[0];
-    if(state->flags[WHITE] & STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK) hash ^= RandomCastle[1];
-    if(state->flags[BLACK] & STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK) hash ^= RandomCastle[2];
-    if(state->flags[BLACK] & STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK) hash ^= RandomCastle[3];
+    if(s->flags[WHITE] & STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK) hash ^= RandomCastle[0];
+    if(s->flags[WHITE] & STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK) hash ^= RandomCastle[1];
+    if(s->flags[BLACK] & STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK) hash ^= RandomCastle[2];
+    if(s->flags[BLACK] & STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK) hash ^= RandomCastle[3];
 
     /* En passent */
-    if(state->flags[player] & STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK) {
-        int file = (state->flags[player] & STATE_FLAGS_EN_PASSANT_FILE_MASK) >> STATE_FLAGS_EN_PASSANT_FILE_SHIFT;
-        if(bitboard_ep_capturers[player][file] & state->bitboard[player*NUM_TYPES+PAWN]) {
+    if(s->flags[player] & STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK) {
+        int file = (s->flags[player] & STATE_FLAGS_EN_PASSANT_FILE_MASK) >> STATE_FLAGS_EN_PASSANT_FILE_SHIFT;
+        if(bitboard_ep_capturers[player][file] & s->bitboard[player*NUM_TYPES+PAWN]) {
             hash ^= RandomEnPassant[file];
         }
     }
