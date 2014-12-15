@@ -30,7 +30,8 @@ bitboard_t bitboard_king_castle_empty[NUM_COLORS];
 bitboard_t bitboard_queen_castle_empty[NUM_COLORS];
 bitboard_t bitboard_start_position[NUM_COLORS][NUM_TYPES-1];
 bitboard_t bitboard_zobrist[NUM_COLORS][NUM_TYPES-1][NUM_POSITIONS];
-bitboard_t bitboard_zorbist_color;
+bitboard_t bitboard_zobrist_color;
+bitboard_t bitboard_zobrist_ep[NUM_FILES];
 uint32_t   bitboard_zobrist_pawn[NUM_COLORS][NUM_POSITIONS];
 
 static bitboard_t BITBOARD_random();
@@ -250,7 +251,11 @@ void BITBOARD_init()
             }
         }
     }
-    bitboard_zorbist_color = BITBOARD_random();
+    bitboard_zobrist_color = BITBOARD_random();
+
+    for(i = 0; i < NUM_FILES; i++) {
+        bitboard_zobrist_ep[i] = BITBOARD_random();
+    }
 
     /* ZORBIST KEYS FOR PAWN HASH TABLE */
     for(color = 0; color < NUM_COLORS; color++) {

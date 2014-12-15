@@ -273,6 +273,11 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
     int player = s->player;
     int opponent = player ^ 1;
 
+    if(s->flags[player] & STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK) {
+        int file = (s->flags[player] & STATE_FLAGS_EN_PASSANT_FILE_MASK) >> STATE_FLAGS_EN_PASSANT_FILE_SHIFT;
+        s->hash ^= bitboard_zobrist_ep[file];
+    }
+
     if(move) {
         int pos_from        = MOVE_GET_POS_FROM(move);
         int pos_to          = MOVE_GET_POS_TO(move);
@@ -414,9 +419,11 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
             
             /* Pushing pawn 2 squares opens for en passant */
             if(special == MOVE_DOUBLE_PAWN_PUSH) {
+                int file = BITBOARD_GET_FILE(pos_from);
                 s->flags[s->player^1] |= STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK;
                 s->flags[s->player^1] &= ~STATE_FLAGS_EN_PASSANT_FILE_MASK;
-                s->flags[s->player^1] |= BITBOARD_GET_FILE(pos_from) << STATE_FLAGS_EN_PASSANT_FILE_SHIFT;
+                s->flags[s->player^1] |= file << STATE_FLAGS_EN_PASSANT_FILE_SHIFT;
+                s->hash ^= bitboard_zobrist_ep[file];
             }
             
             /* Pawn promotion */
@@ -450,7 +457,7 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
     }    
     /* Switch side to play */
     s->player = (char)opponent;
-    s->hash ^= bitboard_zorbist_color;
+    s->hash ^= bitboard_zobrist_color;
     s->score_material = -(s->score_material);
     
     /* Store last move */
@@ -503,7 +510,7 @@ void STATE_compute_hash(chess_state_t *s)
 #endif
     
     if(s->player) {
-        s->hash ^= bitboard_zorbist_color;
+        s->hash ^= bitboard_zobrist_color;
         s->score_material = -(s->score_material);
     }
 }
