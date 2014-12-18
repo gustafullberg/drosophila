@@ -69,7 +69,7 @@ typedef struct chess_state_t {
     short       score_pawn;
 #endif
     short       score_material;
-    char        flags[2];
+    char        castling[2];
     char        ep_file;
     char        player;
     char        halfmove_clock;

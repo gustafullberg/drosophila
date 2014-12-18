@@ -223,10 +223,10 @@ uint64_t OPENINGBOOK_get_hash(const chess_state_t *s)
     }
 
     /* Castling rights */
-    if(s->flags[WHITE] & STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK) hash ^= RandomCastle[0];
-    if(s->flags[WHITE] & STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK) hash ^= RandomCastle[1];
-    if(s->flags[BLACK] & STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK) hash ^= RandomCastle[2];
-    if(s->flags[BLACK] & STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK) hash ^= RandomCastle[3];
+    if(s->castling[WHITE] & STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK) hash ^= RandomCastle[0];
+    if(s->castling[WHITE] & STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK) hash ^= RandomCastle[1];
+    if(s->castling[BLACK] & STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK) hash ^= RandomCastle[2];
+    if(s->castling[BLACK] & STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK) hash ^= RandomCastle[3];
 
     /* En passent */
     if(s->ep_file != STATE_EP_NONE) {

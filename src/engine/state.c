@@ -16,8 +16,8 @@ void STATE_reset(chess_state_t *s)
     }
     s->bitboard[OCCUPIED] = s->bitboard[WHITE_PIECES + ALL] | s->bitboard[BLACK_PIECES + ALL];
     
-    s->flags[WHITE] = STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK | STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
-    s->flags[BLACK] = STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK | STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
+    s->castling[WHITE] = STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK | STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
+    s->castling[BLACK] = STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK | STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
     s->ep_file = STATE_EP_NONE;
     
     s->player = WHITE;
@@ -147,7 +147,7 @@ int STATE_generate_moves(const chess_state_t *s, move_t *moves)
     }
 
     /* King-side Castling */
-    if(s->flags[player] & STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK) {
+    if(s->castling[player] & STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK) {
         if((bitboard_king_castle_empty[player] & s->bitboard[OCCUPIED]) == 0) {
             int king_pos = BITBOARD_find_bit(s->bitboard[player_index + KING]);
             if(EVAL_position_is_attacked(s, player, king_pos+0) == 0 && 
@@ -160,7 +160,7 @@ int STATE_generate_moves(const chess_state_t *s, move_t *moves)
     }
     
     /* Queen-side Castling */
-    if(s->flags[player] & STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK) {
+    if(s->castling[player] & STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK) {
         if((bitboard_queen_castle_empty[player] & s->bitboard[OCCUPIED]) == 0) {
             int king_pos = BITBOARD_find_bit(s->bitboard[player_index + KING]);
             if(EVAL_position_is_attacked(s, player, king_pos-0) == 0 && 
@@ -335,9 +335,9 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
                 /* Rook capture disables castling */
                 if((opponent_type == ROOK) && (BITBOARD_POSITION(pos_to) & bitboard_start_position[opponent][ROOK])) {
                     if(bitboard_file[pos_to] == bitboard_file[0]) {
-                        s->flags[opponent] &= ~STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK;
+                        s->castling[opponent] &= ~STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK;
                     } else {
-                        s->flags[opponent] &= ~STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
+                        s->castling[opponent] &= ~STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
                     }
                 }
                 
@@ -361,7 +361,7 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
         
         if(type == KING) {
             /* Disable castling */
-            s->flags[player] &= ~(STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK | STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK);
+            s->castling[player] &= ~(STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK | STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK);
             
             /* Castling */
             if(special == MOVE_KING_CASTLE) {
@@ -400,9 +400,9 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
             /* Disable castling for a moved rook */
             if(BITBOARD_POSITION(pos_from) & bitboard_start_position[player][ROOK]) {
                 if(bitboard_file[pos_from] == bitboard_file[0]) {
-                    s->flags[player] &= ~STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK;
+                    s->castling[player] &= ~STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK;
                 } else {
-                    s->flags[player] &= ~STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
+                    s->castling[player] &= ~STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
                 }
             }
         }
@@ -451,7 +451,7 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
         s->bitboard[OCCUPIED] = s->bitboard[WHITE_PIECES+ALL] | s->bitboard[BLACK_PIECES+ALL];
 
         /* This side can't play en passant next move (unless enabled by opponent's next move) */
-        s->flags[player] &= ~STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK;
+        s->castling[player] &= ~STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK;
     }    
     /* Switch side to play */
     s->player = (char)opponent;

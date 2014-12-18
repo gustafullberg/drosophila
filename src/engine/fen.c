@@ -69,10 +69,10 @@ int FEN_read(chess_state_t *state, const char *fen)
     
     /* Castling rights */
     while((c = fen[i++]) != ' ') {
-        if(c == 'K') state->flags[WHITE] |= STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
-        else if(c == 'Q') state->flags[WHITE] |= STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK;
-        else if(c == 'k') state->flags[BLACK] |= STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
-        else if(c == 'q') state->flags[BLACK] |= STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK;
+        if(c == 'K') state->castling[WHITE] |= STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
+        else if(c == 'Q') state->castling[WHITE] |= STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK;
+        else if(c == 'k') state->castling[BLACK] |= STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
+        else if(c == 'q') state->castling[BLACK] |= STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK;
         else if(c != '-') { return 0; }
     }
 
