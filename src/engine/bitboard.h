@@ -53,7 +53,7 @@ extern bitboard_t bitboard_queen_castle_empty[NUM_COLORS];
 extern bitboard_t bitboard_start_position[NUM_COLORS][NUM_TYPES-1];
 extern bitboard_t bitboard_zobrist[NUM_COLORS][NUM_TYPES-1][NUM_POSITIONS];
 extern bitboard_t bitboard_zobrist_color;
-extern bitboard_t bitboard_zobrist_ep[NUM_FILES];
+extern bitboard_t bitboard_zobrist_ep[NUM_FILES+1];
 extern uint32_t   bitboard_zobrist_pawn[NUM_COLORS][NUM_POSITIONS];
 
 void BITBOARD_init();

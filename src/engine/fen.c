@@ -81,9 +81,9 @@ int FEN_read(chess_state_t *state, const char *fen)
     if(c != '-') {
         int ep_file = c - 'a';
         i++;
-        
-        state->flags[(int)state->player] |= STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK;
-        state->flags[(int)state->player] |= ep_file << STATE_FLAGS_EN_PASSANT_FILE_SHIFT;
+        state->ep_file = ep_file;
+    } else {
+        state->ep_file = STATE_EP_NONE;
     }
 
     /* Compute the hash of the state */

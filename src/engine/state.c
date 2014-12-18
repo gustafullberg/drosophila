@@ -18,6 +18,7 @@ void STATE_reset(chess_state_t *s)
     
     s->flags[WHITE] = STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK | STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
     s->flags[BLACK] = STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK | STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
+    s->ep_file = STATE_EP_NONE;
     
     s->player = WHITE;
     
@@ -120,12 +121,12 @@ int STATE_generate_moves(const chess_state_t *s, move_t *moves)
     }
     
     /* En passant */
-    if(s->flags[player] & STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK) {
+    if(s->ep_file != STATE_EP_NONE) {
         int file;
         bitboard_t attack_file;
         
         /* The file of the possible en passant capture */
-        file = (s->flags[player] & STATE_FLAGS_EN_PASSANT_FILE_MASK) >> STATE_FLAGS_EN_PASSANT_FILE_SHIFT;
+        file = s->ep_file;
         attack_file = BITBOARD_FILE << file;
         
         /* Find pawns that can make the capture */
@@ -240,12 +241,12 @@ int STATE_generate_moves_quiescence(const chess_state_t *s, move_t *moves)
     }
     
     /* En passant */
-    if(s->flags[player] & STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK) {
+    if(s->ep_file != STATE_EP_NONE) {
         int file;
         bitboard_t attack_file;
         
         /* The file of the possible en passant capture */
-        file = (s->flags[player] & STATE_FLAGS_EN_PASSANT_FILE_MASK) >> STATE_FLAGS_EN_PASSANT_FILE_SHIFT;
+        file = s->ep_file;
         attack_file = BITBOARD_FILE << file;
         
         /* Find pawns that can make the capture */
@@ -273,10 +274,9 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
     int player = s->player;
     int opponent = player ^ 1;
 
-    if(s->flags[player] & STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK) {
-        int file = (s->flags[player] & STATE_FLAGS_EN_PASSANT_FILE_MASK) >> STATE_FLAGS_EN_PASSANT_FILE_SHIFT;
-        s->hash ^= bitboard_zobrist_ep[file];
-    }
+    /* Reset en passant state */
+    s->hash ^= bitboard_zobrist_ep[(int)s->ep_file];
+    s->ep_file = STATE_EP_NONE;
 
     if(move) {
         int pos_from        = MOVE_GET_POS_FROM(move);
@@ -420,9 +420,7 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
             /* Pushing pawn 2 squares opens for en passant */
             if(special == MOVE_DOUBLE_PAWN_PUSH) {
                 int file = BITBOARD_GET_FILE(pos_from);
-                s->flags[s->player^1] |= STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK;
-                s->flags[s->player^1] &= ~STATE_FLAGS_EN_PASSANT_FILE_MASK;
-                s->flags[s->player^1] |= file << STATE_FLAGS_EN_PASSANT_FILE_SHIFT;
+                s->ep_file = file;
                 s->hash ^= bitboard_zobrist_ep[file];
             }
             

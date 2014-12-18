@@ -70,6 +70,7 @@ typedef struct chess_state_t {
 #endif
     short       score_material;
     char        flags[2];
+    char        ep_file;
     char        player;
     char        halfmove_clock;
 } chess_state_t;
@@ -87,8 +88,7 @@ typedef struct chess_state_t {
 #define STATE_FLAGS_EN_PASSANT_POSSIBLE_SHIFT       2
 #define STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK        (1<<(STATE_FLAGS_EN_PASSANT_POSSIBLE_SHIFT))
 
-#define STATE_FLAGS_EN_PASSANT_FILE_SHIFT           3
-#define STATE_FLAGS_EN_PASSANT_FILE_MASK            (0x7<<(STATE_FLAGS_EN_PASSANT_FILE_SHIFT))
+#define STATE_EP_NONE                               8
 
 
 void STATE_reset(chess_state_t *s);
