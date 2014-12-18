@@ -31,7 +31,6 @@ bitboard_t bitboard_queen_castle_empty[NUM_COLORS];
 bitboard_t bitboard_start_position[NUM_COLORS][NUM_TYPES-1];
 uint32_t   bitboard_zobrist_pawn[NUM_COLORS][NUM_POSITIONS];
 
-static bitboard_t BITBOARD_random();
 static uint32_t BITBOARD_random_uint32();
 
 void BITBOARD_init()
@@ -245,17 +244,6 @@ void BITBOARD_init()
             bitboard_zobrist_pawn[color][i] = BITBOARD_random_uint32();
         }
     }
-}
-
-static bitboard_t BITBOARD_random()
-{
-    bitboard_t b = 0;
-    int i;
-    for(i = 0; i < 4; i++) {
-        b <<= 16;
-        b |= (bitboard_t)(rand() & 0xFFFF);
-    }
-    return b;
 }
 
 static uint32_t BITBOARD_random_uint32()

@@ -81,7 +81,7 @@ int FEN_read(chess_state_t *state, const char *fen)
     if(c != '-') {
         int ep_file = c - 'a';
         i++;
-        if(bitboard_ep_capturers[state->player][ep_file] & state->bitboard[state->player*NUM_TYPES+PAWN]) {
+        if(bitboard_ep_capturers[(int)state->player][ep_file] & state->bitboard[state->player*NUM_TYPES+PAWN]) {
             state->ep_file = ep_file;
         } else {
             state->ep_file = STATE_EN_PASSANT_NONE;
