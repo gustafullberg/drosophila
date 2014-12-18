@@ -85,10 +85,7 @@ typedef struct chess_state_t {
 #define STATE_FLAGS_KING_CASTLE_POSSIBLE_SHIFT      1
 #define STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK       (1<<(STATE_FLAGS_KING_CASTLE_POSSIBLE_SHIFT))
 
-#define STATE_FLAGS_EN_PASSANT_POSSIBLE_SHIFT       2
-#define STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK        (1<<(STATE_FLAGS_EN_PASSANT_POSSIBLE_SHIFT))
-
-#define STATE_EP_NONE                               8
+#define STATE_EN_PASSANT_NONE                       8
 
 
 void STATE_reset(chess_state_t *s);

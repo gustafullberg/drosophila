@@ -229,7 +229,7 @@ uint64_t OPENINGBOOK_get_hash(const chess_state_t *s)
     if(s->castling[BLACK] & STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK) hash ^= RandomCastle[3];
 
     /* En passent */
-    if(s->ep_file != STATE_EP_NONE) {
+    if(s->ep_file != STATE_EN_PASSANT_NONE) {
         int file = s->ep_file;
         if(bitboard_ep_capturers[player][file] & s->bitboard[player*NUM_TYPES+PAWN]) {
             hash ^= RandomEnPassant[file];

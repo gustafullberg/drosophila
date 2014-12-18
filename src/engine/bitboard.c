@@ -32,6 +32,7 @@ bitboard_t bitboard_start_position[NUM_COLORS][NUM_TYPES-1];
 bitboard_t bitboard_zobrist[NUM_COLORS][NUM_TYPES-1][NUM_POSITIONS];
 bitboard_t bitboard_zobrist_color;
 bitboard_t bitboard_zobrist_ep[NUM_FILES+1];
+bitboard_t bitboard_zorbist_castling[NUM_COLORS][4];
 uint32_t   bitboard_zobrist_pawn[NUM_COLORS][NUM_POSITIONS];
 
 static bitboard_t BITBOARD_random();
@@ -253,10 +254,19 @@ void BITBOARD_init()
     }
     bitboard_zobrist_color = BITBOARD_random();
 
+    /* ZOBRIST KEYS FOR EP */
     for(i = 0; i < NUM_FILES; i++) {
         bitboard_zobrist_ep[i] = BITBOARD_random();
     }
     bitboard_zobrist_ep[NUM_FILES] = 0;
+
+    /* ZOBRIST KEYS FOR CASTLING */
+    for(color = 0; color < NUM_COLORS; color++) {
+        bitboard_zorbist_castling[color][0] = BITBOARD_random_uint32();
+        bitboard_zorbist_castling[color][1] = BITBOARD_random_uint32();
+        bitboard_zorbist_castling[color][2] = BITBOARD_random_uint32();
+        bitboard_zorbist_castling[color][3] = bitboard_zorbist_castling[color][1] ^ bitboard_zorbist_castling[color][2];
+    }
 
     /* ZORBIST KEYS FOR PAWN HASH TABLE */
     for(color = 0; color < NUM_COLORS; color++) {

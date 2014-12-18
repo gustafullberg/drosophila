@@ -83,7 +83,7 @@ int FEN_read(chess_state_t *state, const char *fen)
         i++;
         state->ep_file = ep_file;
     } else {
-        state->ep_file = STATE_EP_NONE;
+        state->ep_file = STATE_EN_PASSANT_NONE;
     }
 
     /* Compute the hash of the state */

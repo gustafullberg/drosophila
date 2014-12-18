@@ -18,7 +18,7 @@ void STATE_reset(chess_state_t *s)
     
     s->castling[WHITE] = STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK | STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
     s->castling[BLACK] = STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK | STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
-    s->ep_file = STATE_EP_NONE;
+    s->ep_file = STATE_EN_PASSANT_NONE;
     
     s->player = WHITE;
     
@@ -121,7 +121,7 @@ int STATE_generate_moves(const chess_state_t *s, move_t *moves)
     }
     
     /* En passant */
-    if(s->ep_file != STATE_EP_NONE) {
+    if(s->ep_file != STATE_EN_PASSANT_NONE) {
         int file;
         bitboard_t attack_file;
         
@@ -241,7 +241,7 @@ int STATE_generate_moves_quiescence(const chess_state_t *s, move_t *moves)
     }
     
     /* En passant */
-    if(s->ep_file != STATE_EP_NONE) {
+    if(s->ep_file != STATE_EN_PASSANT_NONE) {
         int file;
         bitboard_t attack_file;
         
@@ -276,7 +276,7 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
 
     /* Reset en passant state */
     s->hash ^= bitboard_zobrist_ep[(int)s->ep_file];
-    s->ep_file = STATE_EP_NONE;
+    s->ep_file = STATE_EN_PASSANT_NONE;
 
     if(move) {
         int pos_from        = MOVE_GET_POS_FROM(move);
@@ -286,6 +286,9 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
 
         int player_index = player * NUM_TYPES;
         int opponent_index = NUM_TYPES - player_index;
+
+        /* Reset castling hash */
+        s->hash ^= bitboard_zorbist_castling[player][(int)s->castling[player]];
         
         /* Increment half-move clock */
         s->halfmove_clock++;
@@ -452,8 +455,8 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
         /* Occupied by piece of any color */
         s->bitboard[OCCUPIED] = s->bitboard[WHITE_PIECES+ALL] | s->bitboard[BLACK_PIECES+ALL];
 
-        /* This side can't play en passant next move (unless enabled by opponent's next move) */
-        s->castling[player] &= ~STATE_FLAGS_EN_PASSANT_POSSIBLE_MASK;
+        /* Apply castling rights to hash */
+        s->hash ^= bitboard_zorbist_castling[player][(int)s->castling[player]];
     }    
     /* Switch side to play */
     s->player = (char)opponent;
@@ -502,6 +505,13 @@ void STATE_compute_hash(chess_state_t *s)
         }
 #endif
     }
+
+    /* En passant */
+    s->hash ^= bitboard_zobrist_ep[(int)s->ep_file];
+
+    /* Castling rights */
+    s->hash ^= bitboard_zorbist_castling[WHITE][(int)s->castling[WHITE]];
+    s->hash ^= bitboard_zorbist_castling[BLACK][(int)s->castling[BLACK]];
     
     /* Compute material and pawn scores */
     s->score_material = EVAL_material_midgame(s);
