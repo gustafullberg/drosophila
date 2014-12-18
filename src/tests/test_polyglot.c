@@ -14,7 +14,7 @@ void hash_test(const char *fen, uint64_t hash)
     uint64_t hash_test;
 
     FEN_read(&state, fen);
-    hash_test = OPENINGBOOK_get_hash(&state);
+    hash_test = state.hash;
     assert(hash == hash_test);
 }
 
@@ -31,6 +31,7 @@ int main()
     hash_test("rnbq1bnr/ppp1pkpp/8/3pPp2/8/8/PPPPKPPP/RNBQ1BNR w - - 0 4", 0x00fdd303c946bdd9);
     hash_test("rnbqkbnr/p1pppppp/8/8/PpP4P/8/1P1PPPP1/RNBQKBNR b KQkq c3 0 3", 0x3c8123ea7b067637);
     hash_test("rnbqkbnr/p1pppppp/8/8/P6P/R1p5/1P1PPPP1/1NBQKBNR b Kkq - 0 4", 0x5c3f9b829b279560);
+
     return 0;
 }
 

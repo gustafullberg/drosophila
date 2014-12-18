@@ -288,7 +288,7 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
         int opponent_index = NUM_TYPES - player_index;
 
         /* Reset castling hash */
-        s->hash ^= bitboard_zorbist_castling[player][(int)s->castling[player]];
+        s->hash ^= bitboard_zobrist_castling[player][(int)s->castling[player]];
         
         /* Increment half-move clock */
         s->halfmove_clock++;
@@ -456,7 +456,7 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
         s->bitboard[OCCUPIED] = s->bitboard[WHITE_PIECES+ALL] | s->bitboard[BLACK_PIECES+ALL];
 
         /* Apply castling rights to hash */
-        s->hash ^= bitboard_zorbist_castling[player][(int)s->castling[player]];
+        s->hash ^= bitboard_zobrist_castling[player][(int)s->castling[player]];
     }    
     /* Switch side to play */
     s->player = (char)opponent;
@@ -510,8 +510,8 @@ void STATE_compute_hash(chess_state_t *s)
     s->hash ^= bitboard_zobrist_ep[(int)s->ep_file];
 
     /* Castling rights */
-    s->hash ^= bitboard_zorbist_castling[WHITE][(int)s->castling[WHITE]];
-    s->hash ^= bitboard_zorbist_castling[BLACK][(int)s->castling[BLACK]];
+    s->hash ^= bitboard_zobrist_castling[WHITE][(int)s->castling[WHITE]];
+    s->hash ^= bitboard_zobrist_castling[BLACK][(int)s->castling[BLACK]];
     
     /* Compute material and pawn scores */
     s->score_material = EVAL_material_midgame(s);
@@ -519,8 +519,11 @@ void STATE_compute_hash(chess_state_t *s)
     s->score_pawn = EVAL_pawn_structure(s);
 #endif
     
-    if(s->player) {
+    if(s->player == WHITE) {
         s->hash ^= bitboard_zobrist_color;
+    }
+
+    if(s->player == BLACK) {
         s->score_material = -(s->score_material);
     }
 }

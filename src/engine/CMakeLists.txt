@@ -1,6 +1,7 @@
 set(files
     bitboard.c
     bitboard.h
+    bitboard_zobrist.c
     defines.h
     engine.c
     engine.h
