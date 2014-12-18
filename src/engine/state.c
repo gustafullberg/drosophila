@@ -420,8 +420,10 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
             /* Pushing pawn 2 squares opens for en passant */
             if(special == MOVE_DOUBLE_PAWN_PUSH) {
                 int file = BITBOARD_GET_FILE(pos_from);
-                s->ep_file = file;
-                s->hash ^= bitboard_zobrist_ep[file];
+                if(bitboard_ep_capturers[opponent][file] & s->bitboard[opponent_index+PAWN]) {
+                    s->ep_file = file;
+                    s->hash ^= bitboard_zobrist_ep[file];
+                }
             }
             
             /* Pawn promotion */
