@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include "history.h"
-#include "state.h"
 
 struct _history_t
 {
@@ -26,6 +25,16 @@ void HISTORY_reset(history_t *h)
     STATE_reset(&s);
     h->idx = -1;
     HISTORY_push(h, s.hash);
+}
+
+void HISTORY_reset_after_load(history_t *h, const chess_state_t *s)
+{
+    int i;
+    h->idx = -1;
+    for(i = 0; i < s->halfmove_clock - 1; i++) {
+        HISTORY_push(h, 0);
+    }
+    HISTORY_push(h, s->hash);
 }
 
 void HISTORY_push(history_t *h, const bitboard_t hash)

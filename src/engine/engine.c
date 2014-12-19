@@ -281,5 +281,11 @@ void ENGINE_resize_hashtable(engine_state_t *state, const int size_mb)
 
 int ENGINE_set_board(engine_state_t *state, const char *fen)
 {
-    return FEN_read(state->chess_state, fen) != 1;
+    chess_state_t s;
+    if(FEN_read(&s, fen)) {
+        *state->chess_state = s;
+        HISTORY_reset_after_load(state->history, state->chess_state);
+        return 0;
+    }
+    return 1;
 }
