@@ -25,6 +25,8 @@ void test_position_is_attacked()
     s.bitboard[BLACK_PIECES+PAWN] ^= BITBOARD_POSITION(E7);
     s.bitboard[BLACK_PIECES+PAWN] ^= BITBOARD_POSITION(E5);
     s.bitboard[BLACK_PIECES+ALL] ^= s.bitboard[BLACK_PIECES+PAWN];
+
+    s.bitboard[OCCUPIED] = s.bitboard[WHITE_PIECES+ALL] | s.bitboard[BLACK_PIECES+ALL];
     
     assert(EVAL_position_is_attacked(&s, WHITE, A3) ==  0);
     assert(EVAL_position_is_attacked(&s, WHITE, E4) ==  0);
@@ -40,6 +42,7 @@ void test_position_is_attacked()
     s.bitboard[WHITE_PIECES+ALL] ^= s.bitboard[WHITE_PIECES+PAWN];
     s.bitboard[WHITE_PIECES+PAWN] ^= BITBOARD_POSITION(H2);
     s.bitboard[WHITE_PIECES+ALL] ^= s.bitboard[WHITE_PIECES+PAWN];
+    s.bitboard[OCCUPIED] = s.bitboard[WHITE_PIECES+ALL] | s.bitboard[BLACK_PIECES+ALL];
     
     assert(EVAL_position_is_attacked(&s, BLACK, H6) ==  1);
 }
