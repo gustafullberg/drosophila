@@ -98,5 +98,8 @@ short SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state
         }
     }
     
+    /* If maximum search depth is reached */
+    if(depth > search_state->max_depth) depth = search_state->max_depth;
+    
     return results[depth];
 }
