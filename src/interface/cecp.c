@@ -192,8 +192,15 @@ void parse_time_control(state_t *state, const char *level)
         seconds = 0;
         ret = sscanf(level, "%d %d %d\n", &period, &minutes, &inc_seconds);
         if(ret != 3) {
-        /* Failed to parse */
-            return;
+            /* Try fixed number of seconds per move */
+            period = 0;
+            minutes = 0;
+            seconds = 0;
+            ret = sscanf(level, "%d\n", &inc_seconds);
+            if(ret != 1) {
+                /* Failed to parse */
+                return;
+            }
         }
     }
     
@@ -265,10 +272,15 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
         state->flag_forced = 1;
         pondering_stop(state, engine);
     }
-    
+
     /* level */
     else if(strncmp(command, "level ", 6) == 0) {
         parse_time_control(state, command + 6);
+    }
+
+    /* st */
+    else if(strncmp(command, "st ", 3) == 0) {
+        parse_time_control(state, command + 3);
     }
 
     /* time */

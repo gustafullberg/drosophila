@@ -157,11 +157,16 @@ void ENGINE_think_start(engine_state_t *state, const int moves_left_in_period, c
     /* Calculate time for this move */
     if(moves_left_in_period) {
         time_for_move_ms = time_left_ms / moves_left_in_period;
-        if(time_for_move_ms > time_left_ms - 100) {
-            time_for_move_ms = time_left_ms - 100;
-        }
     } else {
         time_for_move_ms = time_left_ms * 2 / 100;
+    }
+
+    /* Add incremental time */
+    time_for_move_ms += time_incremental_ms;
+
+    /* Make sure we have 100 ms margin */
+    if(time_for_move_ms > time_left_ms - 100) {
+        time_for_move_ms = time_left_ms - 100;
     }
 
     /* Set members of search_state */
