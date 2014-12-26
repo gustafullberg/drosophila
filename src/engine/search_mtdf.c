@@ -45,13 +45,15 @@ short SEARCH_mtdf(const chess_state_t *s, search_state_t *search_state, const un
 
 short SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state, move_t *move)
 {
-#define MAX_DEPTH 100
     unsigned char depth;
-    short results[MAX_DEPTH+1];
+    short results[MAX_SEARCH_DEPTH+1];
     short guess;
     move_t m;
     int64_t time_passed_ms = 0;
     m = 0;
+    
+    /* Limit maximum search depth */
+    if(search_state->max_depth > MAX_SEARCH_DEPTH) search_state->max_depth = MAX_SEARCH_DEPTH;
     
     results[0] = SEARCH_mtdf(s, search_state, 0, &m, 0);
     *move = m;

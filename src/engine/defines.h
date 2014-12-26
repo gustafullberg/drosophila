@@ -19,6 +19,8 @@
 #define NUM_RANKS       8
 #define NUM_FILES       8
 
+#define MAX_SEARCH_DEPTH 100
+
 #define A1   0
 #define B1   1
 #define C1   2
