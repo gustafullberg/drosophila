@@ -7,6 +7,13 @@ Pawned is an open source chess engine. You can use it with any chess GUI support
 If you are developing a chess GUI, you also can compile the engine as a library and use it within your application.
 
 ## Releases
+**1.2** - 2014-12-27
+
+* Stability improvements (resolving illegal moves)
+* New openging book
+* Support for Polyglot books
+* Support for incremental time controls
+
 **1.1** - 2014-12-08
 
 * Pondering (thinking during the opponent's turn)
