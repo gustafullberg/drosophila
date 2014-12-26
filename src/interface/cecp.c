@@ -248,6 +248,9 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
         
         /* Reset time control */
         state_clear_time(state);
+
+        /* Leave force mode */
+        state->flag_forced = 0;
     }
     
     /* usermove */
@@ -257,7 +260,10 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
     
     /* go */
     else if(strcmp(command, "go\n") == 0) {
+        /* Leave force mode */
         state->flag_forced = 0;
+
+        /* Move */
         make_move(state, engine);
     }
     
@@ -269,6 +275,7 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
     
     /* force */
     else if(strcmp(command, "force\n") == 0) {
+        /* Enter force mode */
         state->flag_forced = 1;
         pondering_stop(state, engine);
     }
