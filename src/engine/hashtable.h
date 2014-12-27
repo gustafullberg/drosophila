@@ -13,11 +13,6 @@ typedef struct {
 } transposition_entry_t;
 
 typedef struct {
-    uint32_t        hash;
-    short           score;
-} pawn_entry_t;
-
-typedef struct {
     transposition_entry_t   *entries;
     bitboard_t              key_mask;
 } hashtable_t;
