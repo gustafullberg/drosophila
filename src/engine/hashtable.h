@@ -20,10 +20,6 @@ typedef struct {
 typedef struct {
     transposition_entry_t   *entries;
     bitboard_t              key_mask;
-#ifdef PAWN_STRUCTURE
-    pawn_entry_t            *pawn_entries;
-    uint32_t                pawn_key_mask;
-#endif
 } hashtable_t;
 
 #define TTABLE_TYPE_LOWER_BOUND     0
@@ -33,11 +29,6 @@ hashtable_t *HASHTABLE_create(const int size_mb);
 void HASHTABLE_destroy(hashtable_t *h);
 void HASHTABLE_transition_store(hashtable_t *h, const bitboard_t hash, const unsigned char depth, const unsigned char type, const short score, const move_t best_move);
 transposition_entry_t *HASHTABLE_transition_retrieve(const hashtable_t *h, const bitboard_t hash);
-
-#ifdef PAWN_STRUCTURE
-void HASHTABLE_pawn_store(hashtable_t *h, const uint32_t hash, const short score);
-int HASHTABLE_pawn_retrieve(const hashtable_t *h, const uint32_t hash, short *score);
-#endif
 
 static inline void HASHTABLE_transition_prefetch(const hashtable_t *h, const bitboard_t hash)
 {

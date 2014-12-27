@@ -26,10 +26,6 @@ void STATE_reset(chess_state_t *s)
     
     s->last_move = 0;
     s->halfmove_clock = 0;
-    s->score_material = 0;
-#ifdef PAWN_STRUCTURE
-    s->score_pawn = 0;
-#endif
 }
 
 static int STATE_add_moves_to_list(bitboard_t bitboard_to, int pos_from, int type, int captured_type, int special, move_t *moves)
@@ -307,10 +303,6 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
         s->hash ^= bitboard_zobrist[player][type][pos_from];
         s->hash ^= bitboard_zobrist[player][type][pos_to];
         
-        /* Update piece-square score */
-        s->score_material -= EVAL_get_piecesquare(player, type, pos_from);
-        s->score_material += EVAL_get_piecesquare(player, type, pos_to);
-        
         /* Remove captured piece from the other side */
         if(special & MOVE_CAPTURE) {
             int opponent_type = MOVE_GET_CAPTURE_TYPE(move);
@@ -323,13 +315,7 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
                 
                 /* Update hashes with EP capture */
                 s->hash ^= bitboard_zobrist[opponent][opponent_type][pos_capture];
-#ifdef PAWN_STRUCTURE
-                s->pawn_hash ^= bitboard_zobrist_pawn[opponent][pos_capture];
-#endif
-                
-                /* Update piece-square score with EP capture */
-                s->score_material += EVAL_get_piecesquare(opponent, opponent_type, pos_capture);
-                s->score_material += piece_value[PAWN];
+
             } else {
                 /* Normal capture */
                 BITBOARD_CLEAR(s->bitboard[opponent_index + opponent_type], pos_to);
@@ -346,16 +332,6 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
                 
                 /* Update hash with normal capture */
                 s->hash ^= bitboard_zobrist[opponent][opponent_type][pos_to];
-
-#ifdef PAWN_STRUCTURE
-                if(opponent_type == PAWN) {
-                    s->pawn_hash ^= bitboard_zobrist_pawn[opponent][pos_to];
-                }
-#endif
-                
-                /* Update piece-square score with capture */
-                s->score_material += EVAL_get_piecesquare(opponent, opponent_type, pos_to);
-                s->score_material += piece_value[opponent_type];
             }
             
             /* Reset half-move clock when a piece is captured */
@@ -377,10 +353,6 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
                 /* Update hash with king-side castling */
                 s->hash ^= bitboard_zobrist[player][ROOK][pos_to+1];
                 s->hash ^= bitboard_zobrist[player][ROOK][pos_to-1];
-                
-                /* Update piece-square score with king-side castling */
-                s->score_material -= EVAL_get_piecesquare(player, ROOK, pos_to + 1);
-                s->score_material += EVAL_get_piecesquare(player, ROOK, pos_to - 1);
             }
             if(special == MOVE_QUEEN_CASTLE) {
                 /* Move rook */
@@ -392,10 +364,6 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
                 /* Update hash with king-side castling */
                 s->hash ^= bitboard_zobrist[player][ROOK][pos_to-2];
                 s->hash ^= bitboard_zobrist[player][ROOK][pos_to+1];
-
-                /* Update piece-square score with king-side castling */
-                s->score_material -= EVAL_get_piecesquare(player, ROOK, pos_to - 2);
-                s->score_material += EVAL_get_piecesquare(player, ROOK, pos_to + 1);
             }
         }
         
@@ -413,13 +381,7 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
         if(type == PAWN) {
             /* Reset half-move clock when a pawn is moved */
             s->halfmove_clock = 0;
-      
-#ifdef PAWN_STRUCTURE
-            /* Update pawn hash */
-            s->pawn_hash ^= bitboard_zobrist_pawn[player][pos_from];
-            s->pawn_hash ^= bitboard_zobrist_pawn[player][pos_to];
-#endif
-            
+                  
             /* Pushing pawn 2 squares opens for en passant */
             if(special == MOVE_DOUBLE_PAWN_PUSH) {
                 int file = BITBOARD_GET_FILE(pos_from);
@@ -438,17 +400,6 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
                 /* Update hash with promotion */
                 s->hash ^= bitboard_zobrist[player][PAWN][pos_to];
                 s->hash ^= bitboard_zobrist[player][promotion_type][pos_to];
-                
-#ifdef PAWN_STRUCTURE
-                /* Remove pawn from hash */
-                s->pawn_hash ^= bitboard_zobrist_pawn[player][pos_to];
-#endif
-                
-                /* Update piece-square table with promotion */
-                s->score_material -= EVAL_get_piecesquare(player, PAWN, pos_from);
-                s->score_material += EVAL_get_piecesquare(player, promotion_type, pos_to);
-                s->score_material -= piece_value[PAWN];
-                s->score_material += piece_value[promotion_type];
             }
         }
 
@@ -461,7 +412,6 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
     /* Switch side to play */
     s->player = (char)opponent;
     s->hash ^= bitboard_zobrist_color;
-    s->score_material = -(s->score_material);
     
     /* Store last move */
     s->last_move = move;
@@ -477,9 +427,6 @@ void STATE_compute_hash(chess_state_t *s)
     bitboard_t pieces;
     
     s->hash = 0;
-#ifdef PAWN_STRUCTURE
-    s->pawn_hash = 0;
-#endif
     
     for(color = 0; color < NUM_COLORS; color++) {
         for(type = 0; type < NUM_TYPES - 1; type++) {
@@ -494,16 +441,6 @@ void STATE_compute_hash(chess_state_t *s)
                 pieces ^= BITBOARD_POSITION(pos);
             }
         }
-        
-#ifdef PAWN_STRUCTURE        
-        /* Update the pawn hash */
-        pieces = s->bitboard[color*NUM_TYPES + PAWN];
-        while(pieces) {
-            pos = BITBOARD_find_bit(pieces);
-            s->pawn_hash ^= bitboard_zobrist_pawn[color][pos];
-            pieces ^= BITBOARD_POSITION(pos);
-        }
-#endif
     }
 
     /* En passant */
@@ -512,19 +449,9 @@ void STATE_compute_hash(chess_state_t *s)
     /* Castling rights */
     s->hash ^= bitboard_zobrist_castling[WHITE][(int)s->castling[WHITE]];
     s->hash ^= bitboard_zobrist_castling[BLACK][(int)s->castling[BLACK]];
-    
-    /* Compute material and pawn scores */
-    s->score_material = EVAL_material_midgame(s);
-#ifdef PAWN_STRUCTURE
-    s->score_pawn = EVAL_pawn_structure(s);
-#endif
-    
+
     if(s->player == WHITE) {
         s->hash ^= bitboard_zobrist_color;
-    }
-
-    if(s->player == BLACK) {
-        s->score_material = -(s->score_material);
     }
 }
 

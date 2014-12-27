@@ -12,27 +12,17 @@ static int log2i(int n)
 hashtable_t *HASHTABLE_create(const int size_mb)
 {
     int num_entries = 1 << log2i(size_mb * 1024 * 1024 / sizeof(transposition_entry_t));
-#ifdef PAWN_STRUCTURE    
-    int num_pawn_entries = 1 << 17;
-#endif
+
     hashtable_t *h = (hashtable_t*)malloc(sizeof(hashtable_t));
     
     h->entries = calloc(num_entries, sizeof(transposition_entry_t));
     h->key_mask = num_entries - 1;
 
-#ifdef PAWN_STRUCTURE    
-    h->pawn_entries = calloc(num_pawn_entries, sizeof(pawn_entry_t));
-    h->pawn_key_mask = num_pawn_entries - 1;
-#endif
-    
     return h;
 }
 
 void HASHTABLE_destroy(hashtable_t *h)
 {
-#ifdef PAWN_STRUCTURE
-    free(h->pawn_entries);
-#endif
     free(h->entries);
     free(h);
 }
@@ -58,24 +48,3 @@ transposition_entry_t *HASHTABLE_transition_retrieve(const hashtable_t *h, const
 
     return NULL;
 }
-
-#ifdef PAWN_STRUCTURE
-void HASHTABLE_pawn_store(hashtable_t *h, const uint32_t hash, const short score)
-{
-    int index = (int)(hash & h->pawn_key_mask);
-    pawn_entry_t *p = &h->pawn_entries[index];
-    
-    p->hash = hash;
-    p->score = score;
-}
-
-int HASHTABLE_pawn_retrieve(const hashtable_t *h, const uint32_t hash, short *score)
-{
-    int index = (int)(hash & h->pawn_key_mask);
-    if(h->pawn_entries[index].hash == hash) {
-        *score = h->pawn_entries[index].score;
-        return 1;
-    }
-    return 0;
-}
-#endif

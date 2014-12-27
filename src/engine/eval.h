@@ -11,11 +11,6 @@ short EVAL_evaluate_board(const chess_state_t *s);
 int   EVAL_position_is_attacked(const chess_state_t *s, const int color, const int pos);
 short EVAL_material_midgame(const chess_state_t *s);
 
-#ifdef PAWN_STRUCTURE
-short EVAL_pawn_structure(const chess_state_t *s);
-short EVAL_get_pawn_score(const chess_state_t *s, hashtable_t *hashtable);
-#endif
-
 static inline short EVAL_get_piecesquare(const int color, const int type, const int pos)
 {
     int pos_color = pos ^ (color * 0x38);

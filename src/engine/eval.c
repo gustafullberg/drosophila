@@ -17,67 +17,6 @@ static const short pawn_double_pawn_penalty[8] = {
     0, 0, PAWN_DOUBLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN
 };
 
-#ifdef PAWN_STRUCTURE
-short EVAL_pawn_structure(const chess_state_t *s)
-{
-    short score = 0;
-    int color;
-    int file_number;
-    
-    for(color = WHITE; color <= BLACK; color++) {
-        int opponent_color = color ^ 1;
-        short pawn_structure_score = 0;
-        
-        bitboard_t own_pawns = s->bitboard[color*NUM_TYPES + PAWN];
-        
-        bitboard_t pawns = own_pawns;
-        while(pawns) {
-            /* Get one position from the bitboard */
-            int pos = BITBOARD_find_bit(pawns);
-
-            /* Bonus for being guarded by other pawn */
-            if(bitboard_pawn_capture[opponent_color][pos] & own_pawns) {
-                pawn_structure_score += PAWN_GUARDS_PAWN;
-            }
-            
-            /* Clear position from bitboard */
-            pawns ^= BITBOARD_POSITION(pos);
-        }
-        
-        /* Sign of score depends on color */
-        score += pawn_structure_score * sign[color];
-    }
-    
-    /* Penalty for double/triple pawns */
-    for(file_number = 0; file_number < 8; file_number++) {
-        bitboard_t file = BITBOARD_FILE << file_number;
-        
-        int num_white_pawns = BITBOARD_count_bits(s->bitboard[WHITE_PIECES + PAWN] & file);
-        int num_black_pawns = BITBOARD_count_bits(s->bitboard[BLACK_PIECES + PAWN] & file);
-        
-        score += pawn_double_pawn_penalty[num_white_pawns];
-        score -= pawn_double_pawn_penalty[num_black_pawns];
-    }
-    
-    return score;
-}
-
-short EVAL_get_pawn_score(const chess_state_t *s, hashtable_t *hashtable)
-{
-    short score = 0;
-
-    /* Query pawn hash table */
-    if(HASHTABLE_pawn_retrieve(hashtable, s->pawn_hash, &score)) {
-        return score;
-    }
-
-    /* Not found: evaluate pawn structure */
-    score = EVAL_pawn_structure(s);
-    HASHTABLE_pawn_store(hashtable, s->pawn_hash, score);
-    return score;
-}
-#endif
-
 short EVAL_material_midgame(const chess_state_t *s)
 {
     bitboard_t pieces;
@@ -152,13 +91,65 @@ static inline short EVAL_pawn_guards_minor_piece(const chess_state_t *s)
 
 short EVAL_evaluate_board(const chess_state_t *s)
 {
+    short material_score[NUM_COLORS] = { 0, 0 };
+    short positional_score[NUM_COLORS] = { 0, 0 };
     short score = 0;
     int is_endgame = STATE_is_endgame(s);
+    int color;
+    bitboard_t pieces;
+    int pos;
+    
+    for(color = WHITE; color <= BLACK; color++) {
+        int pos_mask = color * 0x38;
+        
+        /* Pawns */
+        pieces = s->bitboard[NUM_TYPES*color + PAWN];
+        while(pieces) {
+            pos = BITBOARD_find_bit(pieces);
+            material_score[color] += 20;
+            positional_score[color] += piecesquare[PAWN][pos^pos_mask];
+            pieces ^= BITBOARD_POSITION(pos);
+        }
+        
+        /* Knights */
+        pieces = s->bitboard[NUM_TYPES*color + KNIGHT];
+        while(pieces) {
+            pos = BITBOARD_find_bit(pieces);
+            material_score[color] += 60;
+            positional_score[color] += piecesquare[KNIGHT][pos^pos_mask];
+            pieces ^= BITBOARD_POSITION(pos);
+        }
+        
+        /* Bishops */
+        pieces = s->bitboard[NUM_TYPES*color + BISHOP];
+        while(pieces) {
+            pos = BITBOARD_find_bit(pieces);
+            material_score[color] += 64;
+            positional_score[color] += piecesquare[BISHOP][pos^pos_mask];
+            pieces ^= BITBOARD_POSITION(pos);
+        }
 
-    /* Pawn score */
-#ifdef PAWN_STRUCTURE
-    score += s->score_pawn;
-#endif
+        /* Rooks */
+        pieces = s->bitboard[NUM_TYPES*color + ROOK];
+        while(pieces) {
+            pos = BITBOARD_find_bit(pieces);
+            material_score[color] += 100;
+            positional_score[color] += piecesquare[ROOK][pos^pos_mask];
+            pieces ^= BITBOARD_POSITION(pos);
+        }
+        
+        /* Queens */
+        pieces = s->bitboard[NUM_TYPES*color + QUEEN];
+        while(pieces) {
+            pos = BITBOARD_find_bit(pieces);
+            material_score[color] += 180;
+            positional_score[color] += piecesquare[QUEEN][pos^pos_mask];
+            pieces ^= BITBOARD_POSITION(pos);
+        }
+    }
+    
+    score += material_score[WHITE] - material_score[BLACK];
+    score += positional_score[WHITE] - positional_score[BLACK];
     
     /* Adjust material score for endgame */
     if(is_endgame) {
@@ -180,9 +171,6 @@ short EVAL_evaluate_board(const chess_state_t *s)
 
     /* Invert score for black player */
     score *= sign[(int)(s->player)];
-    
-    /* Material score */
-    score += s->score_material;
     
     return score;
 }

@@ -64,11 +64,6 @@ typedef struct chess_state_t {
     bitboard_t  bitboard[NUM_COLORS*NUM_TYPES+1];
     bitboard_t  hash;
     move_t      last_move;
-#ifdef PAWN_STRUCTURE
-    uint32_t    pawn_hash;
-    short       score_pawn;
-#endif
-    short       score_material;
     char        castling[2];
     char        ep_file;
     char        player;
