@@ -93,11 +93,23 @@ short EVAL_evaluate_board(const chess_state_t *s)
 {
     short material_score[NUM_COLORS] = { 0, 0 };
     short positional_score[NUM_COLORS] = { 0, 0 };
+    int king_pos[NUM_COLORS];
     short score = 0;
     int is_endgame = STATE_is_endgame(s);
     int color;
     bitboard_t pieces;
     int pos;
+    
+    /* Kings */
+    king_pos[WHITE] = BITBOARD_find_bit(s->bitboard[WHITE_PIECES + KING]);
+    king_pos[BLACK] = BITBOARD_find_bit(s->bitboard[BLACK_PIECES + KING]);
+    if(is_endgame) {
+        positional_score[WHITE] += piecesquare[KING+1][king_pos[WHITE]];
+        positional_score[BLACK] += piecesquare[KING+1][king_pos[BLACK]^0x38];
+    } else {
+        positional_score[WHITE] += piecesquare[KING][king_pos[WHITE]];
+        positional_score[BLACK] += piecesquare[KING][king_pos[BLACK]^0x38];
+    }
     
     for(color = WHITE; color <= BLACK; color++) {
         int pos_mask = color * 0x38;
@@ -151,17 +163,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
     score += material_score[WHITE] - material_score[BLACK];
     score += positional_score[WHITE] - positional_score[BLACK];
     
-    /* Adjust material score for endgame */
-    if(is_endgame) {
-        int white_king_pos = BITBOARD_find_bit(s->bitboard[WHITE_PIECES+KING]);
-        int black_king_pos = BITBOARD_find_bit(s->bitboard[BLACK_PIECES+KING]) ^ 0x38;
-        score += (
-            -piecesquare[KING][white_king_pos]
-            +piecesquare[KING+1][white_king_pos]
-            +piecesquare[KING][black_king_pos]
-            -piecesquare[KING+1][black_king_pos]
-        );
-    } else {
+    if(!is_endgame) {
         /* Pawn shield */
         score += EVAL_pawn_shield(s);
 
