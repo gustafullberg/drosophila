@@ -1,6 +1,12 @@
 #include "eval.h"
 #include "movegen.h"
 
+#define PAWN_VALUE      20
+#define KNIGHT_VALUE    60
+#define BISHOP_VALUE    64
+#define ROOK_VALUE     100
+#define QUEEN_VALUE    180
+
 #define PAWN_GUARDS_MINOR 3
 #define PAWN_GUARDS_PAWN 4
 
@@ -10,37 +16,11 @@
 #define PAWN_SHIELD_1 5
 #define PAWN_SHIELD_2 2
 
-const short piece_value[NUM_TYPES] = { 20, 60, 64, 100, 180, 0 };
 static const short sign[2] = { 1, -1 };
 
 static const short pawn_double_pawn_penalty[8] = {
     0, 0, PAWN_DOUBLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN
 };
-
-short EVAL_material_midgame(const chess_state_t *s)
-{
-    bitboard_t pieces;
-    int type;
-    short result = 0;
-    
-    for(type = PAWN; type <= KING; type++) {
-        const short *psq = piecesquare[type];
-        pieces = s->bitboard[WHITE_PIECES+type];
-        while(pieces) {
-            int pos = BITBOARD_find_bit(pieces);
-            result += piece_value[type] + psq[pos];
-            pieces ^= BITBOARD_POSITION(pos);
-        }
-        pieces = s->bitboard[BLACK_PIECES+type];
-        while(pieces) {
-            int pos = BITBOARD_find_bit(pieces);
-            result -= piece_value[type] + psq[pos^0x38];
-            pieces ^= BITBOARD_POSITION(pos);
-        }
-    }
-    
-    return result;
-}
 
 static short EVAL_pawn_shield(const chess_state_t *s)
 {
@@ -118,7 +98,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
         pieces = s->bitboard[NUM_TYPES*color + PAWN];
         while(pieces) {
             pos = BITBOARD_find_bit(pieces);
-            material_score[color] += 20;
+            material_score[color] += PAWN_VALUE;
             positional_score[color] += piecesquare[PAWN][pos^pos_mask];
             pieces ^= BITBOARD_POSITION(pos);
         }
@@ -127,7 +107,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
         pieces = s->bitboard[NUM_TYPES*color + KNIGHT];
         while(pieces) {
             pos = BITBOARD_find_bit(pieces);
-            material_score[color] += 60;
+            material_score[color] += KNIGHT_VALUE;
             positional_score[color] += piecesquare[KNIGHT][pos^pos_mask];
             pieces ^= BITBOARD_POSITION(pos);
         }
@@ -136,7 +116,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
         pieces = s->bitboard[NUM_TYPES*color + BISHOP];
         while(pieces) {
             pos = BITBOARD_find_bit(pieces);
-            material_score[color] += 64;
+            material_score[color] += BISHOP_VALUE;
             positional_score[color] += piecesquare[BISHOP][pos^pos_mask];
             pieces ^= BITBOARD_POSITION(pos);
         }
@@ -145,7 +125,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
         pieces = s->bitboard[NUM_TYPES*color + ROOK];
         while(pieces) {
             pos = BITBOARD_find_bit(pieces);
-            material_score[color] += 100;
+            material_score[color] += ROOK_VALUE;
             positional_score[color] += piecesquare[ROOK][pos^pos_mask];
             pieces ^= BITBOARD_POSITION(pos);
         }
@@ -154,7 +134,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
         pieces = s->bitboard[NUM_TYPES*color + QUEEN];
         while(pieces) {
             pos = BITBOARD_find_bit(pieces);
-            material_score[color] += 180;
+            material_score[color] += QUEEN_VALUE;
             positional_score[color] += piecesquare[QUEEN][pos^pos_mask];
             pieces ^= BITBOARD_POSITION(pos);
         }
