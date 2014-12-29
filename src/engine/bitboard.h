@@ -21,6 +21,9 @@ typedef uint64_t bitboard_t;
 
 #define BITBOARD_PROMOTION (bitboard_t)0xFF000000000000FF
 
+#define BITBOARD_WHITE_SQ ((bitboard_t)0x55AA55AA55AA55AA)
+#define BITBOARD_BLACK_SQ ((bitboard_t)0xAA55AA55AA55AA55)
+
 #define BITBOARD_CLEAR(bitboard, pos) (bitboard &= ~BITBOARD_POSITION(pos))
 #define BITBOARD_SET(bitboard, pos) (bitboard |= BITBOARD_POSITION(pos))
 

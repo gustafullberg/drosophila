@@ -1,18 +1,19 @@
 #include "eval.h"
 #include "movegen.h"
 
+/* Material */
 #define PAWN_VALUE      20
 #define KNIGHT_VALUE    60
 #define BISHOP_VALUE    64
 #define ROOK_VALUE     100
 #define QUEEN_VALUE    180
+#define BISHOP_PAIR     10
 
+/* Positional */
 #define PAWN_GUARDS_MINOR 3
 #define PAWN_GUARDS_PAWN 4
-
 #define PAWN_DOUBLE_PAWN -10
 #define PAWN_TRIPLE_PAWN -20
-
 #define PAWN_SHIELD_1 5
 #define PAWN_SHIELD_2 2
 
@@ -114,6 +115,10 @@ short EVAL_evaluate_board(const chess_state_t *s)
         
         /* Bishops */
         pieces = s->bitboard[NUM_TYPES*color + BISHOP];
+        if((pieces & BITBOARD_BLACK_SQ) && (pieces & BITBOARD_WHITE_SQ)) {
+            /* Bishops on white/black squares => pair bonus */
+            material_score[color] += BISHOP_PAIR;
+        }
         while(pieces) {
             pos = BITBOARD_find_bit(pieces);
             material_score[color] += BISHOP_VALUE;
