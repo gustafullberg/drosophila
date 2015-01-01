@@ -3,10 +3,10 @@
 
 /* Material */
 #define PAWN_VALUE      20
-#define KNIGHT_VALUE    60
-#define BISHOP_VALUE    64
+#define KNIGHT_VALUE    65
+#define BISHOP_VALUE    65
 #define ROOK_VALUE     100
-#define QUEEN_VALUE    180
+#define QUEEN_VALUE    195
 #define BISHOP_PAIR     10
 
 /* Positional */
