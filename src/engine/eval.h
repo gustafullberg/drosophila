@@ -12,7 +12,6 @@
 #define BISHOP_PAIR     10
 
 extern const short piecesquare[7][64];
-extern const short piece_value[NUM_TYPES];
 
 short EVAL_evaluate_board(const chess_state_t *s);
 int   EVAL_position_is_attacked(const chess_state_t *s, const int color, const int pos);

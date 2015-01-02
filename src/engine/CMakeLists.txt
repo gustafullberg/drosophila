@@ -28,6 +28,8 @@ set(files
     search_mtdf.h
     search_nullwindow.c
     search_nullwindow.h
+    see.c
+    see.h
     state.c
     state.h
     time.c
