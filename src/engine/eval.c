@@ -1,15 +1,6 @@
 #include "eval.h"
-#include "movegen.h"
 
-/* Material */
-#define PAWN_VALUE      20
-#define KNIGHT_VALUE    65
-#define BISHOP_VALUE    65
-#define ROOK_VALUE     100
-#define QUEEN_VALUE    195
-#define BISHOP_PAIR     10
-
-/* Positional */
+/* Positional value */
 #define PAWN_GUARDS_MINOR 3
 #define PAWN_GUARDS_PAWN 4
 #define PAWN_DOUBLE_PAWN -10
