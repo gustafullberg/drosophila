@@ -12,7 +12,7 @@ static const int capture_score[6][6] = {
 
 static int MOVEORDER_compute_score(const chess_state_t *s, const move_t move)
 {
-    const unsigned int max = MOVE_SCORE_MASK >> MOVE_SCORE_SHIFT;
+    const unsigned int max = (((unsigned int)MOVE_SCORE_MASK) >> MOVE_SCORE_SHIFT);
     unsigned int score = 0;
     
     const int pos_to = MOVE_GET_POS_TO(move);
@@ -34,7 +34,7 @@ static int MOVEORDER_compute_score(const chess_state_t *s, const move_t move)
             }
         }
     }
-    
+
     if(score > max) {
         score = max;
     }
