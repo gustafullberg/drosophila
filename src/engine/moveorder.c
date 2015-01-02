@@ -1,4 +1,5 @@
 #include "moveorder.h"
+#include "see.h"
 
 /* MVV-LVA: Capture bonus + Value of captured piece - Value of own piece */
 static const int capture_score[6][6] = {
@@ -78,6 +79,23 @@ int MOVEORDER_order_moves(const chess_state_t *s, move_t moves[], int num_moves,
             moves[i] = moves[num_moves-1];
             num_moves--;
         }
+        score = MOVEORDER_compute_score(s, moves[i]);
+        moves[i] |= score << MOVE_SCORE_SHIFT;
+    }
+    
+    /* Sort moves by score */
+    MOVEORDER_sort(moves, num_moves);
+    
+    return num_moves;
+}
+
+int MOVEORDER_order_moves_quiescence(const chess_state_t *s, move_t moves[], int num_moves)
+{
+    int i;
+    
+    /* Get score for each move */
+    for(i = 0; i < num_moves; i++) {
+        int score;
         score = MOVEORDER_compute_score(s, moves[i]);
         moves[i] |= score << MOVE_SCORE_SHIFT;
     }

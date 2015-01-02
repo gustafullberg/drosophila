@@ -174,11 +174,8 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
     int i;
     short score;
     short best_score;
-    move_t move;
     chess_state_t next_state;
     move_t moves[256];
-
-    move = 0;
 
     /* Stand-pat */
     best_score = EVAL_evaluate_board(state);
@@ -188,7 +185,7 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
     }
     
     num_moves = STATE_generate_moves_quiescence(state, moves);
-    num_moves = MOVEORDER_order_moves(state, moves, num_moves, move);
+    num_moves = MOVEORDER_order_moves_quiescence(state, moves, num_moves);
     
     for(i = 0; i < num_moves; i++) {
         /* Only try captures with SEE > 0 */
