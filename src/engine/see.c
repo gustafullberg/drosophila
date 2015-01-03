@@ -3,7 +3,7 @@
 
 static short piece_value[] = { PAWN_VALUE, KNIGHT_VALUE, BISHOP_VALUE, ROOK_VALUE, QUEEN_VALUE, 10*QUEEN_VALUE };
 
-bitboard_t SEE_find_all_attackers(const chess_state_t *s, bitboard_t occupied, int pos)
+static bitboard_t SEE_find_all_attackers(const chess_state_t *s, const bitboard_t occupied, const int pos)
 {
     /* Create a bitboard containing all pieces of both sides attacking a certain square */
     bitboard_t potential_attackers;
@@ -39,7 +39,7 @@ bitboard_t SEE_find_all_attackers(const chess_state_t *s, bitboard_t occupied, i
     return attackers;
 }
 
-int SEE_find_least_attacker(const chess_state_t *s, bitboard_t *occupied, bitboard_t *attackers, int pos, int color)
+static int SEE_find_least_attacker(const chess_state_t *s, bitboard_t *occupied, bitboard_t *attackers, const int pos, const int color)
 {
     int attacker_pieces = color*NUM_TYPES;
     bitboard_t attackers_side = (*attackers & s->bitboard[attacker_pieces + ALL]);
@@ -139,10 +139,12 @@ short see(const chess_state_t *s, const move_t move)
     /* Last piece in the list is never captured */
     swap_idx -= 2;
 
+    /* Swap list is a diff of entries */
     for(i = 1; i < swap_idx; i++) {
         swap_list[i] -= swap_list[i-1];
     }
     
+    /* swap_list[i] = -MAX(-swap_list[i], swap_list[i+1]) */
     while(swap_idx--) {
         swap_list[swap_idx] = (-swap_list[swap_idx] > swap_list[swap_idx+1]) ? swap_list[swap_idx] : -swap_list[swap_idx+1];
     }
