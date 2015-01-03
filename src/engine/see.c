@@ -22,8 +22,8 @@ bitboard_t SEE_find_all_attackers(const chess_state_t *s, bitboard_t occupied, i
     
     /* Attacking bishops, rooks and queens */
     potential_attackers =
-        (bitboard_bishop[pos] & (bishops & queens)) |
-        (bitboard_rook[pos]   & (rooks   & queens));
+        (bitboard_bishop[pos] & (bishops | queens)) |
+        (bitboard_rook[pos]   & (rooks   | queens));
     while(potential_attackers) {
         int attacker_pos = BITBOARD_find_bit(potential_attackers);
         if(!(bitboard_between[attacker_pos][pos] & occupied)) {
@@ -35,6 +35,7 @@ bitboard_t SEE_find_all_attackers(const chess_state_t *s, bitboard_t occupied, i
     /* Attacking kings */
     attackers |= bitboard_king[pos] & kings;
     
+    attackers &= occupied;
     return attackers;
 }
 
@@ -109,26 +110,37 @@ short see(const chess_state_t *s, const move_t move)
     int pos = MOVE_GET_POS_TO(move);
     bitboard_t occupied = s->bitboard[OCCUPIED];
     int color = s->player;
+    int i;
     
     /* Remove initial capturer */
-    occupied ^= MOVE_GET_POS_FROM(move);
+    occupied ^= BITBOARD_POSITION(MOVE_GET_POS_FROM(move));
     
     /* Add first captured piece to swap list */
     swap_list[swap_idx++] = piece_value[MOVE_GET_CAPTURE_TYPE(move)];
+    
+    /* Add first capturing piece to swap list */
+    swap_list[swap_idx++] = piece_value[MOVE_GET_TYPE(move)];
     
     /* Get pieces that can attack the square in question */
     attackers = SEE_find_all_attackers(s, occupied, pos);
 
     /* Fill the swap list */
+    color ^= 1;
     while((type = SEE_find_least_attacker(s, &occupied, &attackers, pos, color)) >= 0) {
         swap_list[swap_idx++] = piece_value[type];
-        color^1;
+        color ^= 1;
     }
     
-    /* Traverse the swap list backwards to get the score */
-    while(--swap_idx) {
-        /* ... */
+    /* Last piece in the list is never captured */
+    swap_idx -= 2;
+
+    for(i = 1; i < swap_idx; i++) {
+        swap_list[i] -= swap_list[i-1];
     }
     
-    return 0;
+    while(swap_idx--) {
+        swap_list[swap_idx] = (-swap_list[swap_idx] > swap_list[swap_idx+1]) ? swap_list[swap_idx] : -swap_list[swap_idx+1];
+    }
+    
+    return swap_list[0];
 }

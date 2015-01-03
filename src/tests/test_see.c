@@ -25,7 +25,7 @@ void test_see()
         special << MOVE_SPECIAL_FLAGS_SHIFT;
     assert(FEN_read(&s, "1k1r3q/1ppn3p/p4b2/4p3/8/P2N2P1/1PP1R1BP/2K1Q3 w - -"));
     result = see(&s, move);
-    printf("result: %d\n", result);
+    assert(result == -225/5);
 }
 
 
