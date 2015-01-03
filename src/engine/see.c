@@ -3,9 +3,10 @@
 
 static short piece_value[] = { PAWN_VALUE, KNIGHT_VALUE, BISHOP_VALUE, ROOK_VALUE, QUEEN_VALUE, 10*QUEEN_VALUE };
 
-static bitboard_t SEE_find_all_attackers(const chess_state_t *s, const bitboard_t occupied, const int pos)
+static bitboard_t SEE_find_all_attackers(const chess_state_t *s, const bitboard_t occupied, const int pos, bitboard_t *blocked_attackers)
 {
     /* Create a bitboard containing all pieces of both sides attacking a certain square */
+    bitboard_t blocked = 0;
     bitboard_t potential_attackers;
     bitboard_t attackers = 0;
     const bitboard_t bishops  = s->bitboard[WHITE_PIECES + BISHOP] | s->bitboard[BLACK_PIECES + BISHOP];
@@ -28,6 +29,8 @@ static bitboard_t SEE_find_all_attackers(const chess_state_t *s, const bitboard_
         int attacker_pos = BITBOARD_find_bit(potential_attackers);
         if(!(bitboard_between[attacker_pos][pos] & occupied)) {
             attackers |= BITBOARD_POSITION(attacker_pos);
+        } else {
+            blocked |= BITBOARD_POSITION(attacker_pos);
         }
         potential_attackers ^= BITBOARD_POSITION(attacker_pos);
     }
@@ -35,11 +38,12 @@ static bitboard_t SEE_find_all_attackers(const chess_state_t *s, const bitboard_
     /* Attacking kings */
     attackers |= bitboard_king[pos] & kings;
     
+    *blocked_attackers = blocked;
     attackers &= occupied;
     return attackers;
 }
 
-static int SEE_find_least_attacker(const chess_state_t *s, bitboard_t *occupied, bitboard_t *attackers, const int pos, const int color)
+static int SEE_find_least_attacker(const chess_state_t *s, bitboard_t *occupied, bitboard_t *attackers, bitboard_t *blocked_attackers, const int pos, const int color)
 {
     int attacker_pieces = color*NUM_TYPES;
     bitboard_t attackers_side = (*attackers & s->bitboard[attacker_pieces + ALL]);
@@ -65,33 +69,29 @@ static int SEE_find_least_attacker(const chess_state_t *s, bitboard_t *occupied,
         /* Add "hidden" attacker */
         if(type == PAWN || type == BISHOP || type == QUEEN) {
             /* Hidden bishop or queen? */
-            bitboard_t potential_attackers =
-                bitboard_bishop[pos] &
-                (s->bitboard[WHITE_PIECES+BISHOP] | s->bitboard[BLACK_PIECES+BISHOP] |
-                 s->bitboard[WHITE_PIECES+QUEEN]  | s->bitboard[BLACK_PIECES+QUEEN]) &
-                *occupied & ~(*attackers);
+            bitboard_t potential_attackers = bitboard_bishop[pos] & *blocked_attackers;
             while(potential_attackers) {
                 int potential_attacker_pos = BITBOARD_find_bit(potential_attackers);
+                bitboard_t bit = BITBOARD_POSITION(potential_attacker_pos);
                 if(!(bitboard_between[potential_attacker_pos][pos] & *occupied)) {
-                    *attackers |= BITBOARD_POSITION(potential_attacker_pos);
+                    *blocked_attackers ^= bit;
+                    *attackers |= bit;
                 }
-                potential_attackers ^= BITBOARD_POSITION(potential_attacker_pos);
+                potential_attackers ^= bit;
             }
         }
         
         if(type == ROOK || type == QUEEN) {
             /* Hidden rook or queen? */
-            bitboard_t potential_attackers =
-                bitboard_rook[pos] &
-                (s->bitboard[WHITE_PIECES+ROOK]  | s->bitboard[BLACK_PIECES+ROOK] |
-                 s->bitboard[WHITE_PIECES+QUEEN] | s->bitboard[BLACK_PIECES+QUEEN]) &
-                *occupied & ~(*attackers);
+            bitboard_t potential_attackers = bitboard_rook[pos] & *blocked_attackers;
             while(potential_attackers) {
                 int potential_attacker_pos = BITBOARD_find_bit(potential_attackers);
+                bitboard_t bit = BITBOARD_POSITION(potential_attacker_pos);
                 if(!(bitboard_between[potential_attacker_pos][pos] & *occupied)) {
-                    *attackers |= BITBOARD_POSITION(potential_attacker_pos);
+                    *blocked_attackers ^= bit;
+                    *attackers |= bit;
                 }
-                potential_attackers ^= BITBOARD_POSITION(potential_attacker_pos);
+                potential_attackers ^= bit;
             }
         }
 
@@ -103,7 +103,7 @@ static int SEE_find_least_attacker(const chess_state_t *s, bitboard_t *occupied,
 
 short see(const chess_state_t *s, const move_t move)
 {
-    bitboard_t attackers;
+    bitboard_t attackers, blocked_attackers;
     int type;
     short swap_list[32];
     int swap_idx = 0;
@@ -127,11 +127,11 @@ short see(const chess_state_t *s, const move_t move)
     swap_list[swap_idx++] = piece_value[MOVE_GET_TYPE(move)];
     
     /* Get pieces that can attack the square in question */
-    attackers = SEE_find_all_attackers(s, occupied, pos);
+    attackers = SEE_find_all_attackers(s, occupied, pos, &blocked_attackers);
 
     /* Fill the swap list */
     color ^= 1;
-    while((type = SEE_find_least_attacker(s, &occupied, &attackers, pos, color)) >= 0) {
+    while((type = SEE_find_least_attacker(s, &occupied, &attackers, &blocked_attackers, pos, color)) >= 0) {
         swap_list[swap_idx++] = piece_value[type];
         color ^= 1;
     }
