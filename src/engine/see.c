@@ -115,6 +115,11 @@ short see(const chess_state_t *s, const move_t move)
     /* Remove initial capturer */
     occupied ^= BITBOARD_POSITION(MOVE_GET_POS_FROM(move));
     
+    /* Remove captured piece if en passant */
+    if(MOVE_GET_SPECIAL_FLAGS(move) == MOVE_EP_CAPTURE) {
+        occupied ^= bitboard_ep_capture[pos];
+    }
+    
     /* Add first captured piece to swap list */
     swap_list[swap_idx++] = piece_value[MOVE_GET_CAPTURE_TYPE(move)];
     
