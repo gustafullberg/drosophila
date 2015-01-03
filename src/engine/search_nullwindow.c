@@ -188,9 +188,9 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
     num_moves = MOVEORDER_order_moves_quiescence(state, moves, num_moves);
     
     for(i = 0; i < num_moves; i++) {
-        /* Only try captures with SEE > 0 */
+        /* Only try captures with SEE >= 0 */
         if(MOVE_IS_CAPTURE(moves[i])) {
-            if(see(state, moves[i]) <= 0) {
+            if(see(state, moves[i]) < 0) {
                 continue;
             }
         }
