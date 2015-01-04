@@ -137,16 +137,16 @@ short see(const chess_state_t *s, const move_t move)
     }
     
     /* Last piece in the list is never captured */
-    swap_idx -= 2;
+    swap_idx -= 1;
 
     /* Swap list is a diff of entries */
     for(i = 1; i < swap_idx; i++) {
         swap_list[i] -= swap_list[i-1];
     }
-    
+
     /* swap_list[i] = -MAX(-swap_list[i], swap_list[i+1]) */
-    while(swap_idx--) {
-        swap_list[swap_idx] = (-swap_list[swap_idx] > swap_list[swap_idx+1]) ? swap_list[swap_idx] : -swap_list[swap_idx+1];
+    while(--swap_idx) {
+        swap_list[swap_idx-1] = (-swap_list[swap_idx-1] > swap_list[swap_idx]) ? swap_list[swap_idx-1] : -swap_list[swap_idx];
     }
     
     return swap_list[0];
