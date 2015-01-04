@@ -8,7 +8,7 @@
 #include "see.h"
 #include "fen.h"
 
-void test_see()
+void test_see(const char *fen, short expected_result)
 {
     chess_state_t s;
     int result;
@@ -23,9 +23,11 @@ void test_see()
         type << MOVE_TYPE_SHIFT |
         capture_type << MOVE_CAPTURE_TYPE_SHIFT |
         special << MOVE_SPECIAL_FLAGS_SHIFT;
-    assert(FEN_read(&s, "1k1r3q/1ppn3p/p4b2/4p3/8/P2N2P1/1PP1R1BP/2K1Q3 w - -"));
+    assert(FEN_read(&s, fen));
     result = see(&s, move);
-    assert(result == -225/5);
+    printf("%s\n", fen);
+    printf("\tresult %d (%d centipawns)\n", result, result*5);
+    assert(result == expected_result);
 }
 
 
@@ -34,7 +36,7 @@ int main()
 {
     BITBOARD_init();
 
-    test_see();
+    test_see("1k1r3q/1ppn3p/p4b2/4p3/8/P2N2P1/1PP1R1BP/2K1Q3 w - -", -225/5);
     
     return 0;
 }
