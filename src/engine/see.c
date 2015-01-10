@@ -134,6 +134,11 @@ short see(const chess_state_t *s, const move_t move)
     while((type = SEE_find_least_attacker(s, &occupied, &attackers, &blocked_attackers, pos, color)) >= 0) {
         swap_list[swap_idx++] = piece_value[type];
         color ^= 1;
+
+        /* Do not let king be captured in SEE */
+        if(type == KING) {
+            break;
+        }
     }
     
     /* Last piece in the list is never captured */
