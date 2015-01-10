@@ -189,7 +189,7 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
     
     for(i = 0; i < num_moves; i++) {
         /* Only try captures with SEE >= 0 */
-        if(MOVE_IS_CAPTURE(moves[i])) {
+        if(!MOVE_IS_PROMOTION(moves[i])) {
             if(see(state, moves[i]) < 0) {
                 continue;
             }
