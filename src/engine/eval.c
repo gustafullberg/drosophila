@@ -10,12 +10,13 @@
 #define BISHOP_PAIR     10
 
 /* Positional */
-#define PAWN_GUARDS_MINOR 3
-#define PAWN_GUARDS_PAWN 4
-#define PAWN_DOUBLE_PAWN -10
-#define PAWN_TRIPLE_PAWN -20
-#define PAWN_SHIELD_1 5
-#define PAWN_SHIELD_2 2
+#define PAWN_GUARDS_MINOR   3
+#define PAWN_GUARDS_PAWN    4
+#define PAWN_DOUBLE_PAWN  -10
+#define PAWN_TRIPLE_PAWN  -20
+#define PAWN_SHIELD_1       5
+#define PAWN_SHIELD_2       2
+#define TEMPO               2
 
 static const short sign[2] = { 1, -1 };
 
@@ -158,6 +159,9 @@ short EVAL_evaluate_board(const chess_state_t *s)
 
     /* Invert score for black player */
     score *= sign[(int)(s->player)];
+
+    /* Add a bonus for the side with the right to move next */
+    score += TEMPO;
     
     return score;
 }
