@@ -11,7 +11,7 @@
 
 /* Positional */
 #define PAWN_GUARDS_MINOR   3
-#define PAWN_GUARDS_PAWN    4
+#define PAWN_GUARDS_PAWN    1
 #define PAWN_DOUBLE_PAWN  -10
 #define PAWN_TRIPLE_PAWN  -20
 #define PAWN_SHIELD_1       5
@@ -53,6 +53,8 @@ static short EVAL_pawn_shield(const chess_state_t *s)
 
 static inline short EVAL_pawn_guards_minor_piece(const chess_state_t *s)
 {
+    short score;
+
     /* Bitboards with knights and bishops */
     bitboard_t white_minor = s->bitboard[WHITE_PIECES + KNIGHT] | s->bitboard[WHITE_PIECES + BISHOP];
     bitboard_t black_minor = s->bitboard[BLACK_PIECES + KNIGHT] | s->bitboard[BLACK_PIECES + BISHOP];
@@ -68,7 +70,12 @@ static inline short EVAL_pawn_guards_minor_piece(const chess_state_t *s)
                              (black_pawn & ~(BITBOARD_FILE << 7)) >> 7;
     
     /* Number of minor pieces guarded by pawns */
-    return PAWN_GUARDS_MINOR * (BITBOARD_count_bits(white_guard & white_minor) - BITBOARD_count_bits(black_guard & black_minor));
+    score = PAWN_GUARDS_MINOR * (BITBOARD_count_bits(white_guard & white_minor) - BITBOARD_count_bits(black_guard & black_minor));
+
+    /* Number of pawns guarded by pawns */
+    score += PAWN_GUARDS_PAWN  * (BITBOARD_count_bits(white_guard & white_pawn) - BITBOARD_count_bits(black_guard & black_pawn));
+
+    return score;
 }
 
 short EVAL_evaluate_board(const chess_state_t *s)
