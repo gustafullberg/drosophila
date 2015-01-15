@@ -106,11 +106,10 @@ short see(const chess_state_t *s, const move_t move)
     bitboard_t attackers, blocked_attackers;
     int type;
     short swap_list[32];
-    int swap_idx = 0;
+    int swap_idx = 2;
     int pos = MOVE_GET_POS_TO(move);
     bitboard_t occupied = s->bitboard[OCCUPIED];
     int color = s->player;
-    int i;
     
     /* Remove initial capturer */
     occupied ^= BITBOARD_POSITION(MOVE_GET_POS_FROM(move));
@@ -121,10 +120,10 @@ short see(const chess_state_t *s, const move_t move)
     }
     
     /* Add first captured piece to swap list */
-    swap_list[swap_idx++] = piece_value[MOVE_GET_CAPTURE_TYPE(move)];
+    swap_list[0] = piece_value[MOVE_GET_CAPTURE_TYPE(move)];
     
     /* Add first capturing piece to swap list */
-    swap_list[swap_idx++] = piece_value[MOVE_GET_TYPE(move)];
+    swap_list[1] = piece_value[MOVE_GET_TYPE(move)] - swap_list[0];
     
     /* Get pieces that can attack the square in question */
     attackers = SEE_find_all_attackers(s, occupied, pos, &blocked_attackers);
@@ -132,7 +131,8 @@ short see(const chess_state_t *s, const move_t move)
     /* Fill the swap list */
     color ^= 1;
     while((type = SEE_find_least_attacker(s, &occupied, &attackers, &blocked_attackers, pos, color)) >= 0) {
-        swap_list[swap_idx++] = piece_value[type];
+        swap_list[swap_idx] = piece_value[type] - swap_list[swap_idx-1];
+        swap_idx++;
         color ^= 1;
 
         /* Do not let king be captured in SEE */
@@ -143,11 +143,6 @@ short see(const chess_state_t *s, const move_t move)
     
     /* Last piece in the list is never captured */
     swap_idx -= 1;
-
-    /* Swap list is a diff of entries */
-    for(i = 1; i < swap_idx; i++) {
-        swap_list[i] -= swap_list[i-1];
-    }
 
     /* swap_list[i] = -MAX(-swap_list[i], swap_list[i+1]) */
     while(--swap_idx) {
