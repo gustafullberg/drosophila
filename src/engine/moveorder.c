@@ -13,14 +13,9 @@ static const int capture_score[6][6] = {
 
 static int MOVEORDER_compute_score(const chess_state_t *s, const move_t move)
 {
-    const unsigned int max = (((unsigned int)MOVE_SCORE_MASK) >> MOVE_SCORE_SHIFT);
     unsigned int score = 0;
     
     const int pos_to = MOVE_GET_POS_TO(move);
-    
-    if(MOVE_IS_PROMOTION(move)) {
-        score += 20;
-    }
     
     if(MOVE_IS_CAPTURE(move)) {
         /* MVV-LVA */
@@ -31,15 +26,11 @@ static int MOVEORDER_compute_score(const chess_state_t *s, const move_t move)
         /* Recapture bonus */
         if(MOVE_IS_CAPTURE(s->last_move)) {
             if(pos_to == MOVE_GET_POS_TO(s->last_move)) {
-                score += 10;
+                score += 5;
             }
         }
     }
 
-    if(score > max) {
-        score = max;
-    }
-    
     return score;
 }
 
