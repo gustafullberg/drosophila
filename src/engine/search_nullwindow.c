@@ -3,6 +3,7 @@
 #include "eval.h"
 #include "moveorder.h"
 #include "time.h"
+#include "see.h"
 
 static inline short SEARCH_transpositiontable_retrieve(const hashtable_t *hashtable, const bitboard_t hash, const unsigned char depth, short beta, move_t *best_move, int *cutoff);
 static inline void SEARCH_transpositiontable_store(hashtable_t *hashtable, const bitboard_t hash, const unsigned char depth, const short best_score, move_t best_move, const short beta);
@@ -173,11 +174,8 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
     int i;
     short score;
     short best_score;
-    move_t move;
     chess_state_t next_state;
     move_t moves[256];
-
-    move = 0;
 
     /* Stand-pat */
     best_score = EVAL_evaluate_board(state);
@@ -187,14 +185,22 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
     }
     
     num_moves = STATE_generate_moves_quiescence(state, moves);
-    num_moves = MOVEORDER_order_moves(state, moves, num_moves, move);
+    num_moves = MOVEORDER_order_moves_quiescence(state, moves, num_moves);
     
     for(i = 0; i < num_moves; i++) {
+        /* Only try captures with SEE >= 0 */
+        if(!MOVE_IS_PROMOTION(moves[i])) {
+            if(see(state, moves[i]) < 0) {
+                continue;
+            }
+        }
+        
         next_state = *state;
         STATE_apply_move(&next_state, moves[i]);
         if(SEARCH_is_check(&next_state, state->player)) {
             continue;
         }
+
         score = -SEARCH_nullwindow_quiescence(&next_state, search_state, -beta+1);
         if(score > best_score) {
             best_score = score;

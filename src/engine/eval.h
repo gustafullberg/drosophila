@@ -2,10 +2,16 @@
 #define _EVAL_H
 
 #include "state.h"
-#include "hashtable.h"
+
+/* Material value */
+#define PAWN_VALUE      20
+#define KNIGHT_VALUE    65
+#define BISHOP_VALUE    65
+#define ROOK_VALUE     100
+#define QUEEN_VALUE    195
+#define BISHOP_PAIR     10
 
 extern const short piecesquare[7][64];
-extern const short piece_value[NUM_TYPES];
 
 short EVAL_evaluate_board(const chess_state_t *s);
 int   EVAL_position_is_attacked(const chess_state_t *s, const int color, const int pos);

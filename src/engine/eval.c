@@ -1,5 +1,4 @@
 #include "eval.h"
-#include "movegen.h"
 
 /* Material */
 #define PAWN_VALUE      20

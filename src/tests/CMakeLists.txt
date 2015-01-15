@@ -29,6 +29,12 @@ add_executable(
 target_link_libraries(test_polyglot pawnedengine)
 
 add_executable(
+    test_see
+    test_see.c
+)
+target_link_libraries(test_see pawnedengine)
+
+add_executable(
     test_state
     test_state.c
 )
