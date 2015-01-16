@@ -9,6 +9,7 @@
 typedef struct {
     int flag_forced;
     int flag_quit;
+    int flag_searching;             /* Is currently searching for a move                */
     int flag_pondering;             /* Ponder between moves                             */
     int time_period;                /* Time control period (number of turns)            */
     int time_seconds;               /* Seconds per control period                       */
@@ -21,6 +22,7 @@ void state_clear(state_t *state)
 {
     state->flag_forced = 0;
     state->flag_quit = 0;
+    state->flag_searching = 0;
     state->flag_pondering = 0;
     state->time_period = 0;
     state->time_seconds = 0;
@@ -73,8 +75,9 @@ void pondering_start(state_t *state, engine_state_t *engine)
     }
 }
 
-void pondering_stop(state_t *state, engine_state_t *engine)
+void stop_searching(state_t *state, engine_state_t *engine)
 {
+    state->flag_searching = 0;
     if(ENGINE_think_get_status(engine) != ENGINE_SEARCH_NONE) {
         int pos_from, pos_to, promotion_type;
         ENGINE_think_stop(engine);
@@ -82,12 +85,13 @@ void pondering_stop(state_t *state, engine_state_t *engine)
     }
 }
 
-void make_move(state_t *state, engine_state_t *engine)
+void search_move(state_t *state, engine_state_t *engine)
 {
-    int pos_from, pos_to, promotion_type, result;
     int time_left_ms = state->time_left_centiseconds * 10;
     int time_incremental_ms = state->time_incremental_seconds * 1000;
     int moves_left_in_period = 0;
+
+    state->flag_searching = 1;
     
     if(state->time_period) {
         int num_moves = state->num_half_moves / 2;
@@ -95,6 +99,19 @@ void make_move(state_t *state, engine_state_t *engine)
     }
     
     ENGINE_think_start(engine, moves_left_in_period, time_left_ms, time_incremental_ms, 100);
+}
+
+int is_search_completed(state_t *state, engine_state_t *engine)
+{
+    return ENGINE_think_get_status(engine) == ENGINE_SEARCH_COMPLETED;
+}
+
+void send_move(state_t *state, engine_state_t *engine)
+{
+    int pos_from, pos_to, promotion_type, result;
+
+    state->flag_searching = 0;
+
     ENGINE_think_get_result(engine, &pos_from, &pos_to, &promotion_type);
     result = ENGINE_apply_move(engine, pos_from, pos_to, promotion_type);
     if(promotion_type) {
@@ -107,7 +124,7 @@ void make_move(state_t *state, engine_state_t *engine)
     } else {
         fprintf(stdout, "move %c%c%c%c\n", (pos_from%8)+'a', (pos_from/8)+'1', (pos_to%8)+'a', (pos_to/8)+'1');
     }
-    
+
     state->num_half_moves++;
     send_result(result);
 
@@ -156,7 +173,7 @@ void user_move(state_t *state, engine_state_t *engine, const char *move_str, int
     int result;
     int pos_from, pos_to, promotion_type;
 
-    pondering_stop(state, engine);
+    stop_searching(state, engine);
 
     /* Parse the user move */
     parse_move(move_str, &pos_from, &pos_to, &promotion_type);
@@ -166,7 +183,7 @@ void user_move(state_t *state, engine_state_t *engine, const char *move_str, int
     if(result == ENGINE_RESULT_NONE) {
         state->num_half_moves++;
         if(respond_to_move) {
-            make_move(state, engine);
+            search_move(state, engine);
         }
     } else if(result == ENGINE_RESULT_ILLEGAL_MOVE) {
         /* Illegal move */
@@ -264,20 +281,20 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
         state->flag_forced = 0;
 
         /* Move */
-        make_move(state, engine);
+        search_move(state, engine);
     }
     
     /*  quit */
     else if(strcmp(command, "quit\n") == 0) {
         state->flag_quit = 1;
-        pondering_stop(state, engine);
+        stop_searching(state, engine);
     }
     
     /* force */
     else if(strcmp(command, "force\n") == 0) {
         /* Enter force mode */
         state->flag_forced = 1;
-        pondering_stop(state, engine);
+        stop_searching(state, engine);
     }
 
     /* level */
@@ -323,7 +340,7 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
 
     /* result */
     else if(strncmp(command, "result ", 7) == 0) {
-        pondering_stop(state, engine);
+        stop_searching(state, engine);
     }
 
     /* Commands that do not reqire action from the engine (or not implemented) */
@@ -391,6 +408,13 @@ int main(int argc, char **argv)
             if(state.flag_quit) {
                 /* Shutdown if we get the 'quit' command etc */
                 break;
+            }
+        }
+
+        /* Poll for found move */
+        if(state.flag_searching) {
+            if(is_search_completed(&state, engine)) {
+                send_move(&state, engine);
             }
         }
     }
