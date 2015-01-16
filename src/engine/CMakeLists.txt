@@ -39,7 +39,7 @@ set(files
 )
 
 add_library(
-    pawnedengine
+    ${LIB_NAME}
     ${files}
 )
 

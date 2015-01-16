@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(pawned)
+project(drosophila)
 add_definitions(-D_VERSION="1.2")
 
 include(cmake/options.cmake)
@@ -14,6 +14,9 @@ if(CMAKE_COMPILER_IS_GNUCC OR "${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
 elseif(MSVC)
     add_definitions(-Dinline=__inline)
 endif()
+
+set(PROGRAM_NAME drosophila)
+set(LIB_NAME drosophilaengine)
 
 add_subdirectory(src)
 if(BUILD_EXECUTABLE)

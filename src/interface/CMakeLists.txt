@@ -1,6 +1,5 @@
-set(TARGET_NAME pawned)
 if(TARGET_SUFFIX)
-set(TARGET_NAME ${TARGET_NAME}-${TARGET_SUFFIX})
+set(PROGRAM_NAME ${PROGRAM_NAME}-${TARGET_SUFFIX})
 endif()
 
 set(files
@@ -11,9 +10,9 @@ set(files
 )
 
 add_executable(
-    ${TARGET_NAME}
+    ${PROGRAM_NAME}
     ${files}
 )
 
-target_link_libraries(${TARGET_NAME} pawnedengine)
-install(TARGETS ${TARGET_NAME} DESTINATION .)
+target_link_libraries(${PROGRAM_NAME} ${LIB_NAME})
+install(TARGETS ${PROGRAM_NAME} DESTINATION .)

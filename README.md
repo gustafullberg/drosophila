@@ -1,20 +1,22 @@
-# Pawned
+# Drosophila
 A chess engine by Gustaf Ullberg.
 
 ## Introduction
-Pawned is an open source chess engine. You can use it with any chess GUI supporting the Chess Engine Communication Protocol, such as Xboard or Arena.
+Drosophila is an open source chess engine. You can use it with any chess GUI supporting the Chess Engine Communication Protocol, such as Xboard or Arena.
 
 If you are developing a chess GUI, you also can compile the engine as a library and use it within your application.
 
+Drosophila was earlier named Pawned. 
+
 ## Releases
-**1.2** - 2014-12-27
+**Pawned 1.2** - 2014-12-27
 
 * Stability improvements (resolving illegal moves)
 * New openging book
 * Support for Polyglot books
 * Support for incremental time controls
 
-**1.1** - 2014-12-08
+**Pawned 1.1** - 2014-12-08
 
 * Pondering (thinking during the opponent's turn)
 * Full principal variation in thinking output
@@ -22,7 +24,7 @@ If you are developing a chess GUI, you also can compile the engine as a library 
 * Pawn shield
 * Performance improvements
 
-**1.0** - 2014-02-28
+**Pawned 1.0** - 2014-02-28
 
 * First release
 
@@ -31,8 +33,8 @@ You need a **Git** client, **CMake** and a **C compiler** (GCC, Clang or Visual 
 
 ### Linux, Mac OS, etc
 ```
-git clone https://github.com/gustafullberg/pawned.git
-cd pawned
+git clone https://github.com/gustafullberg/drosophila.git
+cd drosophila
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles" 
@@ -40,13 +42,13 @@ make
 ```
 ### Windows (assuming a 64-bit build with Visual Studio 2012)
 ```
-git clone https://github.com/gustafullberg/pawned.git
-cd pawned
+git clone https://github.com/gustafullberg/drosophila.git
+cd drosophila
 mkdir build
 cd build
 cmake .. -G "Visual Studio 11 Win64"
 ```
-Now open the newly created pawned.sln file and build from within Visual Studio.
+Now open the newly created drosophila.sln file and build from within Visual Studio.
 
 ## Technical features
 
@@ -75,4 +77,4 @@ Evaluation:
 * Pawn shield
 
 ## License
-Pawned is released under the MIT License. 
+Drosophila is released under the MIT License. 
