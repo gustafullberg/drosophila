@@ -1,8 +1,6 @@
 #ifndef _CECP_FEATURES_H
 #define _CECP_FEATURES_H
 
-#include <stdio.h>
-
 /* Features of the Chess Engine Communication Protocol supported by this program */
 const char *cecp_features[] =
 {
@@ -19,7 +17,7 @@ const char *cecp_features[] =
     "nps=0",
     "debug=1",
     "memory=1",
-    "smp=1",
+    "smp=0",
     "done=1",
     0
 };
