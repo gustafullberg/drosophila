@@ -211,3 +211,20 @@ int EVAL_position_is_attacked(const chess_state_t *s, const int color, const int
     
     return 0;
 }
+
+/* Returns non-zero if draw may be claimed due to insufficient material */
+int EVAL_insufficient_material(const chess_state_t *s)
+{
+    /* Only kings left */
+    if(s->bitboard[OCCUPIED] == (s->bitboard[WHITE_PIECES+KING] | s->bitboard[BLACK_PIECES+KING])) {
+        return 1;
+    }
+    
+    return 0;
+}
+
+/* Returns non-zero if draw may be claimed due to the fifty move rule */
+int EVAL_fifty_move_rule(const chess_state_t *s)
+{
+    return (s->halfmove_clock >= 100);
+}

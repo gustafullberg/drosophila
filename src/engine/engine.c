@@ -9,6 +9,7 @@
 #include "san.h"
 #include "fen.h"
 #include "time.h"
+#include "eval.h"
 #include "defines.h"
 
 struct engine_state {
@@ -268,6 +269,10 @@ int ENGINE_result(const engine_state_t *state)
         } else {
             return ENGINE_RESULT_DRAW_STALE_MATE;
         }
+    } else if(EVAL_insufficient_material(state->chess_state)) {
+        return ENGINE_RESULT_DRAW_INSUFFICIENT_MATERIAL;
+    } else if(EVAL_fifty_move_rule(state->chess_state)) {
+        return ENGINE_RESULT_DRAW_FIFTY_MOVE;
     }
     
     return ENGINE_RESULT_NONE;
