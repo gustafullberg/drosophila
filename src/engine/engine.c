@@ -273,6 +273,8 @@ int ENGINE_result(const engine_state_t *state)
         return ENGINE_RESULT_DRAW_INSUFFICIENT_MATERIAL;
     } else if(EVAL_fifty_move_rule(state->chess_state)) {
         return ENGINE_RESULT_DRAW_FIFTY_MOVE;
+    } else if(HISTORY_is_threefold_repetition(state->history, state->chess_state->halfmove_clock)) {
+        return ENGINE_RESULT_DRAW_REPETITION;
     }
     
     return ENGINE_RESULT_NONE;

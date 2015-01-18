@@ -62,3 +62,20 @@ int HISTORY_is_repetition(const history_t *h, const int halfmove_clock)
 
     return 0;
 }
+
+int HISTORY_is_threefold_repetition(const history_t *h, const int halfmove_clock)
+{
+    int i;
+    int repetitions = 1;
+    const bitboard_t hash = h->hash[h->idx];
+    const int first = h->idx - halfmove_clock;
+    const int last = h->idx - 4;
+    
+    for(i = last; i >= first; i -= 2) {
+        if(h->hash[i] == hash) {
+            repetitions++;
+        }
+    }
+
+    return (repetitions >= 3);
+}
