@@ -9,14 +9,14 @@ If you are developing a chess GUI, you also can compile the engine as a library 
 Drosophila was earlier named Pawned. 
 
 ## Releases
-**Pawned 1.2** - 2014-12-27
+**[Pawned 1.2](https://github.com/gustafullberg/drosophila/releases/download/v1.2/pawned-1.2.zip)** - 2014-12-27
 
 * Stability improvements (resolving illegal moves)
 * New openging book
 * Support for Polyglot books
 * Support for incremental time controls
 
-**Pawned 1.1** - 2014-12-08
+**[Pawned 1.1](https://github.com/gustafullberg/drosophila/releases/download/v1.1/pawned-1.1.zip)** - 2014-12-08
 
 * Pondering (thinking during the opponent's turn)
 * Full principal variation in thinking output
@@ -24,7 +24,7 @@ Drosophila was earlier named Pawned.
 * Pawn shield
 * Performance improvements
 
-**Pawned 1.0** - 2014-02-28
+**[Pawned 1.0](https://github.com/gustafullberg/drosophila/releases/download/v1.0/pawned-1.0.zip)** - 2014-02-28
 
 * First release
 
