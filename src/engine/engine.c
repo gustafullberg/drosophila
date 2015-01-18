@@ -266,7 +266,7 @@ int ENGINE_result(const engine_state_t *state)
                 return ENGINE_RESULT_WHITE_MATES;
             }
         } else {
-            return ENGINE_RESULT_STALE_MATE;
+            return ENGINE_RESULT_DRAW_STALE_MATE;
         }
     }
     

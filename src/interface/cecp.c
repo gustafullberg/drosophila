@@ -60,8 +60,17 @@ void send_result(int result)
     case ENGINE_RESULT_BLACK_MATES:
         fprintf(stdout, "0-1 {Black mates}\n");
         break;
-    case ENGINE_RESULT_STALE_MATE:
+    case ENGINE_RESULT_DRAW_STALE_MATE:
         fprintf(stdout, "1/2-1/2 {Stalemate}\n");
+        break;
+    case ENGINE_RESULT_DRAW_INSUFFICIENT_MATERIAL:
+        fprintf(stdout, "1/2-1/2 {Draw by insufficient material}\n");
+        break;
+    case ENGINE_RESULT_DRAW_FIFTY_MOVE:
+        fprintf(stdout, "1/2-1/2 {Draw by fifty-move rule}\n");
+        break;
+    case ENGINE_RESULT_DRAW_REPETITION:
+        fprintf(stdout, "1/2-1/2 {Draw by repetition}\n");
         break;
     default:
         break;
