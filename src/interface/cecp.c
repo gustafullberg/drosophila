@@ -390,6 +390,15 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
         search_stop(state, engine, NULL, NULL, NULL);
     }
 
+    /* ? (move now) */
+    else if(strncmp(command, "?\n", 2) == 0) {
+        /* If a search for next move is ongoing */
+        if(state->flag_searching) {
+            /* Abort the search and send the move now */
+            get_and_send_move(state, engine);
+        }
+    }
+
     /* Commands that do not reqire action from the engine (or not implemented) */
     
     /* xboard */
