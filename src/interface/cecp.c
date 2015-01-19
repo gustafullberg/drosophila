@@ -18,6 +18,7 @@ typedef struct {
     int num_half_moves;             /* Number of half moves                             */
 } state_t;
 
+/* Reset state to known defaults */
 void state_clear(state_t *state)
 {
     state->flag_forced = 0;
@@ -31,6 +32,7 @@ void state_clear(state_t *state)
     state->num_half_moves = 0;
 }
 
+/* Reset only the time control of the state */
 void state_clear_time(state_t *state)
 {
     state->time_period = 0;
@@ -40,6 +42,7 @@ void state_clear_time(state_t *state)
     state->num_half_moves = 0;
 }
 
+/* Send all the supported features of the CECP to GUI */
 void send_features()
 {
     const char **feature;
@@ -51,6 +54,22 @@ void send_features()
     }
 }
 
+/* Send a move to GUI */
+void send_move(int pos_from, int pos_to, int promotion_type)
+{
+    if(promotion_type) {
+        char pt = 0;
+        if(promotion_type == 1) pt = 'n';
+        else if(promotion_type == 2) pt = 'b';
+        else if(promotion_type == 3) pt = 'r';
+        else if(promotion_type == 4) pt = 'q';
+        fprintf(stdout, "move %c%c%c%c%c\n", (pos_from%8)+'a', (pos_from/8)+'1', (pos_to%8)+'a', (pos_to/8)+'1', pt);
+    } else {
+        fprintf(stdout, "move %c%c%c%c\n", (pos_from%8)+'a', (pos_from/8)+'1', (pos_to%8)+'a', (pos_to/8)+'1');
+    }
+}
+
+/* Send a result to GUI if game has ended */
 void send_result(int result)
 {
     switch(result) {
@@ -77,82 +96,31 @@ void send_result(int result)
     }
 }
 
-void pondering_start(state_t *state, engine_state_t *engine)
+/* Send stats and PV to GUI while searching for move */
+void send_search_output(int ply, int score, int time_ms, unsigned int nodes, int pv_length, int *pos_from, int *pos_to, int *promotion_type)
 {
-    if(state->flag_pondering) {
-        ENGINE_think_start(engine, 1, 3600*1000, 0, 100);
+    int i;
+    fprintf(stdout, "%d %d %d %d", ply, score, time_ms / 10, nodes);
+    for(i = 0; i < pv_length; i++) {
+        int from = pos_from[i];
+        int to = pos_to[i];
+        int promotion = promotion_type[i];
+
+        if(promotion) {
+            char pt = 0;
+            if(promotion == 1) pt = 'n';
+            else if(promotion == 2) pt = 'b';
+            else if(promotion == 3) pt = 'r';
+            else if(promotion == 4) pt = 'q';
+            fprintf(stdout, " %c%c%c%c%c", (from%8)+'a', (from/8)+'1', (to%8)+'a', (to/8)+'1', pt);
+        } else {
+            fprintf(stdout, " %c%c%c%c", (from%8)+'a', (from/8)+'1', (to%8)+'a', (to/8)+'1');
+        }
     }
+    fprintf(stdout, "\n");
 }
 
-void stop_searching(state_t *state, engine_state_t *engine)
-{
-    state->flag_searching = 0;
-    if(ENGINE_think_get_status(engine) != ENGINE_SEARCH_NONE) {
-        int pos_from, pos_to, promotion_type;
-        ENGINE_think_stop(engine);
-        ENGINE_think_get_result(engine, &pos_from, &pos_to, &promotion_type);
-    }
-}
-
-void search_move(state_t *state, engine_state_t *engine)
-{
-    int time_left_ms = state->time_left_centiseconds * 10;
-    int time_incremental_ms = state->time_incremental_seconds * 1000;
-    int moves_left_in_period = 0;
-
-    state->flag_searching = 1;
-    
-    if(state->time_period) {
-        int num_moves = state->num_half_moves / 2;
-        moves_left_in_period = state->time_period - (num_moves % state->time_period);
-    }
-    
-    ENGINE_think_start(engine, moves_left_in_period, time_left_ms, time_incremental_ms, 100);
-}
-
-int is_search_completed(state_t *state, engine_state_t *engine)
-{
-    return ENGINE_think_get_status(engine) == ENGINE_SEARCH_COMPLETED;
-}
-
-void send_move(state_t *state, engine_state_t *engine)
-{
-    int pos_from, pos_to, promotion_type, result;
-
-    state->flag_searching = 0;
-
-    ENGINE_think_get_result(engine, &pos_from, &pos_to, &promotion_type);
-    result = ENGINE_apply_move(engine, pos_from, pos_to, promotion_type);
-    if(promotion_type) {
-        char pt = 0;
-        if(promotion_type == 1) pt = 'n';
-        else if(promotion_type == 2) pt = 'b';
-        else if(promotion_type == 3) pt = 'r';
-        else if(promotion_type == 4) pt = 'q';
-        fprintf(stdout, "move %c%c%c%c%c\n", (pos_from%8)+'a', (pos_from/8)+'1', (pos_to%8)+'a', (pos_to/8)+'1', pt);
-    } else {
-        fprintf(stdout, "move %c%c%c%c\n", (pos_from%8)+'a', (pos_from/8)+'1', (pos_to%8)+'a', (pos_to/8)+'1');
-    }
-
-    state->num_half_moves++;
-    send_result(result);
-
-    if(result == ENGINE_RESULT_NONE) {
-        pondering_start(state, engine);
-    }
-}
-
-void str_remove_newline(char *p)
-{
-    /* Find newline */
-    p = strchr(p, '\n');
-    
-    /* Replace with null-zero */
-    if(p) {
-        *p = '\0';
-    }
-}
-
+/* Parse a move of the form e7e8q */
 void parse_move(const char *move_str, int *pos_from, int *pos_to, int *promotion_type)
 {
     *pos_from = move_str[0]-'a' + 8 * (move_str[1]-'1');
@@ -177,32 +145,7 @@ void parse_move(const char *move_str, int *pos_from, int *pos_to, int *promotion
     }
 }
 
-void user_move(state_t *state, engine_state_t *engine, const char *move_str, int respond_to_move)
-{
-    int result;
-    int pos_from, pos_to, promotion_type;
-
-    stop_searching(state, engine);
-
-    /* Parse the user move */
-    parse_move(move_str, &pos_from, &pos_to, &promotion_type);
-
-    /* Move piece */
-    result = ENGINE_apply_move(engine, pos_from, pos_to, promotion_type);
-    if(result == ENGINE_RESULT_NONE) {
-        state->num_half_moves++;
-        if(respond_to_move) {
-            search_move(state, engine);
-        }
-    } else if(result == ENGINE_RESULT_ILLEGAL_MOVE) {
-        /* Illegal move */
-        fprintf(stdout, "Illegal move: %s", move_str);
-        
-    } else {
-        send_result(result);
-    }
-}
-
+/* Parse time control "40 4:00 0", "40 4 0" or "10" */
 void parse_time_control(state_t *state, const char *level)
 {
     int period = 0;
@@ -229,33 +172,128 @@ void parse_time_control(state_t *state, const char *level)
             }
         }
     }
-    
+
     state->time_period = period;
     state->time_left_centiseconds = 100 * (60 * minutes + seconds);
     state->time_incremental_seconds = inc_seconds;
 }
 
-void thinking_output(int ply, int score, int time_ms, unsigned int nodes, int pv_length, int *pos_from, int *pos_to, int *promotion_type)
+/* Start searching for the next move */
+void search_move(state_t *state, engine_state_t *engine)
 {
-    int i;
-    fprintf(stdout, "%d %d %d %d", ply, score, time_ms / 10, nodes);
-    for(i = 0; i < pv_length; i++) {
-        int from = pos_from[i];
-        int to = pos_to[i];
-        int promotion = promotion_type[i];
-        
-        if(promotion) {
-            char pt = 0;
-            if(promotion == 1) pt = 'n';
-            else if(promotion == 2) pt = 'b';
-            else if(promotion == 3) pt = 'r';
-            else if(promotion == 4) pt = 'q';
-            fprintf(stdout, " %c%c%c%c%c", (from%8)+'a', (from/8)+'1', (to%8)+'a', (to/8)+'1', pt);
-        } else {
-            fprintf(stdout, " %c%c%c%c", (from%8)+'a', (from/8)+'1', (to%8)+'a', (to/8)+'1');
-        }
+    int time_left_ms = state->time_left_centiseconds * 10;
+    int time_incremental_ms = state->time_incremental_seconds * 1000;
+    int moves_left_in_period = 0;
+
+    /* Calculate time available for search */
+    if(state->time_period) {
+        int num_moves = state->num_half_moves / 2;
+        moves_left_in_period = state->time_period - (num_moves % state->time_period);
     }
-    fprintf(stdout, "\n");
+
+    /* Flag that a search is in progress */
+    state->flag_searching = 1;
+
+    /* Spawn a new thread and start searching */
+    ENGINE_think_start(engine, moves_left_in_period, time_left_ms, time_incremental_ms, 100);
+}
+
+/* Start pondering */
+void search_pondering(state_t *state, engine_state_t *engine)
+{
+    /* Only start ponder if pondering is enabled */
+    if(state->flag_pondering) {
+        /* Limit search to one hour or a depth of 100 */
+        ENGINE_think_start(engine, 1, 3600*1000, 0, 100);
+    }
+}
+
+/* Abort search (move or pondering) */
+void search_stop(state_t *state, engine_state_t *engine, int *pos_from, int *pos_to, int *promotion_type)
+{
+    int _pos_from = 0, _pos_to = 0, _promotion_type = 0;
+
+    /* Flag that no search for a move is going on */
+    state->flag_searching = 0;
+
+    /* Check if a search is going on */
+    if(ENGINE_think_get_status(engine) != ENGINE_SEARCH_NONE) {
+        /* Abort the search */
+        ENGINE_think_stop(engine);
+
+        /* Get the result */
+        ENGINE_think_get_result(engine, &_pos_from, &_pos_to, &_promotion_type);
+    }
+
+    if(pos_from && pos_to && promotion_type) {
+        *pos_from = _pos_from;
+        *pos_to = _pos_to;
+        *promotion_type = _promotion_type;
+    }
+}
+
+/* Return non-zero if a search has been completed and result is waiting */
+int search_is_completed(state_t *state, engine_state_t *engine)
+{
+    return ENGINE_think_get_status(engine) == ENGINE_SEARCH_COMPLETED;
+}
+
+/* Remove first newline of a string and terminate it */
+void str_remove_newline(char *p)
+{
+    /* Find newline */
+    p = strchr(p, '\n');
+    
+    /* Replace with null-zero */
+    if(p) {
+        *p = '\0';
+    }
+}
+
+/* Get a move (result from search) and send it to the GUI */
+void get_and_send_move(state_t *state, engine_state_t *engine)
+{
+    int pos_from, pos_to, promotion_type, result;
+
+    search_stop(state, engine, &pos_from, &pos_to, &promotion_type);
+    result = ENGINE_apply_move(engine, pos_from, pos_to, promotion_type);
+
+    send_move(pos_from, pos_to, promotion_type);
+
+    state->num_half_moves++;
+    send_result(result);
+
+    if(result == ENGINE_RESULT_NONE) {
+        search_pondering(state, engine);
+    }
+}
+
+/* Handle a "usermove" command */
+void cmd_usermove(state_t *state, engine_state_t *engine, const char *move_str, int respond_to_move)
+{
+    int result;
+    int pos_from, pos_to, promotion_type;
+
+    /* Stop ongoing pondering */
+    search_stop(state, engine, NULL, NULL, NULL);
+
+    /* Parse the user move */
+    parse_move(move_str, &pos_from, &pos_to, &promotion_type);
+
+    /* Move piece */
+    result = ENGINE_apply_move(engine, pos_from, pos_to, promotion_type);
+    if(result == ENGINE_RESULT_NONE) {
+        state->num_half_moves++;
+        if(respond_to_move) {
+            search_move(state, engine);
+        }
+    } else if(result == ENGINE_RESULT_ILLEGAL_MOVE) {
+        /* Illegal move */
+        fprintf(stdout, "Illegal move: %s", move_str);
+        
+    } else {
+        send_result(result);
+    }
 }
 
 static void process_command(engine_state_t *engine, char *command, state_t *state)
@@ -281,7 +319,7 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
     
     /* usermove */
     else if(strncmp(command, "usermove ", 9) == 0) {
-        user_move(state, engine, command + 9, !state->flag_forced);
+        cmd_usermove(state, engine, command + 9, !state->flag_forced);
     }
     
     /* go */
@@ -296,14 +334,14 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
     /*  quit */
     else if(strcmp(command, "quit\n") == 0) {
         state->flag_quit = 1;
-        stop_searching(state, engine);
+        search_stop(state, engine, NULL, NULL, NULL);
     }
     
     /* force */
     else if(strcmp(command, "force\n") == 0) {
         /* Enter force mode */
         state->flag_forced = 1;
-        stop_searching(state, engine);
+        search_stop(state, engine, NULL, NULL, NULL);
     }
 
     /* level */
@@ -349,7 +387,7 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
 
     /* result */
     else if(strncmp(command, "result ", 7) == 0) {
-        stop_searching(state, engine);
+        search_stop(state, engine, NULL, NULL, NULL);
     }
 
     /* Commands that do not reqire action from the engine (or not implemented) */
@@ -401,7 +439,7 @@ int main(int argc, char **argv)
     
     /* Create engine instance */
     ENGINE_create(&engine);
-    ENGINE_register_thinking_output_cb(engine, &thinking_output);
+    ENGINE_register_thinking_output_cb(engine, &send_search_output);
 
     /* Welcome */
     fprintf(stdout, "# Welcome to Drosophila " _VERSION "\n");
@@ -422,8 +460,8 @@ int main(int argc, char **argv)
 
         /* Poll for found move */
         if(state.flag_searching) {
-            if(is_search_completed(&state, engine)) {
-                send_move(&state, engine);
+            if(search_is_completed(&state, engine)) {
+                get_and_send_move(&state, engine);
             }
         }
     }
