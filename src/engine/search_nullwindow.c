@@ -41,7 +41,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     /* Internal iterative deepening to aid move ordering */
     if(depth >= 3) {
         move_t move_dummy;
-        SEARCH_nullwindow(state, search_state, depth-1, ply+1, &move_dummy, beta);
+        SEARCH_nullwindow(state, search_state, depth-1, ply, &move_dummy, beta);
     }
 
     HASHTABLE_transition_prefetch(search_state->hashtable, state->hash);
