@@ -89,7 +89,7 @@ short SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state
         }
 
         /* No need to search deeper if checkmate is detected */
-        if(results[depth] <= SEARCH_MIN_RESULT(0) || results[depth] >= SEARCH_MAX_RESULT(0)) {
+        if(results[depth] <= SEARCH_MIN_RESULT(MAX_SEARCH_DEPTH) || results[depth] >= SEARCH_MAX_RESULT(MAX_SEARCH_DEPTH)) {
             break;
         }
 
