@@ -9,7 +9,7 @@ static inline short SEARCH_transpositiontable_retrieve(const hashtable_t *hashta
 static inline void SEARCH_transpositiontable_store(hashtable_t *hashtable, const bitboard_t hash, const unsigned char depth, const short best_score, move_t best_move, const short beta);
 
 /* Alpha-Beta search with Nega Max and null-window */
-short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state, unsigned char depth, unsigned char ply, move_t *move, short beta)
+short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state, unsigned char depth, unsigned char ply, int allow_nullmove, move_t *move, short beta)
 {
     int num_moves;
     int num_legal_moves = 0;
@@ -41,7 +41,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     /* Internal iterative deepening to aid move ordering */
     if(depth >= 3) {
         move_t move_dummy;
-        SEARCH_nullwindow(state, search_state, depth-1, ply, &move_dummy, beta);
+        SEARCH_nullwindow(state, search_state, depth-2, ply, 0, &move_dummy, beta);
     }
 
     HASHTABLE_transition_prefetch(search_state->hashtable, state->hash);
@@ -66,11 +66,11 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     }
 
     /* Null move pruning */
-    if(depth > 4 && state->last_move && !STATE_is_endgame(state)) {
+    if(depth > 4 && allow_nullmove && !STATE_is_endgame(state)) {
         if(!SEARCH_is_check(state, state->player)) {
             next_state = *state;
             STATE_apply_move(&next_state, 0);
-            score = -SEARCH_nullwindow(&next_state, search_state, depth-3, ply+1, &next_move, -beta+1);
+            score = -SEARCH_nullwindow(&next_state, search_state, depth-3, ply+1, 1, &next_move, -beta+1);
             if(score >= beta) {
                 best_score = beta;
                 skip_move_generation = 1;
@@ -85,7 +85,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         if(!SEARCH_is_check(&next_state, state->player)) {
             num_legal_moves++;
             HISTORY_push(search_state->history, next_state.hash);
-            best_score = -SEARCH_nullwindow(&next_state, search_state, depth-1, ply+1, &next_move, -beta+1);
+            best_score = -SEARCH_nullwindow(&next_state, search_state, depth-1, ply+1, 1, &next_move, -beta+1);
             HISTORY_pop(search_state->history);
             if(best_score >= beta) {
                 skip_move_generation = 1;
@@ -133,13 +133,13 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                     !is_in_check)                              /* No LMR if in check                            */
                 {
                     /* Search at reduced depth */
-                    score = -SEARCH_nullwindow(&next_state, search_state, depth-2, ply+1, &next_move, -beta+1);
+                    score = -SEARCH_nullwindow(&next_state, search_state, depth-2, ply+1, 1, &next_move, -beta+1);
                     if(score >= beta) {
-                        score = -SEARCH_nullwindow(&next_state, search_state, depth-1, ply+1, &next_move, -beta+1);
+                        score = -SEARCH_nullwindow(&next_state, search_state, depth-1, ply+1, 1, &next_move, -beta+1);
                     }
                 } else {
                     /* Normal search */
-                    score = -SEARCH_nullwindow(&next_state, search_state, depth-1, ply+1, &next_move, -beta+1);
+                    score = -SEARCH_nullwindow(&next_state, search_state, depth-1, ply+1, 1, &next_move, -beta+1);
                 }
             }
             
