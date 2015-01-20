@@ -26,7 +26,7 @@ short SEARCH_mtdf(const chess_state_t *s, search_state_t *search_state, const un
             beta = guess;
         }
 
-        guess = SEARCH_nullwindow(&state, search_state, depth, &movetemp, beta);
+        guess = SEARCH_nullwindow(&state, search_state, depth, 0, &movetemp, beta);
 
         if(guess < beta) {
             bounds[1] = guess;
