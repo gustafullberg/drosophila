@@ -55,6 +55,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     ttable_score = SEARCH_transpositiontable_retrieve(search_state->hashtable, state->hash, depth, beta, move, &cutoff);
     if(cutoff) {
         if(*move || state->last_move) {
+            if(ttable_score >= beta) search_state->killer_moves[depth] = *move;
             return ttable_score;
         }
     }
@@ -89,7 +90,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
 
     if(!skip_move_generation) {
         num_moves = STATE_generate_moves(state, moves);
-        num_moves = MOVEORDER_order_moves(state, moves, num_moves, *move);
+        num_moves = MOVEORDER_order_moves(state, moves, num_moves, *move, search_state->killer_moves[depth]);
 
         /* Check if node is eligible for futility pruning */
         if(depth == 1 && !is_in_check) {
@@ -142,6 +143,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                 *move = moves[i];
                 if(best_score >= beta) {
                     /* Beta-cuttoff */
+                    search_state->killer_moves[depth] = *move;
                     HISTORY_pop(search_state->history);
                     break;
                 }

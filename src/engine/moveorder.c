@@ -11,8 +11,9 @@ static const int capture_score[6][6] = {
     { 10 + 1 -10, 10 + 3 -10, 10 + 4 -10, 10 + 5 -10, 10 + 9 -10, 10 + 10 -10 }
 };
 
-static int MOVEORDER_compute_score(const chess_state_t *s, const move_t move)
+static int MOVEORDER_compute_score(const chess_state_t *s, const move_t move, const move_t killer_move)
 {
+    const unsigned int max = (((unsigned int)MOVE_SCORE_MASK) >> MOVE_SCORE_SHIFT);
     unsigned int score = 0;
     
     const int pos_to = MOVE_GET_POS_TO(move);
@@ -31,7 +32,7 @@ static int MOVEORDER_compute_score(const chess_state_t *s, const move_t move)
         }
     }
 
-    return score;
+    return (move == killer_move) ? max : score;
 }
 
 static void MOVEORDER_sort(move_t moves[], const int num_moves)
@@ -58,7 +59,7 @@ static void MOVEORDER_sort(move_t moves[], const int num_moves)
     }
 }
 
-int MOVEORDER_order_moves(const chess_state_t *s, move_t moves[], int num_moves, const move_t best_guess)
+int MOVEORDER_order_moves(const chess_state_t *s, move_t moves[], int num_moves, const move_t best_guess, const move_t killer_move)
 {
     int i;
     
@@ -70,7 +71,7 @@ int MOVEORDER_order_moves(const chess_state_t *s, move_t moves[], int num_moves,
             moves[i] = moves[num_moves-1];
             num_moves--;
         }
-        score = MOVEORDER_compute_score(s, moves[i]);
+        score = MOVEORDER_compute_score(s, moves[i], killer_move);
         moves[i] |= score << MOVE_SCORE_SHIFT;
     }
     
@@ -87,7 +88,7 @@ int MOVEORDER_order_moves_quiescence(const chess_state_t *s, move_t moves[], int
     /* Get score for each move */
     for(i = 0; i < num_moves; i++) {
         int score;
-        score = MOVEORDER_compute_score(s, moves[i]);
+        score = MOVEORDER_compute_score(s, moves[i], 0);
         moves[i] |= score << MOVE_SCORE_SHIFT;
     }
     
