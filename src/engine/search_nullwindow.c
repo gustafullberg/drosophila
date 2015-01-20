@@ -5,7 +5,7 @@
 #include "time.h"
 #include "see.h"
 
-static inline short SEARCH_transpositiontable_retrieve(const hashtable_t *hashtable, const bitboard_t hash, const unsigned char depth, short beta, move_t *best_move, int *cutoff);
+static inline short SEARCH_transpositiontable_retrieve(const hashtable_t *hashtable, const bitboard_t hash, const unsigned char depth, const unsigned char ply, short beta, move_t *best_move, int *cutoff);
 static inline void SEARCH_transpositiontable_store(hashtable_t *hashtable, const bitboard_t hash, const unsigned char depth, const short best_score, move_t best_move, const short beta);
 
 /* Alpha-Beta search with Nega Max and null-window */
@@ -15,7 +15,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     int num_legal_moves = 0;
     int i;
     short score;
-    short best_score = SEARCH_MIN_RESULT(depth);
+    short best_score = SEARCH_MIN_RESULT(ply);
     int skip_move_generation = 0;
     move_t next_move;
     chess_state_t next_state;
@@ -58,7 +58,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         return SEARCH_nullwindow_quiescence(state, search_state, ply+1, beta);
     }
     
-    ttable_score = SEARCH_transpositiontable_retrieve(search_state->hashtable, state->hash, depth, beta, move, &cutoff);
+    ttable_score = SEARCH_transpositiontable_retrieve(search_state->hashtable, state->hash, depth, ply, beta, move, &cutoff);
     if(cutoff) {
         if(*move || state->last_move) {
             return ttable_score;
@@ -220,7 +220,7 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
     return best_score;
 }
 
-static inline short SEARCH_transpositiontable_retrieve(const hashtable_t *hashtable, const bitboard_t hash, const unsigned char depth, short beta, move_t *best_move, int *cutoff)
+static inline short SEARCH_transpositiontable_retrieve(const hashtable_t *hashtable, const bitboard_t hash, const unsigned char depth, const unsigned char ply, short beta, move_t *best_move, int *cutoff)
 {
     transposition_entry_t *ttentry = HASHTABLE_transition_retrieve(hashtable, hash);
     if(ttentry) {
@@ -230,15 +230,15 @@ static inline short SEARCH_transpositiontable_retrieve(const hashtable_t *hashta
             short score = ttentry->score;
             if(ttentry->type == TTABLE_TYPE_UPPER_BOUND) {
                 if(score < beta) {
-                    short min = SEARCH_MIN_RESULT(0);
+                    short min = SEARCH_MIN_RESULT(ply);
                     *cutoff = 1;
-                    return (score <= min) ? score + ttentry->depth - depth : score;
+                    return (score <= min) ? min : score;
                 }
             } else { /* TTABLE_TYPE_LOWER_BOUND */
                 if(score >= beta) {
-                    short max = SEARCH_MAX_RESULT(0);
+                    short max = SEARCH_MAX_RESULT(ply);
                     *cutoff = 1;
-                    return (score >= max) ? score - ttentry->depth + depth : score;
+                    return (score >= max) ? max : score;
                 }
             }
         }

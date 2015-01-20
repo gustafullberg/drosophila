@@ -16,8 +16,8 @@ short SEARCH_mtdf(const chess_state_t *s, search_state_t *search_state, const un
     /* Trick to disable null-move pruning on the first level of search */
     state.last_move = 0;
     
-    bounds[0] = SEARCH_MIN_RESULT(depth+1);
-    bounds[1] = SEARCH_MAX_RESULT(depth+1);
+    bounds[0] = SEARCH_MIN_RESULT(0);
+    bounds[1] = SEARCH_MAX_RESULT(0);
     
     while(bounds[0] < bounds[1]) {
         if(guess == bounds[0]) {

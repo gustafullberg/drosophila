@@ -8,8 +8,8 @@
 #include "engine.h"
 #include "thread.h"
 
-#define SEARCH_MIN_RESULT(depth) (-1000-((short)depth))
-#define SEARCH_MAX_RESULT(depth) (1000+((short)depth))
+#define SEARCH_MIN_RESULT(ply) (INT16_MIN+(short)ply)
+#define SEARCH_MAX_RESULT(ply) (INT16_MAX-(short)ply)
 
 #define SEARCH_ITERATIONS_BETWEEN_CLOCK_CHECK 10000
 
