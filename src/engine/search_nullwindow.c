@@ -38,6 +38,12 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         return 0;
     }
 
+    /* Internal iterative deepening */
+    if(depth >= 3) {
+        move_t dummy;
+        SEARCH_nullwindow(state, search_state, depth-1, &dummy, beta);
+    }
+
     HASHTABLE_transition_prefetch(search_state->hashtable, state->hash);
 
     is_in_check = SEARCH_is_check(state, state->player);
