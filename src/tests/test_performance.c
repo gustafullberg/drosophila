@@ -8,7 +8,7 @@
 #include <assert.h>
 #include "engine.h"
 
-#define DEPTH 11
+#define DEPTH 12
 
 void move(engine_state_t *engine, const char *move_white, const char *move_black)
 {
@@ -26,16 +26,40 @@ void move(engine_state_t *engine, const char *move_white, const char *move_black
         result = ENGINE_apply_move_san(engine, move_black);
         assert(result==0);
     }
-    
-    fprintf(stderr, ".");
 }
+
+void send_search_output(int ply, int score, int time_ms, unsigned int nodes, int pv_length, int *pos_from, int *pos_to, int *promotion_type)
+{
+    int from = pos_from[0];
+    int to = pos_to[0];
+    int promotion = promotion_type[0];
+
+    if(ply == DEPTH) {
+        fprintf(stdout, "%d\t%d\t", score, nodes);
+
+        if(promotion) {
+            char pt = 0;
+            if(promotion == 1) pt = 'n';
+            else if(promotion == 2) pt = 'b';
+            else if(promotion == 3) pt = 'r';
+            else if(promotion == 4) pt = 'q';
+            fprintf(stdout, "%c%c%c%c%c", (from%8)+'a', (from/8)+'1', (to%8)+'a', (to/8)+'1', pt);
+        } else {
+            fprintf(stdout, "%c%c%c%c", (from%8)+'a', (from/8)+'1', (to%8)+'a', (to/8)+'1');
+        }
+        fprintf(stdout, "\n");
+    }
+}
+
 
 int main()
 {
     engine_state_t *engine;
     ENGINE_create(&engine);
+    ENGINE_register_thinking_output_cb(engine, send_search_output);
     srand(0); /* Force opening book to always choose the same moves */
     
+    fprintf(stdout, "Score\tNodes\tMove\n");
     move(engine, "d4", "Nf6");
     move(engine, "c4", "e6");
     move(engine, "Nc3", "Bb4");
