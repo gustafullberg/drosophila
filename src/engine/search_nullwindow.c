@@ -72,6 +72,11 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         }
     }
 
+    /* If no hashmove, find one */
+    if(!(*move) && !skip_move_generation && depth >= 4) {
+        SEARCH_nullwindow(state, search_state, 1, 0, move, beta);
+    }
+
     /* Try hash move */
     if(!skip_move_generation && *move) {
         next_state = *state;
