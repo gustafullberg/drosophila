@@ -13,9 +13,6 @@ short SEARCH_mtdf(const chess_state_t *s, search_state_t *search_state, const un
     move_t movetemp;
     chess_state_t state = *s;
     
-    /* Trick to disable null-move pruning on the first level of search */
-    state.last_move = 0;
-    
     bounds[0] = SEARCH_MIN_RESULT(depth+1);
     bounds[1] = SEARCH_MAX_RESULT(depth+1);
     
@@ -26,7 +23,7 @@ short SEARCH_mtdf(const chess_state_t *s, search_state_t *search_state, const un
             beta = guess;
         }
 
-        guess = SEARCH_nullwindow(&state, search_state, depth, &movetemp, beta);
+        guess = SEARCH_nullwindow(&state, search_state, depth, 0, &movetemp, beta);
 
         if(guess < beta) {
             bounds[1] = guess;
