@@ -455,6 +455,13 @@ void STATE_compute_hash(chess_state_t *s)
     }
 }
 
+int STATE_risk_zugzwang(const chess_state_t *s)
+{
+    /* Risk of zugzwang if only king and pawns remain on the playing side */
+    const int player_index = NUM_TYPES*(int)s->player;
+    return s->bitboard[player_index+ALL] == (s->bitboard[player_index+PAWN] | s->bitboard[BLACK_PIECES+KING]);
+}
+
 int STATE_is_endgame(const chess_state_t *s)
 {
     bitboard_t pieces = s->bitboard[OCCUPIED];

@@ -60,7 +60,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     }
 
     /* Null move pruning */
-    if(depth > 4 && state->last_move && !STATE_is_endgame(state)) {
+    if(depth > 4 && state->last_move && !STATE_risk_zugzwang(state)) {
         if(!SEARCH_is_check(state, state->player)) {
             next_state = *state;
             STATE_apply_move(&next_state, 0);
