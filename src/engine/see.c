@@ -1,7 +1,7 @@
 #include "see.h"
 #include "eval.h"
 
-static short piece_value[] = { PAWN_VALUE, KNIGHT_VALUE, BISHOP_VALUE, ROOK_VALUE, QUEEN_VALUE, 10*QUEEN_VALUE };
+static short piece_value[] = { PAWN_VALUE, KNIGHT_VALUE, BISHOP_VALUE, ROOK_VALUE, QUEEN_VALUE, KING_VALUE };
 
 static bitboard_t SEE_find_all_attackers(const chess_state_t *s, const bitboard_t occupied, const int pos, bitboard_t *blocked_attackers)
 {
@@ -104,7 +104,7 @@ static int SEE_find_least_attacker(const chess_state_t *s, bitboard_t *occupied,
 short see(const chess_state_t *s, const move_t move)
 {
     bitboard_t attackers, blocked_attackers;
-    int type;
+    int type, last_type;
     short swap_list[32];
     int swap_idx = 2;
     int pos = MOVE_GET_POS_TO(move);
@@ -120,10 +120,12 @@ short see(const chess_state_t *s, const move_t move)
     }
     
     /* Add first captured piece to swap list */
-    swap_list[0] = piece_value[MOVE_GET_CAPTURE_TYPE(move)];
+    type = MOVE_GET_CAPTURE_TYPE(move);
+    swap_list[0] = piece_value[type];
     
     /* Add first capturing piece to swap list */
-    swap_list[1] = piece_value[MOVE_GET_TYPE(move)] - swap_list[0];
+    last_type = type = MOVE_GET_TYPE(move);
+    swap_list[1] = piece_value[type] - swap_list[0];
     
     /* Get pieces that can attack the square in question */
     attackers = SEE_find_all_attackers(s, occupied, pos, &blocked_attackers);
@@ -133,12 +135,14 @@ short see(const chess_state_t *s, const move_t move)
     while((type = SEE_find_least_attacker(s, &occupied, &attackers, &blocked_attackers, pos, color)) >= 0) {
         swap_list[swap_idx] = piece_value[type] - swap_list[swap_idx-1];
         swap_idx++;
-        color ^= 1;
 
-        /* Do not let king be captured in SEE */
-        if(type == KING) {
+        /* Stop swapping pieces when a king is captured */
+        if(last_type == KING) {
             break;
         }
+
+        last_type = type;
+        color ^= 1;
     }
     
     /* Last piece in the list is never captured */

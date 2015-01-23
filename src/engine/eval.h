@@ -9,6 +9,7 @@
 #define BISHOP_VALUE    65
 #define ROOK_VALUE     100
 #define QUEEN_VALUE    195
+#define KING_VALUE    2000 /* Only used for SEE */
 #define BISHOP_PAIR     10
 
 extern const short piecesquare[7][64];
