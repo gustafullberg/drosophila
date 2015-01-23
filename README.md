@@ -9,6 +9,20 @@ If you are developing a chess GUI, you also can compile the engine as a library 
 Drosophila was earlier named Pawned. 
 
 ## Releases
+
+**Drosophila 1.3**
+
+* New name to avoid confusion with other chess engines
+* SEE pruning of quiescence search
+* Improved evaluation function
+* Make use of null move pruning in the endgame
+* Accept xboard commands during search
+* Support for the xboard "?" command (move now)
+* Report draws due to:
+  * the 50 move rule
+  * insufficient mating material
+  * threefold repetition to the GUI
+
 **[Pawned 1.2](https://github.com/gustafullberg/drosophila/releases/download/v1.2/pawned-1.2.zip)** - 2014-12-27
 
 * Stability improvements (resolving illegal moves)
@@ -60,7 +74,7 @@ Search:
 
 * MTD(f)
 * Iterative deepening
-* Quiescence search
+* Quiescence search with SEE pruning
 * Transposition table
 * Move ordering
 * Null move pruning
@@ -73,8 +87,9 @@ Evaluation:
 
 * Material
 * Piece-square tables
-* Pawns defending minor pieces
+* Pawns defending other pawns and minor pieces
 * Pawn shield
+* Tempo
 
 ## License
 Drosophila is released under the MIT License. 
