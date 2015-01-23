@@ -27,6 +27,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
 
     *move = 0;
     
+    /* Check if time is up */
     search_state->next_clock_check--;
     if(search_state->next_clock_check <= 0) {
         search_state->next_clock_check = SEARCH_ITERATIONS_BETWEEN_CLOCK_CHECK;
@@ -38,20 +39,23 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         return 0;
     }
 
+    /* We will query the transition table soon, time to prefetch */
     HASHTABLE_transition_prefetch(search_state->hashtable, state->hash);
 
+    /* Is playing side in check? */
     is_in_check = SEARCH_is_check(state, state->player);
     
+    /* Check extension */
     if(is_in_check) {
-        /* Check extension */
         depth += 1;
     }
 
+    /* Quiescence search */
     if(depth == 0) {
-        /* Quiescence search */
         return SEARCH_nullwindow_quiescence(state, search_state, beta);
     }
     
+    /* Query the transposition table */
     ttable_score = SEARCH_transpositiontable_retrieve(search_state->hashtable, state->hash, depth, beta, move, &cutoff);
     if(cutoff) {
         if(*move || state->last_move) {
@@ -88,7 +92,10 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     }
 
     if(!skip_move_generation) {
+        /* Move generation */
         num_moves = STATE_generate_moves(state, moves);
+        
+        /* Move ordering */
         num_moves = MOVEORDER_order_moves(state, moves, num_moves, *move);
 
         /* Check if node is eligible for futility pruning */
@@ -98,6 +105,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
             }
         }
 
+        /* Iterate over all pseudo legal moves */
         for(i = 0; i < num_moves; i++) {
 
             /* Futility pruning */
@@ -107,8 +115,11 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                 }
             }
 
+            /* Apply move */
             next_state = *state;
             STATE_apply_move(&next_state, moves[i]);
+            
+            /* If not in check, the move is legal */
             if(SEARCH_is_check(&next_state, state->player)) {
                 continue;
             }
@@ -129,6 +140,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                     /* Search at reduced depth */
                     score = -SEARCH_nullwindow(&next_state, search_state, depth-2, &next_move, -beta+1);
                     if(score >= beta) {
+                        /* If reduced yields interesting results, do a full search */
                         score = -SEARCH_nullwindow(&next_state, search_state, depth-1, &next_move, -beta+1);
                     }
                 } else {
@@ -137,11 +149,13 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                 }
             }
             
+            /* Check if score improved by this move */
             if(score > best_score) {
                 best_score = score;
                 *move = moves[i];
+                
+                /* Beta-cuttoff */
                 if(best_score >= beta) {
-                    /* Beta-cuttoff */
                     HISTORY_pop(search_state->history);
                     break;
                 }
@@ -161,9 +175,12 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         }
     }
 
+    /* Store the result in the transposition table */
     if(!search_state->abort_search) {
         SEARCH_transpositiontable_store(search_state->hashtable, state->hash, depth, best_score, *move, beta);
     }
+    
+    /* Return score */
     return best_score;
 }
 
@@ -184,11 +201,12 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
         return best_score;
     }
     
+    /* Generate and order moves (captures and promotions only) */
     num_moves = STATE_generate_moves_quiescence(state, moves);
     num_moves = MOVEORDER_order_moves_quiescence(state, moves, num_moves);
     
     for(i = 0; i < num_moves; i++) {
-        /* Only try captures with SEE >= 0 */
+        /* Prune all captures with SEE < 0 */
         if(!MOVE_IS_PROMOTION(moves[i])) {
             if(see(state, moves[i]) < 0) {
                 continue;

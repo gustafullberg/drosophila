@@ -462,14 +462,6 @@ int STATE_risk_zugzwang(const chess_state_t *s)
     return s->bitboard[player_index+ALL] == (s->bitboard[player_index+PAWN] | s->bitboard[BLACK_PIECES+KING]);
 }
 
-int STATE_is_endgame(const chess_state_t *s)
-{
-    bitboard_t pieces = s->bitboard[OCCUPIED];
-    pieces ^= s->bitboard[WHITE_PIECES+PAWN];
-    pieces ^= s->bitboard[BLACK_PIECES+PAWN];
-    return BITBOARD_count_bits(pieces) <= 6;
-}
-
 void STATE_move_print_debug(const move_t move)
 {
     int pos_from = MOVE_GET_POS_FROM(move);

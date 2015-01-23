@@ -11,17 +11,20 @@
 /* Positional */
 #define PAWN_GUARDS_MINOR   3
 #define PAWN_GUARDS_PAWN    1
-#define PAWN_DOUBLE_PAWN  -10
-#define PAWN_TRIPLE_PAWN  -20
 #define PAWN_SHIELD_1       5
 #define PAWN_SHIELD_2       2
 #define TEMPO               2
 
 static const short sign[2] = { 1, -1 };
 
-static const short pawn_double_pawn_penalty[8] = {
-    0, 0, PAWN_DOUBLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN, PAWN_TRIPLE_PAWN
-};
+static int EVAL_is_endgame(const chess_state_t *s)
+{
+    /* Endgame defined as kings, pawns and up to 4 other pieces on the board */
+    bitboard_t pieces = s->bitboard[OCCUPIED];
+    pieces ^= s->bitboard[WHITE_PIECES+PAWN];
+    pieces ^= s->bitboard[BLACK_PIECES+PAWN];
+    return BITBOARD_count_bits(pieces) <= 6;
+}
 
 static short EVAL_pawn_shield(const chess_state_t *s)
 {
@@ -83,7 +86,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
     short positional_score[NUM_COLORS] = { 0, 0 };
     int king_pos[NUM_COLORS];
     short score = 0;
-    int is_endgame = STATE_is_endgame(s);
+    int is_endgame = EVAL_is_endgame(s);
     int color;
     bitboard_t pieces;
     int pos;

@@ -296,6 +296,7 @@ void cmd_usermove(state_t *state, engine_state_t *engine, const char *move_str, 
     }
 }
 
+/* Process command from GUI */
 static void process_command(engine_state_t *engine, char *command, state_t *state)
 {
     /* Commands that do reqire action from the engine */
