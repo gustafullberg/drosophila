@@ -2,7 +2,7 @@
 
 # RUN THIS SCRIPT FROM THE PROJECT'S ROOT LEVEL DIRECTORY
 
-INSTALL_DIR=drosophila-1.2
+INSTALL_DIR=drosophila-1.3
 
 mkdir -p release_build
 cd release_build

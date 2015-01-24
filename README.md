@@ -10,7 +10,7 @@ Drosophila was earlier named Pawned.
 
 ## Releases
 
-**Drosophila 1.3**
+**[Drosophila 1.3](https://github.com/gustafullberg/drosophila/releases/download/v1.3/drosophila-1.3.zip)** - 2015-01-24
 
 * New name to avoid confusion with other chess engines
 * SEE pruning of quiescence search
