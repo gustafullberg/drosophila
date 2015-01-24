@@ -66,9 +66,10 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     /* Null move pruning */
     if(depth > 4 && state->last_move && !STATE_risk_zugzwang(state)) {
         if(!SEARCH_is_check(state, state->player)) {
+            unsigned char R_plus_1 = ((depth > 5) ? 4 : 3);
             next_state = *state;
             STATE_apply_move(&next_state, 0);
-            score = -SEARCH_nullwindow(&next_state, search_state, depth-3, &next_move, -beta+1);
+            score = -SEARCH_nullwindow(&next_state, search_state, depth-R_plus_1, &next_move, -beta+1);
             if(score >= beta) {
                 best_score = beta;
                 skip_move_generation = 1;
