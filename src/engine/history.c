@@ -60,6 +60,10 @@ int HISTORY_is_repetition(const history_t *h, const int halfmove_clock)
         }
     }
 
+    if(halfmove_clock >= 100) {
+        return 1;
+    }
+
     return 0;
 }
 
