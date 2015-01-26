@@ -218,9 +218,36 @@ int EVAL_position_is_attacked(const chess_state_t *s, const int color, const int
 /* Returns non-zero if draw may be claimed due to insufficient material */
 int EVAL_insufficient_material(const chess_state_t *s)
 {
-    /* Only kings left */
-    if(s->bitboard[OCCUPIED] == (s->bitboard[WHITE_PIECES+KING] | s->bitboard[BLACK_PIECES+KING])) {
+    int num_pieces = BITBOARD_count_bits(s->bitboard[OCCUPIED]);
+    bitboard_t no_kings;
+
+    switch(num_pieces){
+    case 2:
+        /* Only kings left */
         return 1;
+
+    case 3:
+        /* KN-K or KB-K */
+        if(s->bitboard[WHITE_PIECES+KNIGHT] | s->bitboard[WHITE_PIECES+BISHOP] | s->bitboard[BLACK_PIECES+KNIGHT] | s->bitboard[BLACK_PIECES+BISHOP]) {
+            return 1;
+        }
+        break;
+
+    case 4:
+        /* KNN-K */
+        no_kings = s->bitboard[OCCUPIED] ^ (s->bitboard[WHITE_PIECES+KING] | s->bitboard[BLACK_PIECES+KING]);
+        if(s->bitboard[WHITE_PIECES+KNIGHT] == no_kings || s->bitboard[BLACK_PIECES+KNIGHT] == no_kings) {
+            return 1;
+        }
+
+        /* KB-KB (same color) */
+        if(s->bitboard[WHITE_PIECES+BISHOP] && s->bitboard[BLACK_PIECES+BISHOP]) {
+            bitboard_t bishops = s->bitboard[WHITE_PIECES+BISHOP] & s->bitboard[BLACK_PIECES+BISHOP];
+            if(((bishops & BITBOARD_WHITE_SQ) == 0) || ((bishops & BITBOARD_BLACK_SQ) == 0)) {
+                return 1;
+            }
+        }
+        break;
     }
     
     return 0;
