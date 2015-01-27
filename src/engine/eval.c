@@ -166,6 +166,16 @@ short EVAL_evaluate_board(const chess_state_t *s)
         score += EVAL_pawn_guards_minor_piece(s);
     }
 
+    if(score > 0) {
+        if(material_score[WHITE] <= 2*BISHOP_VALUE && (!(s->bitboard[WHITE_PIECES+PAWN] | s->bitboard[WHITE_PIECES+ROOK]))) {
+            score = score >> 3;
+        }
+    } else {
+        if(material_score[BLACK] <= 2*BISHOP_VALUE && (!(s->bitboard[BLACK_PIECES+PAWN] | s->bitboard[BLACK_PIECES+ROOK]))) {
+            score = -(-score >> 3);
+        }
+    }
+
     /* Invert score for black player */
     score *= sign[(int)(s->player)];
 
