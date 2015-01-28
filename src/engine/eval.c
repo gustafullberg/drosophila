@@ -13,6 +13,10 @@
 #define PAWN_GUARDS_PAWN    1
 #define PAWN_SHIELD_1       5
 #define PAWN_SHIELD_2       2
+#define PAWN_BACKWARD       0
+#define PAWN_PASSED         0
+#define PAWN_DOUBLED        0
+#define PAWN_ISOLATED       0
 #define TEMPO               2
 
 static const short sign[2] = { 1, -1 };
@@ -24,6 +28,60 @@ static int EVAL_is_endgame(const chess_state_t *s)
     pieces ^= s->bitboard[WHITE_PIECES+PAWN];
     pieces ^= s->bitboard[BLACK_PIECES+PAWN];
     return BITBOARD_count_bits(pieces) <= 6;
+}
+
+static void EVAL_pawn_types(const chess_state_t *s, bitboard_t attack[2], bitboard_t *backwardPawns, bitboard_t *passedPawns, bitboard_t *doubledPawns, bitboard_t *isolatedPawns)
+{
+    bitboard_t pawns[2];
+    bitboard_t stop[2];
+    bitboard_t frontFill[2];
+    bitboard_t attackSpan[2];
+    bitboard_t attackFrontFill[2];
+    bitboard_t attackFileFill[2];
+
+    /* Location of pawns */
+    pawns[WHITE] = s->bitboard[WHITE_PIECES+PAWN];
+    pawns[BLACK] = s->bitboard[BLACK_PIECES+PAWN];
+
+    /* Squares attacked by pawns */
+    attack[WHITE] = ((pawns[WHITE] & ~(BITBOARD_FILE<<0)) << 7) | ((pawns[WHITE] & ~(BITBOARD_FILE<<7)) << 9);
+    attack[BLACK] = ((pawns[BLACK] & ~(BITBOARD_FILE<<0)) >> 9) | ((pawns[BLACK] & ~(BITBOARD_FILE<<7)) >> 7);
+
+    /* Stop squares */
+    stop[WHITE] = pawns[WHITE] << 8;
+    stop[BLACK] = pawns[BLACK] >> 8;
+
+    /* Front-fill */
+    frontFill[WHITE] = BITBOARD_fillNorth(pawns[WHITE]);
+    frontFill[BLACK] = BITBOARD_fillSouth(pawns[BLACK]);
+
+    /* Attack-span */
+    attackSpan[WHITE] = BITBOARD_fillNorth(attack[WHITE]);
+    attackSpan[BLACK] = BITBOARD_fillSouth(attack[BLACK]);
+
+    /* Combined front-fill and attack-span */
+    attackFrontFill[WHITE] = frontFill[WHITE] | attackSpan[WHITE];
+    attackFrontFill[BLACK] = frontFill[BLACK] | attackSpan[BLACK];
+
+    /* Fill in both directions */
+    attackFileFill[WHITE] = BITBOARD_fillSouth(attackSpan[WHITE]);
+    attackFileFill[BLACK] = BITBOARD_fillNorth(attackSpan[BLACK]);
+
+    /* Backward pawns */
+    *backwardPawns = ((stop[WHITE] & attack[BLACK] & ~attackSpan[WHITE]) >> 8) |
+                     ((stop[BLACK] & attack[WHITE] & ~attackSpan[BLACK]) << 8);
+
+    /* Passed pawns */
+    *passedPawns = (pawns[WHITE] & ~attackFrontFill[BLACK]) |
+                   (pawns[BLACK] & ~attackFrontFill[WHITE]);
+
+    /* Doubled pawns */
+    *doubledPawns = ((frontFill[WHITE] << 8) & pawns[WHITE]) |
+                    ((frontFill[BLACK] >> 8) & pawns[BLACK]);
+
+    /* Isolated pawns */
+    *isolatedPawns = (pawns[WHITE] & attackFileFill[WHITE]) |
+                     (pawns[BLACK] & attackFileFill[BLACK]);
 }
 
 static short EVAL_pawn_shield(const chess_state_t *s)
@@ -53,54 +111,30 @@ static short EVAL_pawn_shield(const chess_state_t *s)
     return score;
 }
 
-static inline short EVAL_pawn_guards_minor_piece(const chess_state_t *s)
-{
-    short score;
-
-    /* Bitboards with knights and bishops */
-    bitboard_t white_minor = s->bitboard[WHITE_PIECES + KNIGHT] | s->bitboard[WHITE_PIECES + BISHOP];
-    bitboard_t black_minor = s->bitboard[BLACK_PIECES + KNIGHT] | s->bitboard[BLACK_PIECES + BISHOP];
-    
-    /* Bitboards with pawns */
-    bitboard_t white_pawn = s->bitboard[WHITE_PIECES + PAWN];
-    bitboard_t black_pawn = s->bitboard[BLACK_PIECES + PAWN];
-    
-    /* Pawn guard squares */
-    bitboard_t white_guard = (white_pawn & ~(BITBOARD_FILE << 0)) << 7 |
-                             (white_pawn & ~(BITBOARD_FILE << 7)) << 9;
-    bitboard_t black_guard = (black_pawn & ~(BITBOARD_FILE << 0)) >> 9 |
-                             (black_pawn & ~(BITBOARD_FILE << 7)) >> 7;
-    
-    /* Number of minor pieces guarded by pawns */
-    score = PAWN_GUARDS_MINOR * (BITBOARD_count_bits(white_guard & white_minor) - BITBOARD_count_bits(black_guard & black_minor));
-
-    /* Number of pawns guarded by pawns */
-    score += PAWN_GUARDS_PAWN  * (BITBOARD_count_bits(white_guard & white_pawn) - BITBOARD_count_bits(black_guard & black_pawn));
-
-    return score;
-}
-
 short EVAL_evaluate_board(const chess_state_t *s)
 {
     short material_score[NUM_COLORS] = { 0, 0 };
     short positional_score[NUM_COLORS] = { 0, 0 };
+    short positional_score_o[NUM_COLORS] = { 0, 0 };
+    short positional_score_e[NUM_COLORS] = { 0, 0 };
     int king_pos[NUM_COLORS];
     short score = 0;
     int is_endgame = EVAL_is_endgame(s);
     int color;
     bitboard_t pieces;
     int pos;
+    bitboard_t pos_bitboard;
+    bitboard_t pawnAttacks[2], backwardPawns, passedPawns, doubledPawns, isolatedPawns;
+
+    EVAL_pawn_types(s, pawnAttacks, &backwardPawns, &passedPawns, &doubledPawns, &isolatedPawns);
     
     /* Kings */
     king_pos[WHITE] = BITBOARD_find_bit(s->bitboard[WHITE_PIECES + KING]);
     king_pos[BLACK] = BITBOARD_find_bit(s->bitboard[BLACK_PIECES + KING]);
-    if(is_endgame) {
-        positional_score[WHITE] += piecesquare[KING+1][king_pos[WHITE]];
-        positional_score[BLACK] += piecesquare[KING+1][king_pos[BLACK]^0x38];
-    } else {
-        positional_score[WHITE] += piecesquare[KING][king_pos[WHITE]];
-        positional_score[BLACK] += piecesquare[KING][king_pos[BLACK]^0x38];
-    }
+    positional_score_o[WHITE] += piecesquare[KING][king_pos[WHITE]];
+    positional_score_o[BLACK] += piecesquare[KING][king_pos[BLACK]^0x38];
+    positional_score_e[WHITE] += piecesquare[KING+1][king_pos[WHITE]];
+    positional_score_e[BLACK] += piecesquare[KING+1][king_pos[BLACK]^0x38];
     
     for(color = WHITE; color <= BLACK; color++) {
         int pos_mask = color * 0x38;
@@ -109,18 +143,22 @@ short EVAL_evaluate_board(const chess_state_t *s)
         pieces = s->bitboard[NUM_TYPES*color + PAWN];
         while(pieces) {
             pos = BITBOARD_find_bit(pieces);
+            pos_bitboard = BITBOARD_POSITION(pos);
             material_score[color] += PAWN_VALUE;
             positional_score[color] += piecesquare[PAWN][pos^pos_mask];
-            pieces ^= BITBOARD_POSITION(pos);
+            positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? PAWN_GUARDS_PAWN : 0; /* Guarded by other pawn */
+            pieces ^= pos_bitboard;
         }
         
         /* Knights */
         pieces = s->bitboard[NUM_TYPES*color + KNIGHT];
         while(pieces) {
             pos = BITBOARD_find_bit(pieces);
+            pos_bitboard = BITBOARD_POSITION(pos);
             material_score[color] += KNIGHT_VALUE;
             positional_score[color] += piecesquare[KNIGHT][pos^pos_mask];
-            pieces ^= BITBOARD_POSITION(pos);
+            positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? PAWN_GUARDS_MINOR : 0; /* Guarded by pawn */
+            pieces ^= pos_bitboard;
         }
         
         /* Bishops */
@@ -131,9 +169,11 @@ short EVAL_evaluate_board(const chess_state_t *s)
         }
         while(pieces) {
             pos = BITBOARD_find_bit(pieces);
+            pos_bitboard = BITBOARD_POSITION(pos);
             material_score[color] += BISHOP_VALUE;
             positional_score[color] += piecesquare[BISHOP][pos^pos_mask];
-            pieces ^= BITBOARD_POSITION(pos);
+            positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? PAWN_GUARDS_MINOR : 0; /* Guarded by pawn */
+            pieces ^= pos_bitboard;
         }
 
         /* Rooks */
@@ -162,8 +202,9 @@ short EVAL_evaluate_board(const chess_state_t *s)
         /* Pawn shield */
         score += EVAL_pawn_shield(s);
 
-        /* Pawns guarding minor pieces */
-        score += EVAL_pawn_guards_minor_piece(s);
+        score += positional_score_o[WHITE] - positional_score_o[BLACK];
+    } else {
+        score += positional_score_e[WHITE] - positional_score_e[BLACK];
     }
 
     /* Invert score for black player */
