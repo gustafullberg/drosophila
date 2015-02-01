@@ -21,16 +21,22 @@
 
 static const short sign[2] = { 1, -1 };
 
-static int EVAL_is_endgame(const chess_state_t *s)
+/* Game progress: 256 = opening, 0 = endgame */
+int EVAL_game_progress(short material[2])
 {
-    /* Endgame defined as kings, pawns and up to 4 other pieces on the board */
-    bitboard_t pieces = s->bitboard[OCCUPIED];
-    pieces ^= s->bitboard[WHITE_PIECES+PAWN];
-    pieces ^= s->bitboard[BLACK_PIECES+PAWN];
-    return BITBOARD_count_bits(pieces) <= 6;
+    const int m_hi = 2 * (QUEEN_VALUE + 2 * ROOK_VALUE + BISHOP_VALUE);
+    const int m_lo = 2 * (2 * KNIGHT_VALUE);
+    const int sum_material = material[WHITE] + material[BLACK];
+    if(sum_material > m_hi) {
+        return 256;
+    } else if(sum_material < m_lo) {
+        return 0;
+    } else {
+        return 256 * (sum_material - m_lo) / (m_hi - m_lo);
+    }
 }
 
-static void EVAL_pawn_types(const chess_state_t *s, bitboard_t attack[2], bitboard_t *backwardPawns, bitboard_t *passedPawns, bitboard_t *doubledPawns, bitboard_t *isolatedPawns)
+void EVAL_pawn_types(const chess_state_t *s, bitboard_t attack[2], bitboard_t *backwardPawns, bitboard_t *passedPawns, bitboard_t *doubledPawns, bitboard_t *isolatedPawns)
 {
     bitboard_t pawns[2];
     bitboard_t stop[2];
@@ -113,13 +119,14 @@ static short EVAL_pawn_shield(const chess_state_t *s)
 
 short EVAL_evaluate_board(const chess_state_t *s)
 {
+    short pawn_material_score[NUM_COLORS] = { 0, 0 };
     short material_score[NUM_COLORS] = { 0, 0 };
     short positional_score[NUM_COLORS] = { 0, 0 };
     short positional_score_o[NUM_COLORS] = { 0, 0 };
     short positional_score_e[NUM_COLORS] = { 0, 0 };
     int king_pos[NUM_COLORS];
     short score = 0;
-    int is_endgame = EVAL_is_endgame(s);
+    int game_progress;
     int color;
     bitboard_t pieces;
     int pos;
@@ -144,7 +151,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
         while(pieces) {
             pos = BITBOARD_find_bit(pieces);
             pos_bitboard = BITBOARD_POSITION(pos);
-            material_score[color] += PAWN_VALUE;
+            pawn_material_score[color] += PAWN_VALUE;
             positional_score[color] += piecesquare[PAWN][pos^pos_mask];
             positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? PAWN_GUARDS_PAWN : 0; /* Guarded by other pawn */
             pieces ^= pos_bitboard;
@@ -195,18 +202,19 @@ short EVAL_evaluate_board(const chess_state_t *s)
         }
     }
     
+    score += pawn_material_score[WHITE] - pawn_material_score[BLACK];
     score += material_score[WHITE] - material_score[BLACK];
     score += positional_score[WHITE] - positional_score[BLACK];
+
+
+    /* Pawn shield (TODO: Refactor) */
+    positional_score_o[WHITE] += EVAL_pawn_shield(s);
+
+    /* Add positional scores weighted by the progress of the game */
+    game_progress = EVAL_game_progress(material_score);
+    score += (game_progress * (positional_score_o[WHITE] - positional_score_o[BLACK]) +
+             (256 - game_progress) * (positional_score_e[WHITE] - positional_score_e[BLACK])) / 256;
     
-    if(!is_endgame) {
-        /* Pawn shield */
-        score += EVAL_pawn_shield(s);
-
-        score += positional_score_o[WHITE] - positional_score_o[BLACK];
-    } else {
-        score += positional_score_e[WHITE] - positional_score_e[BLACK];
-    }
-
     /* Invert score for black player */
     score *= sign[(int)(s->player)];
 
