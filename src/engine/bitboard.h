@@ -120,17 +120,17 @@ static inline int BITBOARD_count_bits(bitboard_t bitboard)
 
 static inline bitboard_t BITBOARD_fillNorth(bitboard_t b)
 {
-    b <<=  8;
-    b <<= 16;
-    b <<= 32;
+    b |= b << 8;
+    b |= b << 16;
+    b |= b << 32;
     return b;
 }
 
 static inline bitboard_t BITBOARD_fillSouth(bitboard_t b)
 {
-    b >>=  8;
-    b >>= 16;
-    b >>= 32;
+    b |= b >> 8;
+    b |= b >> 16;
+    b |= b >> 32;
     return b;
 }
 

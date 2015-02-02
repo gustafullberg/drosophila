@@ -86,8 +86,8 @@ void EVAL_pawn_types(const chess_state_t *s, bitboard_t attack[2], bitboard_t *b
                     ((frontFill[BLACK] >> 8) & pawns[BLACK]);
 
     /* Isolated pawns */
-    *isolatedPawns = (pawns[WHITE] & attackFileFill[WHITE]) |
-                     (pawns[BLACK] & attackFileFill[BLACK]);
+    *isolatedPawns = (pawns[WHITE] & ~attackFileFill[WHITE]) |
+                     (pawns[BLACK] & ~attackFileFill[BLACK]);
 }
 
 static short EVAL_pawn_shield(const chess_state_t *s)

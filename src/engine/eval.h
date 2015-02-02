@@ -14,6 +14,7 @@
 
 extern const short piecesquare[7][64];
 
+void  EVAL_pawn_types(const chess_state_t *s, bitboard_t attack[2], bitboard_t *backwardPawns, bitboard_t *passedPawns, bitboard_t *doubledPawns, bitboard_t *isolatedPawns);
 short EVAL_evaluate_board(const chess_state_t *s);
 int   EVAL_position_is_attacked(const chess_state_t *s, const int color, const int pos);
 int   EVAL_insufficient_material(const chess_state_t *s);

@@ -5,6 +5,12 @@ add_executable(
 target_link_libraries(test_bitboard ${LIB_NAME})
 
 add_executable(
+    test_eval
+    test_eval.c
+)
+target_link_libraries(test_eval ${LIB_NAME})
+
+add_executable(
     test_moves
     test_moves.c
 )
