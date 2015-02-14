@@ -59,6 +59,7 @@ extern const bitboard_t bitboard_zobrist_color;
 extern const bitboard_t bitboard_zobrist_ep[NUM_FILES+1];
 extern const bitboard_t bitboard_zobrist_castling[NUM_COLORS][4];
 extern uint32_t   bitboard_zobrist_pawn[NUM_COLORS][NUM_POSITIONS];
+extern char       distance[NUM_POSITIONS][NUM_POSITIONS];
 
 void BITBOARD_init();
 void BITBOARD_print_debug(const bitboard_t bitboard);

@@ -30,6 +30,7 @@ bitboard_t bitboard_king_castle_empty[NUM_COLORS];
 bitboard_t bitboard_queen_castle_empty[NUM_COLORS];
 bitboard_t bitboard_start_position[NUM_COLORS][NUM_TYPES-1];
 uint32_t   bitboard_zobrist_pawn[NUM_COLORS][NUM_POSITIONS];
+char       distance[NUM_POSITIONS][NUM_POSITIONS];
 
 static uint32_t BITBOARD_random_uint32();
 
@@ -242,6 +243,18 @@ void BITBOARD_init()
     for(color = 0; color < NUM_COLORS; color++) {
         for(i = 0; i < NUM_POSITIONS; i++) {
             bitboard_zobrist_pawn[color][i] = BITBOARD_random_uint32();
+        }
+    }
+
+    for(i = 0; i < NUM_POSITIONS; i++) {
+        for(j = 0; j < NUM_POSITIONS; j++) {
+            int dx, dy;
+            dx = BITBOARD_GET_FILE(j) - BITBOARD_GET_FILE(i);
+            dy = BITBOARD_GET_RANK(j) - BITBOARD_GET_RANK(i);
+            if(dx < 0) dx = -dx;
+            if(dy < 0) dy = -dy;
+            if(dx < dy) dx = dy;
+            distance[i][j] = (char)dx;
         }
     }
 }

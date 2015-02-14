@@ -117,6 +117,38 @@ static short EVAL_pawn_shield(const chess_state_t *s)
     return score;
 }
 
+static inline int EVAL_pawn_promotion_defended_by_king(const int color, const bitboard_t pos_pawn_bitboard, const int pos_king)
+{
+    bitboard_t frontFill;
+    if(color == WHITE) frontFill = BITBOARD_fillNorth(pos_pawn_bitboard);
+    else               frontFill = BITBOARD_fillNorth(pos_pawn_bitboard);
+
+    if(((bitboard_king[pos_king] & frontFill) == frontFill) && ((BITBOARD_POSITION(pos_king) & frontFill) == 0)) {
+        /* Own king defends full path to promotion */
+        return 1;
+    }
+
+    return 0;
+}
+
+static inline int EVAL_pawn_promotion_unstoppable_by_king(const int color, const int pos_pawn, const int rank, const int pos_opponent_king)
+{
+    int promotion_sq;
+    int dist_opponent_king_to_promotion_sq;
+    int dist_to_promotion_sq = 7 - rank;
+
+    if(color == WHITE) promotion_sq = pos_pawn + 8 * dist_to_promotion_sq;
+    else promotion_sq = pos_pawn - 8 * dist_to_promotion_sq;
+
+    dist_opponent_king_to_promotion_sq = distance[promotion_sq][pos_opponent_king];
+
+    if(dist_to_promotion_sq < dist_opponent_king_to_promotion_sq) {
+        return 1;
+    }
+
+    return 0;
+}
+
 short EVAL_evaluate_board(const chess_state_t *s)
 {
     short pawn_material_score[NUM_COLORS] = { 0, 0 };
@@ -149,11 +181,36 @@ short EVAL_evaluate_board(const chess_state_t *s)
         /* Pawns */
         pieces = s->bitboard[NUM_TYPES*color + PAWN];
         while(pieces) {
+            int rank;
             pos = BITBOARD_find_bit(pieces);
             pos_bitboard = BITBOARD_POSITION(pos);
+            rank = BITBOARD_GET_RANK(pos^pos_mask);
             pawn_material_score[color] += PAWN_VALUE;
             positional_score[color] += piecesquare[PAWN][pos^pos_mask];
             positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? PAWN_GUARDS_PAWN : 0; /* Guarded by other pawn */
+
+            /* Passed pawn */
+            if(pos_bitboard & passedPawns) {
+                positional_score_o[color] += 2;
+                positional_score_e[color] += 4;
+
+                /* Defended by own king */
+                if(bitboard_king[pos] & BITBOARD_POSITION(king_pos[color])) {
+                    positional_score_e[color] += 10;
+                    if(EVAL_pawn_promotion_defended_by_king(color, pos_bitboard, king_pos[color])) {
+                        positional_score_e[color] += 10;
+                    }
+                }
+
+                /* Threatened by opponent king */
+                if(bitboard_king[pos] & BITBOARD_POSITION(king_pos[color^1])) {
+                    positional_score_e[color] -= 10;
+                } else {
+                    if(EVAL_pawn_promotion_unstoppable_by_king(color, pos, rank, king_pos[color^1])) {
+                        positional_score_e[color] += 20;
+                    }
+                }
+            }
             pieces ^= pos_bitboard;
         }
         
