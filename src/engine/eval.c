@@ -211,6 +211,13 @@ short EVAL_evaluate_board(const chess_state_t *s)
                     }
                 }
             }
+
+            /* Isolated pawn */
+            if(pos_bitboard & isolatedPawns) {
+                positional_score_o[color] += -1;
+                positional_score_e[color] += -2;
+            }
+
             pieces ^= pos_bitboard;
         }
         
