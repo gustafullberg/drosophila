@@ -19,6 +19,11 @@
 #define PAWN_ISOLATED       0
 #define TEMPO               2
 
+static const int king_queen_tropism[8]  = { 0,  7, 7, 5, 0, 0, 0, 0 };
+static const int king_rook_tropism[8]   = { 0,  5, 5, 3, 0, 0, 0, 0 };
+static const int king_bishop_tropism[8] = { 0,  3, 3, 2, 0, 0, 0, 0 };
+static const int king_knight_tropism[8] = { 0,  0, 0, 2, 0, 0, 0, 0 };
+
 static const short sign[2] = { 1, -1 };
 
 /* Game progress: 256 = opening, 0 = endgame */
@@ -229,6 +234,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
             material_score[color] += KNIGHT_VALUE;
             positional_score[color] += piecesquare[KNIGHT][pos^pos_mask];
             positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? PAWN_GUARDS_MINOR : 0; /* Guarded by pawn */
+            positional_score[color] += king_knight_tropism[(int)distance[king_pos[color^1]][pos]];
             pieces ^= pos_bitboard;
         }
         
@@ -244,6 +250,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
             material_score[color] += BISHOP_VALUE;
             positional_score[color] += piecesquare[BISHOP][pos^pos_mask];
             positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? PAWN_GUARDS_MINOR : 0; /* Guarded by pawn */
+            positional_score[color] += king_bishop_tropism[(int)distance[king_pos[color^1]][pos]];
             pieces ^= pos_bitboard;
         }
 
@@ -253,6 +260,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
             pos = BITBOARD_find_bit(pieces);
             material_score[color] += ROOK_VALUE;
             positional_score[color] += piecesquare[ROOK][pos^pos_mask];
+            positional_score[color] += king_rook_tropism[(int)distance[king_pos[color^1]][pos]];
             pieces ^= BITBOARD_POSITION(pos);
         }
         
@@ -262,6 +270,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
             pos = BITBOARD_find_bit(pieces);
             material_score[color] += QUEEN_VALUE;
             positional_score[color] += piecesquare[QUEEN][pos^pos_mask];
+            positional_score[color] += king_queen_tropism[(int)distance[king_pos[color^1]][pos]];
             pieces ^= BITBOARD_POSITION(pos);
         }
     }
