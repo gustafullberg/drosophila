@@ -216,6 +216,12 @@ short EVAL_evaluate_board(const chess_state_t *s)
             if(pos_bitboard & isolatedPawns) {
                 positional_score_o[color] += -1;
                 positional_score_e[color] += -2;
+
+                /* Isolated and doubled */
+                if(pos_bitboard & doubledPawns) {
+                    positional_score_o[color] -= 2;
+                    positional_score_e[color] -= 8;
+                }
             }
 
             pieces ^= pos_bitboard;
