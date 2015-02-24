@@ -9,15 +9,18 @@
 #define BISHOP_PAIR     10
 
 /* Positional */
-#define PAWN_GUARDS_MINOR   3
-#define PAWN_GUARDS_PAWN    1
-#define PAWN_SHIELD_1       5
-#define PAWN_SHIELD_2       2
-#define PAWN_BACKWARD       0
-#define PAWN_PASSED         0
-#define PAWN_DOUBLED        0
-#define PAWN_ISOLATED       0
-#define TEMPO               2
+#define PAWN_GUARDS_MINOR                3
+#define PAWN_GUARDS_PAWN                 1
+#define PAWN_SHIELD_1                    5
+#define PAWN_SHIELD_2                    2
+#define PAWN_BACKWARD                    0
+#define PAWN_PASSED_O                   10
+#define PAWN_PASSED_E                   10
+#define PAWN_PASSED_DIST_OPP_KING_E      5
+#define PAWN_PASSED_DIST_OWN_KING_E     -5
+#define PAWN_ISOLATED_O                 -1
+#define PAWN_ISOLATED_E                 -2
+#define TEMPO                            2
 
 static const int king_queen_tropism[8]  = { 0,  7, 7, 5, 0, 0, 0, 0 };
 static const int king_rook_tropism[8]   = { 0,  5, 5, 3, 0, 0, 0, 0 };
@@ -122,38 +125,6 @@ static short EVAL_pawn_shield(const chess_state_t *s)
     return score;
 }
 
-static inline int EVAL_pawn_promotion_defended_by_king(const int color, const bitboard_t pos_pawn_bitboard, const int pos_king)
-{
-    bitboard_t frontFill;
-    if(color == WHITE) frontFill = BITBOARD_fillNorth(pos_pawn_bitboard);
-    else               frontFill = BITBOARD_fillNorth(pos_pawn_bitboard);
-
-    if(((bitboard_king[pos_king] & frontFill) == frontFill) && ((BITBOARD_POSITION(pos_king) & frontFill) == 0)) {
-        /* Own king defends full path to promotion */
-        return 1;
-    }
-
-    return 0;
-}
-
-static inline int EVAL_pawn_promotion_unstoppable_by_king(const int color, const int pos_pawn, const int rank, const int pos_opponent_king)
-{
-    int promotion_sq;
-    int dist_opponent_king_to_promotion_sq;
-    int dist_to_promotion_sq = 7 - rank;
-
-    if(color == WHITE) promotion_sq = pos_pawn + 8 * dist_to_promotion_sq;
-    else promotion_sq = pos_pawn - 8 * dist_to_promotion_sq;
-
-    dist_opponent_king_to_promotion_sq = distance[promotion_sq][pos_opponent_king];
-
-    if(dist_to_promotion_sq < dist_opponent_king_to_promotion_sq) {
-        return 1;
-    }
-
-    return 0;
-}
-
 short EVAL_evaluate_board(const chess_state_t *s)
 {
     short pawn_material_score[NUM_COLORS] = { 0, 0 };
@@ -196,31 +167,20 @@ short EVAL_evaluate_board(const chess_state_t *s)
 
             /* Passed pawn */
             if(pos_bitboard & passedPawns) {
-                positional_score_o[color] += 2;
-                positional_score_e[color] += 4;
+                short bonus_o = PAWN_PASSED_O;
+                short bonus_e = PAWN_PASSED_E;
 
-                /* Defended by own king */
-                if(bitboard_king[pos] & BITBOARD_POSITION(king_pos[color])) {
-                    positional_score_e[color] += 10;
-                    if(EVAL_pawn_promotion_defended_by_king(color, pos_bitboard, king_pos[color])) {
-                        positional_score_e[color] += 10;
-                    }
-                }
+                bonus_e += distance[king_pos[color^1]][pos] * PAWN_PASSED_DIST_OPP_KING_E;
+                bonus_e += distance[king_pos[color]][pos] * PAWN_PASSED_DIST_OWN_KING_E;
 
-                /* Threatened by opponent king */
-                if(bitboard_king[pos] & BITBOARD_POSITION(king_pos[color^1])) {
-                    positional_score_e[color] -= 10;
-                } else {
-                    if(EVAL_pawn_promotion_unstoppable_by_king(color, pos, rank, king_pos[color^1])) {
-                        positional_score_e[color] += 20;
-                    }
-                }
+                positional_score_o[color] += (short)((int)bonus_o * rank * rank / 36);
+                positional_score_e[color] += (short)((int)bonus_e * rank * rank / 36);
             }
 
             /* Isolated pawn */
             if(pos_bitboard & isolatedPawns) {
-                positional_score_o[color] += -1;
-                positional_score_e[color] += -2;
+                positional_score_o[color] += PAWN_ISOLATED_O;
+                positional_score_e[color] += PAWN_ISOLATED_E;
             }
 
             pieces ^= pos_bitboard;
