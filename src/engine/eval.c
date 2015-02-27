@@ -20,6 +20,10 @@
 #define PAWN_PASSED_DIST_OWN_KING_E     -5
 #define PAWN_ISOLATED_O                 -1
 #define PAWN_ISOLATED_E                 -2
+#define ROOK_OPEN_FILE_O                 8
+#define ROOK_OPEN_FILE_E                 4
+#define ROOK_HALFOPEN_FILE_O             4
+#define ROOK_HALFOPEN_FILE_E             2
 #define TEMPO                            2
 
 static const int king_queen_tropism[8]  = { 0,  7, 7, 5, 0, 0, 0, 0 };
@@ -217,10 +221,26 @@ short EVAL_evaluate_board(const chess_state_t *s)
         /* Rooks */
         pieces = s->bitboard[NUM_TYPES*color + ROOK];
         while(pieces) {
+            bitboard_t file;
             pos = BITBOARD_find_bit(pieces);
             material_score[color] += ROOK_VALUE;
             positional_score[color] += piecesquare[ROOK][pos^pos_mask];
             positional_score[color] += king_rook_tropism[(int)distance[king_pos[color^1]][pos]];
+            
+            /* Check for (half-)open files */
+            file = (BITBOARD_FILE << BITBOARD_GET_FILE(pos));
+            if((file & s->bitboard[NUM_TYPES*color + PAWN]) == 0) {
+                if((file & s->bitboard[NUM_TYPES*(color^1) + PAWN]) == 0) {
+                    /* Open file */
+                    positional_score_o[color] += ROOK_OPEN_FILE_O;
+                    positional_score_e[color] += ROOK_OPEN_FILE_E;
+                } else {
+                    /* Half-open file */
+                    positional_score_o[color] += ROOK_HALFOPEN_FILE_O;
+                    positional_score_e[color] += ROOK_HALFOPEN_FILE_E;
+                }
+            }
+            
             pieces ^= BITBOARD_POSITION(pos);
         }
         
