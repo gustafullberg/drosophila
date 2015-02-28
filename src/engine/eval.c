@@ -18,7 +18,7 @@
 #define PAWN_PASSED_E                   10
 #define PAWN_PASSED_DIST_OPP_KING_E      5
 #define PAWN_PASSED_DIST_OWN_KING_E     -5
-#define PAWN_ISOLATED_O                 -1
+#define PAWN_ISOLATED_O                 -3
 #define PAWN_ISOLATED_E                 -2
 #define ROOK_OPEN_FILE_O                 8
 #define ROOK_OPEN_FILE_E                 4
