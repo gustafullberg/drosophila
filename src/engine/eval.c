@@ -18,6 +18,7 @@
 #define PAWN_PASSED_E                   10
 #define PAWN_PASSED_DIST_OPP_KING_E      5
 #define PAWN_PASSED_DIST_OWN_KING_E     -5
+#define PAWN_PASSED_UNBLOCKED_E         10
 #define PAWN_ISOLATED_O                 -3
 #define PAWN_ISOLATED_E                 -2
 #define ROOK_OPEN_FILE_O                 8
@@ -171,12 +172,20 @@ short EVAL_evaluate_board(const chess_state_t *s)
 
             /* Passed pawn */
             if(pos_bitboard & passedPawns) {
+                /* Initial bonus for passed pawn */
                 short bonus_o = PAWN_PASSED_O;
                 short bonus_e = PAWN_PASSED_E;
 
+                /* Distance to kings */
                 bonus_e += distance[king_pos[color^1]][pos] * PAWN_PASSED_DIST_OPP_KING_E;
                 bonus_e += distance[king_pos[color]][pos] * PAWN_PASSED_DIST_OWN_KING_E;
 
+                /* Unblocked? */
+                if((bitboard_pawn_move[color][pos] & s->bitboard[OCCUPIED]) == 0) {
+                    bonus_e += PAWN_PASSED_UNBLOCKED_E;
+                }
+
+                /* Scale bonus with rank */
                 positional_score_o[color] += (short)((int)bonus_o * rank * rank / 36);
                 positional_score_e[color] += (short)((int)bonus_e * rank * rank / 36);
             }
@@ -260,7 +269,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
     score += positional_score[WHITE] - positional_score[BLACK];
 
 
-    /* Pawn shield (TODO: Refactor) */
+    /* Pawn shield */
     positional_score_o[WHITE] += EVAL_pawn_shield(s);
 
     /* Add positional scores weighted by the progress of the game */
