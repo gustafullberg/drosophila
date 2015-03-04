@@ -459,7 +459,7 @@ int STATE_risk_zugzwang(const chess_state_t *s)
 {
     /* Risk of zugzwang if only king and pawns remain on the playing side */
     const int player_index = NUM_TYPES*(int)s->player;
-    return s->bitboard[player_index+ALL] == (s->bitboard[player_index+PAWN] | s->bitboard[BLACK_PIECES+KING]);
+    return s->bitboard[player_index+ALL] == (s->bitboard[player_index+PAWN] | s->bitboard[player_index+KING]);
 }
 
 void STATE_move_print_debug(const move_t move)
