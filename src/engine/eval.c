@@ -1,4 +1,5 @@
 #include "eval.h"
+#include "movegen.h"
 
 /* Material */
 #define PAWN_VALUE      20
@@ -9,6 +10,7 @@
 #define BISHOP_PAIR     10
 
 /* Positional */
+#define HANGING_PIECE                    5
 #define PAWN_GUARDS_MINOR                3
 #define PAWN_GUARDS_PAWN                 1
 #define PAWN_SHIELD_1                    5
@@ -130,6 +132,60 @@ static short EVAL_pawn_shield(const chess_state_t *s)
     return score;
 }
 
+void EVAL_mobility(const chess_state_t *s, bitboard_t attacks[NUM_COLORS])
+{
+    int color, pos;
+    bitboard_t pieces, moves, captures;
+
+    attacks[WHITE] = attacks[BLACK] = 0;
+
+    for(color = WHITE; color <= BLACK; color++) {
+
+        /* Knights */
+        pieces = s->bitboard[NUM_TYPES*color + KNIGHT];
+        while(pieces) {
+            pos = BITBOARD_find_bit(pieces);
+            pieces ^= BITBOARD_POSITION(pos);
+            attacks[color] |= bitboard_knight[pos];
+        }
+
+        /* Bishops */
+        pieces = s->bitboard[NUM_TYPES*color + BISHOP];
+        while(pieces) {
+            pos = BITBOARD_find_bit(pieces);
+            pieces ^= BITBOARD_POSITION(pos);
+            MOVEGEN_bishop(pos, 0, s->bitboard[OCCUPIED], &moves, &captures);
+            attacks[color] |= (moves | captures);
+        }
+
+        /* Rooks */
+        pieces = s->bitboard[NUM_TYPES*color + ROOK];
+        while(pieces) {
+            pos = BITBOARD_find_bit(pieces);
+            pieces ^= BITBOARD_POSITION(pos);
+            MOVEGEN_rook(pos, 0, s->bitboard[OCCUPIED], &moves, &captures);
+            attacks[color] |= (moves | captures);
+        }
+
+        /* Queens */
+        pieces = s->bitboard[NUM_TYPES*color + QUEEN];
+        while(pieces) {
+            pos = BITBOARD_find_bit(pieces);
+            pieces ^= BITBOARD_POSITION(pos);
+            MOVEGEN_queen(pos, 0, s->bitboard[OCCUPIED], &moves, &captures);
+            attacks[color] |= (moves | captures);
+        }
+
+        /* King */
+        pieces = s->bitboard[NUM_TYPES*color + KING];
+        while(pieces) {
+            pos = BITBOARD_find_bit(pieces);
+            pieces ^= BITBOARD_POSITION(pos);
+            attacks[color] |= bitboard_king[pos];
+        }
+    }
+}
+
 short EVAL_evaluate_board(const chess_state_t *s)
 {
     short pawn_material_score[NUM_COLORS] = { 0, 0 };
@@ -144,9 +200,20 @@ short EVAL_evaluate_board(const chess_state_t *s)
     bitboard_t pieces;
     int pos;
     bitboard_t pos_bitboard;
-    bitboard_t pawnAttacks[2], backwardPawns, passedPawns, doubledPawns, isolatedPawns;
+    bitboard_t pawnAttacks[NUM_COLORS], backwardPawns, passedPawns, doubledPawns, isolatedPawns;
+    bitboard_t attacks[NUM_COLORS];
 
+    /* Pawn classification */
     EVAL_pawn_types(s, pawnAttacks, &backwardPawns, &passedPawns, &doubledPawns, &isolatedPawns);
+
+    /* Mobility */
+    EVAL_mobility(s, attacks);
+    attacks[WHITE] |= pawnAttacks[WHITE];
+    attacks[BLACK] |= pawnAttacks[BLACK];
+
+    /* Hanging pieces */
+    positional_score[WHITE] += HANGING_PIECE * BITBOARD_count_bits(s->bitboard[BLACK_PIECES+ALL] & attacks[WHITE] & ~attacks[BLACK]);
+    positional_score[BLACK] += HANGING_PIECE * BITBOARD_count_bits(s->bitboard[WHITE_PIECES+ALL] & attacks[BLACK] & ~attacks[WHITE]);
     
     /* Kings */
     king_pos[WHITE] = BITBOARD_find_bit(s->bitboard[WHITE_PIECES + KING]);
