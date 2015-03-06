@@ -35,7 +35,7 @@ void send_search_output(int ply, int score, int time_ms, unsigned int nodes, int
     int promotion = promotion_type[0];
 
     if(ply == DEPTH) {
-        fprintf(stdout, "%d\t%d\t", score, nodes);
+        fprintf(stdout, "%d\t%8d\t", score, nodes);
 
         if(promotion) {
             char pt = 0;
@@ -59,7 +59,7 @@ int main()
     ENGINE_register_thinking_output_cb(engine, send_search_output);
     srand(0); /* Force opening book to always choose the same moves */
     
-    fprintf(stdout, "Score\tNodes\tMove\n");
+    fprintf(stdout, "Score\t   Nodes\tMove\n");
     move(engine, "d4", "Nf6");
     move(engine, "c4", "e6");
     move(engine, "Nc3", "Bb4");

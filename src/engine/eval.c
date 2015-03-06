@@ -49,10 +49,9 @@ int EVAL_game_progress(short material[2])
     }
 }
 
-void EVAL_pawn_types(const chess_state_t *s, bitboard_t attack[2], bitboard_t *backwardPawns, bitboard_t *passedPawns, bitboard_t *doubledPawns, bitboard_t *isolatedPawns)
+void EVAL_pawn_types(const chess_state_t *s, bitboard_t attack[NUM_COLORS], bitboard_t *passedPawns, bitboard_t *isolatedPawns)
 {
     bitboard_t pawns[2];
-    bitboard_t stop[2];
     bitboard_t frontFill[2];
     bitboard_t attackSpan[2];
     bitboard_t attackFrontFill[2];
@@ -65,10 +64,6 @@ void EVAL_pawn_types(const chess_state_t *s, bitboard_t attack[2], bitboard_t *b
     /* Squares attacked by pawns */
     attack[WHITE] = ((pawns[WHITE] & ~(BITBOARD_FILE<<0)) << 7) | ((pawns[WHITE] & ~(BITBOARD_FILE<<7)) << 9);
     attack[BLACK] = ((pawns[BLACK] & ~(BITBOARD_FILE<<0)) >> 9) | ((pawns[BLACK] & ~(BITBOARD_FILE<<7)) >> 7);
-
-    /* Stop squares */
-    stop[WHITE] = pawns[WHITE] << 8;
-    stop[BLACK] = pawns[BLACK] >> 8;
 
     /* Front-fill */
     frontFill[WHITE] = BITBOARD_fillNorth(pawns[WHITE]);
@@ -86,17 +81,9 @@ void EVAL_pawn_types(const chess_state_t *s, bitboard_t attack[2], bitboard_t *b
     attackFileFill[WHITE] = BITBOARD_fillSouth(attackSpan[WHITE]);
     attackFileFill[BLACK] = BITBOARD_fillNorth(attackSpan[BLACK]);
 
-    /* Backward pawns */
-    *backwardPawns = ((stop[WHITE] & attack[BLACK] & ~attackSpan[WHITE]) >> 8) |
-                     ((stop[BLACK] & attack[WHITE] & ~attackSpan[BLACK]) << 8);
-
     /* Passed pawns */
     *passedPawns = (pawns[WHITE] & ~attackFrontFill[BLACK]) |
                    (pawns[BLACK] & ~attackFrontFill[WHITE]);
-
-    /* Doubled pawns */
-    *doubledPawns = ((frontFill[WHITE] << 8) & pawns[WHITE]) |
-                    ((frontFill[BLACK] >> 8) & pawns[BLACK]);
 
     /* Isolated pawns */
     *isolatedPawns = (pawns[WHITE] & ~attackFileFill[WHITE]) |
@@ -133,28 +120,24 @@ static short EVAL_pawn_shield(const chess_state_t *s)
 short EVAL_evaluate_board(const chess_state_t *s)
 {
     short pawn_material_score[NUM_COLORS] = { 0, 0 };
-    short material_score[NUM_COLORS] = { 0, 0 };
-    short positional_score[NUM_COLORS] = { 0, 0 };
-    short positional_score_o[NUM_COLORS] = { 0, 0 };
-    short positional_score_e[NUM_COLORS] = { 0, 0 };
-    int king_pos[NUM_COLORS];
+    short material_score[NUM_COLORS]      = { 0, 0 };
+    short positional_score[NUM_COLORS]    = { 0, 0 };
+    short positional_score_o[NUM_COLORS]  = { 0, 0 };
+    short positional_score_e[NUM_COLORS]  = { 0, 0 };
+    int   king_pos[NUM_COLORS];
     short score = 0;
-    int game_progress;
-    int color;
+    int   game_progress;
+    int   color;
+    int   pos;
     bitboard_t pieces;
-    int pos;
     bitboard_t pos_bitboard;
-    bitboard_t pawnAttacks[2], backwardPawns, passedPawns, doubledPawns, isolatedPawns;
+    bitboard_t pawnAttacks[2], passedPawns, isolatedPawns;
 
-    EVAL_pawn_types(s, pawnAttacks, &backwardPawns, &passedPawns, &doubledPawns, &isolatedPawns);
+    EVAL_pawn_types(s, pawnAttacks, &passedPawns, &isolatedPawns);
     
     /* Kings */
     king_pos[WHITE] = BITBOARD_find_bit(s->bitboard[WHITE_PIECES + KING]);
     king_pos[BLACK] = BITBOARD_find_bit(s->bitboard[BLACK_PIECES + KING]);
-    positional_score_o[WHITE] += piecesquare[KING][king_pos[WHITE]];
-    positional_score_o[BLACK] += piecesquare[KING][king_pos[BLACK]^0x38];
-    positional_score_e[WHITE] += piecesquare[KING+1][king_pos[WHITE]];
-    positional_score_e[BLACK] += piecesquare[KING+1][king_pos[BLACK]^0x38];
     
     for(color = WHITE; color <= BLACK; color++) {
         int pos_mask = color * 0x38;
@@ -180,6 +163,10 @@ short EVAL_evaluate_board(const chess_state_t *s)
                 bonus_e += distance[king_pos[color^1]][pos] * PAWN_PASSED_DIST_OPP_KING_E;
                 bonus_e += distance[king_pos[color]][pos] * PAWN_PASSED_DIST_OWN_KING_E;
 
+                positional_score_o[WHITE] += piecesquare[KING][king_pos[WHITE]];
+                positional_score_o[BLACK] += piecesquare[KING][king_pos[BLACK]^0x38];
+                positional_score_e[WHITE] += piecesquare[KING+1][king_pos[WHITE]];
+                positional_score_e[BLACK] += piecesquare[KING+1][king_pos[BLACK]^0x38];
                 /* Unblocked? */
                 if((bitboard_pawn_move[color][pos] & s->bitboard[OCCUPIED]) == 0) {
                     bonus_e += PAWN_PASSED_UNBLOCKED_E;
@@ -262,6 +249,10 @@ short EVAL_evaluate_board(const chess_state_t *s)
             positional_score[color] += king_queen_tropism[(int)distance[king_pos[color^1]][pos]];
             pieces ^= BITBOARD_POSITION(pos);
         }
+
+        /* King */
+        positional_score_o[color] += piecesquare[KING][king_pos[color]^pos_mask];
+        positional_score_e[color] += piecesquare[KING+1][king_pos[color]^pos_mask];
     }
     
     score += pawn_material_score[WHITE] - pawn_material_score[BLACK];
