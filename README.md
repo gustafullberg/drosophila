@@ -10,6 +10,17 @@ Drosophila was earlier named Pawned.
 
 ## Releases
 
+**[Drosophila 1.4](https://github.com/gustafullberg/drosophila/releases/download/v1.4/drosophila-1.4.zip)** - 2015-03-06
+
+* Improved evaluation
+  * Passed pawns
+  * Isolated pawns
+  * Rooks on (half-)open files
+  * King tropism
+  * Smooth transition between game phases
+* Better detection of insufficient mating material
+* Search considers 50 move rule
+
 **[Drosophila 1.3](https://github.com/gustafullberg/drosophila/releases/download/v1.3/drosophila-1.3.zip)** - 2015-01-24
 
 * New name to avoid confusion with other chess engines
@@ -88,7 +99,9 @@ Evaluation:
 * Material
 * Piece-square tables
 * Pawns defending other pawns and minor pieces
-* Pawn shield
+* Pawn structure
+* Rooks on (half-)open files
+* King tropism
 * Tempo
 
 ## License
