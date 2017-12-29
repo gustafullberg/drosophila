@@ -18,6 +18,7 @@
 #define PAWN_PASSED_DIST_OPP_KING_E      5
 #define PAWN_PASSED_DIST_OWN_KING_E     -5
 #define PAWN_PASSED_UNBLOCKED_E         10
+#define PAWN_PASSED_UNREACHABLE_E       25
 #define PAWN_ISOLATED_O                 -3
 #define PAWN_ISOLATED_E                 -2
 #define ROOK_OPEN_FILE_O                 8
@@ -26,6 +27,7 @@
 #define ROOK_HALFOPEN_FILE_E             2
 #define TEMPO                            2
 
+static const int passed_pawn_scaling[8] = { 0, 7, 28, 64, 114, 178, 256, 0}; // Q8
 static const int king_queen_tropism[8]  = { 0,  7, 7, 5, 0, 0, 0, 0 };
 static const int king_rook_tropism[8]   = { 0,  5, 5, 3, 0, 0, 0, 0 };
 static const int king_bishop_tropism[8] = { 0,  3, 3, 2, 0, 0, 0, 0 };
@@ -165,11 +167,18 @@ short EVAL_evaluate_board(const chess_state_t *s)
                 /* Unblocked? */
                 if((bitboard_pawn_move[color][pos] & s->bitboard[OCCUPIED]) == 0) {
                     bonus_e += PAWN_PASSED_UNBLOCKED_E;
+
+                    /* Unreachable by opponent king? */
+                    int dist_prom = 7 - rank;
+                    int prom_pos = (pos^pos_mask) + dist_prom * 8;
+                    int dist_prom_opp_king = distance[king_pos[color^1]^pos_mask][prom_pos] - (color != s->player);
+                    bonus_e += PAWN_PASSED_UNREACHABLE_E * (dist_prom < dist_prom_opp_king);
                 }
 
                 /* Scale bonus with rank */
-                positional_score_o[color] += (short)((int)bonus_o * rank * rank / 36);
-                positional_score_e[color] += (short)((int)bonus_e * rank * rank / 36);
+                int scale_factor = passed_pawn_scaling[rank];
+                positional_score_o[color] += (short)((int)bonus_o * scale_factor >> 8);
+                positional_score_e[color] += (short)((int)bonus_e * scale_factor >> 8);
             }
 
             /* Isolated pawn */
