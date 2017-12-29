@@ -163,10 +163,6 @@ short EVAL_evaluate_board(const chess_state_t *s)
                 bonus_e += distance[king_pos[color^1]][pos] * PAWN_PASSED_DIST_OPP_KING_E;
                 bonus_e += distance[king_pos[color]][pos] * PAWN_PASSED_DIST_OWN_KING_E;
 
-                positional_score_o[WHITE] += piecesquare[KING][king_pos[WHITE]];
-                positional_score_o[BLACK] += piecesquare[KING][king_pos[BLACK]^0x38];
-                positional_score_e[WHITE] += piecesquare[KING+1][king_pos[WHITE]];
-                positional_score_e[BLACK] += piecesquare[KING+1][king_pos[BLACK]^0x38];
                 /* Unblocked? */
                 if((bitboard_pawn_move[color][pos] & s->bitboard[OCCUPIED]) == 0) {
                     bonus_e += PAWN_PASSED_UNBLOCKED_E;
