@@ -1,5 +1,5 @@
-#ifndef _HASHTABLE_H
-#define _HASHTABLE_H
+#ifndef HASHTABLE_H
+#define HASHTABLE_H
 
 #include "bitboard.h"
 #include "state.h"

@@ -1,5 +1,5 @@
-#ifndef _CECP_FEATURES_H
-#define _CECP_FEATURES_H
+#ifndef CECP_FEATURES_H
+#define CECP_FEATURES_H
 
 /* Features of the Chess Engine Communication Protocol supported by this program */
 const char *cecp_features[] =

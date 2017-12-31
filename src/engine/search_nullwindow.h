@@ -1,5 +1,5 @@
-#ifndef _SEARCH_NULLWINDOW_H
-#define _SEARCH_NULLWINDOW_H
+#ifndef SEARCH_NULLWINDOW_H
+#define SEARCH_NULLWINDOW_H
 
 #include "state.h"
 #include "search.h"

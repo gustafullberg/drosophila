@@ -1,5 +1,5 @@
-#ifndef _FEN_H
-#define _FEN_H
+#ifndef FEN_H
+#define FEN_H
 
 #include "state.h"
 

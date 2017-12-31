@@ -1,5 +1,5 @@
-#ifndef _THREAD_H
-#define _THREAD_H
+#ifndef THREAD_H
+#define THREAD_H
 
 #ifdef _WIN32
 #include <windows.h>

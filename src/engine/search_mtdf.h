@@ -1,5 +1,5 @@
-#ifndef _SEARCH_MTDF_H
-#define _SEARCH_MTDF_H
+#ifndef SEARCH_MTDF_H
+#define SEARCH_MTDF_H
 
 #include "state.h"
 #include "search.h"

@@ -1,5 +1,5 @@
-#ifndef _BITBOARD_H
-#define _BITBOARD_H
+#ifndef BITBOARD_H
+#define BITBOARD_H
 
 #include <stdint.h>
 #ifdef _MSC_VER
@@ -119,7 +119,7 @@ static inline int BITBOARD_count_bits(bitboard_t bitboard)
 }
 
 
-static inline bitboard_t BITBOARD_fillNorth(bitboard_t b)
+static inline bitboard_t BITBOARD_fill_north(bitboard_t b)
 {
     b |= b << 8;
     b |= b << 16;
@@ -127,7 +127,7 @@ static inline bitboard_t BITBOARD_fillNorth(bitboard_t b)
     return b;
 }
 
-static inline bitboard_t BITBOARD_fillSouth(bitboard_t b)
+static inline bitboard_t BITBOARD_fill_south(bitboard_t b)
 {
     b |= b >> 8;
     b |= b >> 16;

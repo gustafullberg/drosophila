@@ -1,5 +1,5 @@
-#ifndef _MOVEORDER_H
-#define _MOVEORDER_H
+#ifndef MOVEORDER_H
+#define MOVEORDER_H
 
 #include "state.h"
 

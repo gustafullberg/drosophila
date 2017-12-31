@@ -1,5 +1,5 @@
-#ifndef _SEE_H
-#define _SEE_H
+#ifndef SEE_H
+#define SEE_H
 
 #include "state.h"
 

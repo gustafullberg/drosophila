@@ -13,7 +13,6 @@
 #define PAWN_GUARDS_PAWN                 1
 #define PAWN_SHIELD_1                    5
 #define PAWN_SHIELD_2                    2
-#define PAWN_BACKWARD                    0
 #define PAWN_PASSED_O                   10
 #define PAWN_PASSED_E                   10
 #define PAWN_PASSED_DIST_OPP_KING_E      5
@@ -35,7 +34,7 @@ static const int king_knight_tropism[8] = { 0,  0, 0, 2, 0, 0, 0, 0 };
 static const short sign[2] = { 1, -1 };
 
 /* Game progress: 256 = opening, 0 = endgame */
-int EVAL_game_progress(short material[2])
+static int EVAL_game_progress(short material[2])
 {
     const int m_hi = 2 * (QUEEN_VALUE + 2 * ROOK_VALUE + BISHOP_VALUE);
     const int m_lo = 2 * (2 * KNIGHT_VALUE);
@@ -66,20 +65,20 @@ void EVAL_pawn_types(const chess_state_t *s, bitboard_t attack[NUM_COLORS], bitb
     attack[BLACK] = ((pawns[BLACK] & ~(BITBOARD_FILE<<0)) >> 9) | ((pawns[BLACK] & ~(BITBOARD_FILE<<7)) >> 7);
 
     /* Front-fill */
-    frontFill[WHITE] = BITBOARD_fillNorth(pawns[WHITE]);
-    frontFill[BLACK] = BITBOARD_fillSouth(pawns[BLACK]);
+    frontFill[WHITE] = BITBOARD_fill_north(pawns[WHITE]);
+    frontFill[BLACK] = BITBOARD_fill_south(pawns[BLACK]);
 
     /* Attack-span */
-    attackSpan[WHITE] = BITBOARD_fillNorth(attack[WHITE]);
-    attackSpan[BLACK] = BITBOARD_fillSouth(attack[BLACK]);
+    attackSpan[WHITE] = BITBOARD_fill_north(attack[WHITE]);
+    attackSpan[BLACK] = BITBOARD_fill_south(attack[BLACK]);
 
     /* Combined front-fill and attack-span */
     attackFrontFill[WHITE] = frontFill[WHITE] | attackSpan[WHITE];
     attackFrontFill[BLACK] = frontFill[BLACK] | attackSpan[BLACK];
 
     /* Fill in both directions */
-    attackFileFill[WHITE] = BITBOARD_fillSouth(attackSpan[WHITE]);
-    attackFileFill[BLACK] = BITBOARD_fillNorth(attackSpan[BLACK]);
+    attackFileFill[WHITE] = BITBOARD_fill_south(attackSpan[WHITE]);
+    attackFileFill[BLACK] = BITBOARD_fill_north(attackSpan[BLACK]);
 
     /* Passed pawns */
     *passedPawns = (pawns[WHITE] & ~attackFrontFill[BLACK]) |

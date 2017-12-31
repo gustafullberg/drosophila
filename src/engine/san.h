@@ -1,5 +1,5 @@
-#ifndef _SAN_H
-#define _SAN_H
+#ifndef SAN_H
+#define SAN_H
 
 #include "state.h"
 

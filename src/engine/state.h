@@ -1,5 +1,5 @@
-#ifndef _STATE_H
-#define _STATE_H
+#ifndef STATE_H
+#define STATE_H
 
 #include "defines.h"
 #include "bitboard.h"

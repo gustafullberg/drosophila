@@ -1,5 +1,5 @@
-#ifndef _OPENINGBOOK_H
-#define _OPENINGBOOK_H
+#ifndef OPENINGBOOK_H
+#define OPENINGBOOK_H
 
 #include "state.h"
 

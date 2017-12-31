@@ -1,5 +1,5 @@
-#ifndef _ENGINE_H
-#define _ENGINE_H
+#ifndef ENGINE_H
+#define ENGINE_H
 
 #define ENGINE_RESULT_NONE                          0
 #define ENGINE_RESULT_WHITE_MATES                   1
