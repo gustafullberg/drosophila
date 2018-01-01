@@ -170,7 +170,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
                     /* Unreachable by opponent king? */
                     int dist_prom = 7 - rank;
                     int prom_pos = (pos^pos_mask) + dist_prom * 8;
-                    int dist_prom_opp_king = distance[king_pos[color^1]^pos_mask][prom_pos];
+                    int dist_prom_opp_king = distance[king_pos[color^1]^pos_mask][prom_pos] - (color != s->player);
                     bonus_e += PAWN_PASSED_UNREACHABLE_E * (dist_prom < dist_prom_opp_king);
                 }
 
