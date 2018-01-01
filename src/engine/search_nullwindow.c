@@ -93,11 +93,9 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     }
 
     if(!skip_move_generation) {
-        /* Move generation */
+        /* Generate and rate moves */
         num_moves = STATE_generate_moves(state, moves);
-        
-        /* Move ordering */
-        num_moves = MOVEORDER_order_moves(state, moves, num_moves, *move);
+        num_moves = MOVEORDER_rate_moves(state, moves, num_moves, *move);
 
         /* Check if node is eligible for futility pruning */
         if(depth == 1 && !is_in_check) {
@@ -108,6 +106,8 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
 
         /* Iterate over all pseudo legal moves */
         for(i = 0; i < num_moves; i++) {
+            /* Pick move with the highest score */
+            if(i < 5) MOVEORDER_best_move_first(&moves[i], num_moves - i);
 
             /* Futility pruning */
             if(do_futility_pruning) {
@@ -202,11 +202,14 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
         return best_score;
     }
     
-    /* Generate and order moves (captures and promotions only) */
+    /* Generate and rate moves (captures and promotions only) */
     num_moves = STATE_generate_moves_quiescence(state, moves);
-    num_moves = MOVEORDER_order_moves_quiescence(state, moves, num_moves);
+    num_moves = MOVEORDER_rate_moves_quiescence(state, moves, num_moves);
     
     for(i = 0; i < num_moves; i++) {
+        /* Pick move with the highest score */
+        MOVEORDER_best_move_first(&moves[i], num_moves - i);
+
         /* Prune all captures with SEE < 0 */
         if(!MOVE_IS_PROMOTION(moves[i])) {
             if(SSE_capture_less_valuable(moves[i]) && see(state, moves[i]) < 0) {

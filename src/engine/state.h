@@ -6,7 +6,7 @@
 
 /* Type describing a single move */
 typedef uint32_t move_t;
-/* Bits 32 - 22 special      */
+/* Bits 32 - 22 score        */
 /* Bits 21 - 18 special      */
 /* Bits 17 - 15 capture_type */
 /* Bits 14 - 12 type         */

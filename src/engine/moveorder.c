@@ -34,36 +34,10 @@ static int MOVEORDER_compute_score(const chess_state_t *s, const move_t move)
     return score;
 }
 
-static void MOVEORDER_sort(move_t moves[], const int num_moves)
+int MOVEORDER_rate_moves(const chess_state_t *s, move_t moves[], int num_moves, const move_t best_guess)
 {
-#define MAX_NUM_MOVE_TO_SORT 4
-    int i, j;
-    move_t temp;
-    int num_to_sort = num_moves;
-    if(num_to_sort > MAX_NUM_MOVE_TO_SORT) {
-        num_to_sort = MAX_NUM_MOVE_TO_SORT;
-    }
-    
-    /* Selection sort (greatest first) */
-    for(i = 0; i < num_to_sort-1; i++) {
-        int index_highest = i;
-        for(j = i+1; j < num_moves; j++) {
-            if(moves[j] > moves[index_highest]) {
-                index_highest = j;
-            }
-        }
-        temp = moves[i];
-        moves[i] = moves[index_highest];
-        moves[index_highest] = temp;
-    }
-}
-
-int MOVEORDER_order_moves(const chess_state_t *s, move_t moves[], int num_moves, const move_t best_guess)
-{
-    int i;
-    
     /* Get score for each move */
-    for(i = 0; i < num_moves; i++) {
+    for(int i = 0; i < num_moves; i++) {
         int score;
         if(moves[i] == best_guess) {
             /* This move is already tried. Remove it from the list */
@@ -73,26 +47,29 @@ int MOVEORDER_order_moves(const chess_state_t *s, move_t moves[], int num_moves,
         score = MOVEORDER_compute_score(s, moves[i]);
         moves[i] |= score << MOVE_SCORE_SHIFT;
     }
-    
-    /* Sort moves by score */
-    MOVEORDER_sort(moves, num_moves);
-    
+
     return num_moves;
 }
 
-int MOVEORDER_order_moves_quiescence(const chess_state_t *s, move_t moves[], int num_moves)
+int MOVEORDER_rate_moves_quiescence(const chess_state_t *s, move_t moves[], int num_moves)
 {
-    int i;
-    
     /* Get score for each move */
-    for(i = 0; i < num_moves; i++) {
-        int score;
-        score = MOVEORDER_compute_score(s, moves[i]);
+    for(int i = 0; i < num_moves; i++) {
+        int score = MOVEORDER_compute_score(s, moves[i]);
         moves[i] |= score << MOVE_SCORE_SHIFT;
     }
-    
-    /* Sort moves by score */
-    MOVEORDER_sort(moves, num_moves);
-    
+
     return num_moves;
+}
+
+void MOVEORDER_best_move_first(move_t moves[], int num_moves)
+{
+    if(num_moves < 2) return;
+    int best = 0;
+    for(int i = 1; i < num_moves; i++) {
+        if(moves[i] > moves[best]) best = i;
+    }
+    move_t tmp = moves[0];
+    moves[0] = moves[best];
+    moves[best] = tmp;
 }
