@@ -1,4 +1,5 @@
 #include "eval.h"
+#include "movegen.h"
 
 /* Material */
 #define PAWN_VALUE      20
@@ -33,6 +34,7 @@ static const int king_rook_tropism[8]   = { 0,  5, 5, 3, 0, 0, 0, 0 };
 static const int king_bishop_tropism[8] = { 0,  3, 3, 2, 0, 0, 0, 0 };
 static const int king_knight_tropism[8] = { 0,  0, 0, 2, 0, 0, 0, 0 };
 static const short mobility_knight[9] = { -6, -4, -2, -1, 0, 1, 2, 3, 4 };
+static const short mobility_bishop[14] = { -6, -4, -3, -2, -2, -1, 0, 0, 1, 1, 2, 2, 3, 3 };
 
 static const short sign[2] = { 1, -1 };
 
@@ -134,6 +136,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
     bitboard_t pieces;
     bitboard_t pos_bitboard;
     bitboard_t pawnAttacks[2], passedPawns, isolatedPawns;
+    bitboard_t moves, captures;
 
     EVAL_pawn_types(s, pawnAttacks, &passedPawns, &isolatedPawns);
     
@@ -144,6 +147,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
     for(color = WHITE; color <= BLACK; color++) {
         int pos_mask = color * 0x38;
         bitboard_t own_pieces = s->bitboard[NUM_TYPES*color + ALL];
+        bitboard_t opp_pieces = s->bitboard[NUM_TYPES*(color^1) + ALL];
 
         /* Pawns */
         pieces = s->bitboard[NUM_TYPES*color + PAWN];
@@ -216,6 +220,8 @@ short EVAL_evaluate_board(const chess_state_t *s)
             pos_bitboard = BITBOARD_POSITION(pos);
             material_score[color] += BISHOP_VALUE;
             positional_score[color] += piecesquare[BISHOP][pos^pos_mask];
+            MOVEGEN_bishop(pos, own_pieces, opp_pieces, &moves, &captures);
+            positional_score[color] += mobility_bishop[BITBOARD_count_bits((moves | captures) & ~pawnAttacks[color^1])];
             positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? PAWN_GUARDS_MINOR : 0; /* Guarded by pawn */
             positional_score[color] += king_bishop_tropism[(int)distance[king_pos[color^1]][pos]];
             pieces ^= pos_bitboard;
