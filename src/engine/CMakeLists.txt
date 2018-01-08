@@ -43,3 +43,5 @@ add_library(
     ${files}
 )
 
+target_link_libraries(${LIB_NAME} ${CMAKE_THREAD_LIBS_INIT})
+

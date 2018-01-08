@@ -8,15 +8,14 @@ include(cmake/options.cmake)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-if(CMAKE_COMPILER_IS_GNUCC OR "${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -pthread")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")
-elseif(MSVC)
+if(MSVC)
     add_definitions(-Dinline=__inline)
 endif()
 
 set(PROGRAM_NAME drosophila)
 set(LIB_NAME drosophilaengine)
+
+find_package(Threads REQUIRED)
 
 add_subdirectory(src)
 if(BUILD_EXECUTABLE)
