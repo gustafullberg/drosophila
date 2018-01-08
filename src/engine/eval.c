@@ -32,6 +32,7 @@ static const int king_queen_tropism[8]  = { 0,  7, 7, 5, 0, 0, 0, 0 };
 static const int king_rook_tropism[8]   = { 0,  5, 5, 3, 0, 0, 0, 0 };
 static const int king_bishop_tropism[8] = { 0,  3, 3, 2, 0, 0, 0, 0 };
 static const int king_knight_tropism[8] = { 0,  0, 0, 2, 0, 0, 0, 0 };
+static const short mobility_knight[9] = { -6, -4, -2, -1, 0, 1, 2, 3, 4 };
 
 static const short sign[2] = { 1, -1 };
 
@@ -142,7 +143,8 @@ short EVAL_evaluate_board(const chess_state_t *s)
     
     for(color = WHITE; color <= BLACK; color++) {
         int pos_mask = color * 0x38;
-        
+        bitboard_t own_pieces = s->bitboard[NUM_TYPES*color + ALL];
+
         /* Pawns */
         pieces = s->bitboard[NUM_TYPES*color + PAWN];
         while(pieces) {
@@ -197,6 +199,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
             pos_bitboard = BITBOARD_POSITION(pos);
             material_score[color] += KNIGHT_VALUE;
             positional_score[color] += piecesquare[KNIGHT][pos^pos_mask];
+            positional_score[color] += mobility_knight[BITBOARD_count_bits(bitboard_knight[pos] & ~(own_pieces | pawnAttacks[color^1]))];
             positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? PAWN_GUARDS_MINOR : 0; /* Guarded by pawn */
             positional_score[color] += king_knight_tropism[(int)distance[king_pos[color^1]][pos]];
             pieces ^= pos_bitboard;
