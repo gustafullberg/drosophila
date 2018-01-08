@@ -1,8 +1,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #else
-#include <sys/time.h>
-#include <stdlib.h>
+#include <time.h>
 #endif
 #include "clock.h"
 
@@ -12,9 +11,9 @@ int64_t CLOCK_now()
 #ifdef _WIN32
     time_ms = GetTickCount();
 #else
-    struct timeval now;
-    gettimeofday(&now, NULL);
-    time_ms = (now.tv_sec * 1000) + (now.tv_usec / 1000);
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    time_ms = (now.tv_sec * 1000) + (now.tv_nsec / 1000000);
 #endif
     return time_ms;
 }
