@@ -2,7 +2,7 @@
 #include "search_nullwindow.h"
 #include "search.h"
 #include "eval.h"
-#include "time.h"
+#include "clock.h"
 
 #define abs(x) ((x) >= 0 ? (x) : -(x))
 
@@ -79,7 +79,7 @@ short SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state
         
         *move = m;
         
-        time_passed_ms = TIME_passed(search_state->start_time_ms);
+        time_passed_ms = CLOCK_time_passed(search_state->start_time_ms);
         if(search_state->think_cb) {
             int pos_from[100];
             int pos_to[100];

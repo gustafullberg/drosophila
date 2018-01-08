@@ -2,7 +2,7 @@
 #include "search.h"
 #include "search_mtdf.h"
 #include "eval.h"
-#include "time.h"
+#include "clock.h"
 
 int SEARCH_perform_search(const chess_state_t *s, search_state_t *search_state, short *score)
 {

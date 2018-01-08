@@ -2,7 +2,7 @@
 #include "search.h"
 #include "eval.h"
 #include "moveorder.h"
-#include "time.h"
+#include "clock.h"
 #include "see.h"
 
 static inline short SEARCH_transpositiontable_retrieve(const hashtable_t *hashtable, const bitboard_t hash, const unsigned char depth, short beta, move_t *best_move, int *cutoff);
@@ -31,7 +31,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     search_state->next_clock_check--;
     if(search_state->next_clock_check <= 0) {
         search_state->next_clock_check = SEARCH_ITERATIONS_BETWEEN_CLOCK_CHECK;
-        if(TIME_passed(search_state->start_time_ms) >= search_state->time_for_move_ms) {
+        if(CLOCK_time_passed(search_state->start_time_ms) >= search_state->time_for_move_ms) {
             search_state->abort_search = 1;
         }
     }

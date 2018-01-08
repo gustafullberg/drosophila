@@ -2,6 +2,8 @@ set(files
     bitboard.c
     bitboard.h
     bitboard_zobrist.c
+    clock.c
+    clock.h
     defines.h
     engine.c
     engine.h
@@ -32,8 +34,6 @@ set(files
     see.h
     state.c
     state.h
-    time.c
-    time.h
     thread.c
     thread.h
 )

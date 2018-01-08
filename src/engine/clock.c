@@ -4,9 +4,9 @@
 #include <sys/time.h>
 #include <stdlib.h>
 #endif
-#include "time.h"
+#include "clock.h"
 
-int64_t TIME_now()
+int64_t CLOCK_now()
 {
     int64_t time_ms;
 #ifdef _WIN32
@@ -19,10 +19,10 @@ int64_t TIME_now()
     return time_ms;
 }
 
-int64_t TIME_passed(const int64_t start_time_ms)
+int64_t CLOCK_time_passed(const int64_t start_time_ms)
 {
     int64_t time_passed_ms;
-    time_passed_ms = TIME_now() - start_time_ms;
+    time_passed_ms = CLOCK_now() - start_time_ms;
 #ifdef _WIN32
     if(time_passed_ms < 0) {
         /* Prevent wrap-around */

@@ -8,7 +8,7 @@
 #include "search.h"
 #include "san.h"
 #include "fen.h"
-#include "time.h"
+#include "clock.h"
 #include "eval.h"
 #include "defines.h"
 
@@ -175,7 +175,7 @@ void ENGINE_think_start(engine_state_t *state, const int moves_left_in_period, c
     state->search_state->history = state->history;
     state->search_state->abort_search = 0;
     state->search_state->next_clock_check = SEARCH_ITERATIONS_BETWEEN_CLOCK_CHECK;
-    state->search_state->start_time_ms = TIME_now();
+    state->search_state->start_time_ms = CLOCK_now();
     state->search_state->time_for_move_ms = time_for_move_ms;
     state->search_state->max_depth = max_depth;
     state->search_state->num_nodes_searched = 0;
