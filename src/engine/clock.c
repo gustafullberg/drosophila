@@ -30,3 +30,14 @@ int64_t CLOCK_time_passed(const int64_t start_time_ms)
 #endif
     return time_passed_ms;
 }
+
+unsigned int CLOCK_random_seed()
+{
+#ifdef _WIN32
+    return (unsigned int)GetTickCount();
+#else
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    return now.tv_nsec;
+#endif
+}

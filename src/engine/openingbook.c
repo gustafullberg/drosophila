@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "clock.h"
 #include "openingbook.h"
+#include "clock.h"
 
 typedef struct _openingbook_node_t {
     uint64_t    hash;
@@ -49,7 +49,7 @@ openingbook_t *OPENINGBOOK_create(const char *filename)
 
 
     /* Seed random number generator */
-    srand((unsigned int)CLOCK_now());
+    srand(CLOCK_random_seed());
     
     return o;
 }
