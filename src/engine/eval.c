@@ -37,6 +37,8 @@ static const short mobility_knight[9] = { -6, -4, -2, -1, 0, 1, 2, 3, 4 };
 static const short mobility_bishop[14] = { -6, -4, -3, -2, -2, -1, 0, 0, 1, 1, 2, 2, 3, 3 };
 static const short mobility_rook_o[15] = { -3, -2, -2, -1, -1, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2 };
 static const short mobility_rook_e[15] = { -8, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+static const short mobility_queen_o[28] = { -3, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3 };
+static const short mobility_queen_e[28] = { -10, -9, -7, -6, -5, -5, -4, -3, -2, -1, -1, 0, 0, 1, 1, 2, 3, 4, 5, 5, 6, 7, 7, 8, 8, 9, 10, 10 };
 
 static const short sign[2] = { 1, -1 };
 
@@ -265,9 +267,15 @@ short EVAL_evaluate_board(const chess_state_t *s)
         /* Queens */
         pieces = s->bitboard[NUM_TYPES*color + QUEEN];
         while(pieces) {
+            bitboard_t moves_b, captures_b, moves_r, captures_r;
             pos = BITBOARD_find_bit(pieces);
             material_score[color] += QUEEN_VALUE;
             positional_score[color] += piecesquare[QUEEN][pos^pos_mask];
+            MOVEGEN_bishop(pos, own_pieces & ~s->bitboard[NUM_TYPES*color + BISHOP], opp_pieces, &moves_b, &captures_b);
+            MOVEGEN_rook(pos, own_pieces & ~s->bitboard[NUM_TYPES*color + ROOK], opp_pieces, &moves_r, &captures_r);
+            piece_mobility = BITBOARD_count_bits((moves_b | captures_b | moves_r | captures_r) & ~pawnAttacks[color^1]);
+            positional_score_o[color] += mobility_queen_o[piece_mobility];
+            positional_score_e[color] += mobility_queen_e[piece_mobility];
             positional_score[color] += king_queen_tropism[(int)distance[king_pos[color^1]][pos]];
             pieces ^= BITBOARD_POSITION(pos);
         }
