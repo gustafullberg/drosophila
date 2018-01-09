@@ -366,12 +366,6 @@ int EVAL_insufficient_material(const chess_state_t *s)
         break;
 
     case 4:
-        /* KNN-K */
-        no_kings = s->bitboard[OCCUPIED] ^ (s->bitboard[WHITE_PIECES+KING] | s->bitboard[BLACK_PIECES+KING]);
-        if(s->bitboard[WHITE_PIECES+KNIGHT] == no_kings || s->bitboard[BLACK_PIECES+KNIGHT] == no_kings) {
-            return 1;
-        }
-
         /* KB-KB (same color) */
         if(s->bitboard[WHITE_PIECES+BISHOP] && s->bitboard[BLACK_PIECES+BISHOP]) {
             bitboard_t bishops = s->bitboard[WHITE_PIECES+BISHOP] & s->bitboard[BLACK_PIECES+BISHOP];
