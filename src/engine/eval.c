@@ -368,7 +368,7 @@ int EVAL_insufficient_material(const chess_state_t *s)
     case 4:
         /* KB-KB (same color) */
         if(s->bitboard[WHITE_PIECES+BISHOP] && s->bitboard[BLACK_PIECES+BISHOP]) {
-            bitboard_t bishops = s->bitboard[WHITE_PIECES+BISHOP] & s->bitboard[BLACK_PIECES+BISHOP];
+            bitboard_t bishops = s->bitboard[WHITE_PIECES+BISHOP] | s->bitboard[BLACK_PIECES+BISHOP];
             if(((bishops & BITBOARD_WHITE_SQ) == 0) || ((bishops & BITBOARD_BLACK_SQ) == 0)) {
                 return 1;
             }
