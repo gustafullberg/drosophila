@@ -3,7 +3,7 @@
 
 struct _history_t
 {
-    bitboard_t hash[512];
+    bitboard_t hash[1024];
     int idx;
 };
 
