@@ -22,6 +22,7 @@
 #define PAWN_PASSED_UNREACHABLE_E       25
 #define PAWN_ISOLATED_O                 -3
 #define PAWN_ISOLATED_E                 -2
+#define KNIGHT_REDUCTION                 2
 #define ROOK_OPEN_FILE_O                 8
 #define ROOK_OPEN_FILE_E                 4
 #define ROOK_HALFOPEN_FILE_O             4
@@ -203,10 +204,11 @@ short EVAL_evaluate_board(const chess_state_t *s)
 
         /* Knights */
         pieces = s->bitboard[NUM_TYPES*color + KNIGHT];
+        int num_opp_pawns = BITBOARD_count_bits(s->bitboard[NUM_TYPES*(color^1) + PAWN]);
         while(pieces) {
             pos = BITBOARD_find_bit(pieces);
             pos_bitboard = BITBOARD_POSITION(pos);
-            material_score[color] += KNIGHT_VALUE;
+            material_score[color] += KNIGHT_VALUE - (8 - num_opp_pawns) * KNIGHT_REDUCTION;
             positional_score[color] += piecesquare[KNIGHT][pos^pos_mask];
             piece_mobility = BITBOARD_count_bits(bitboard_knight[pos] & ~(own_pieces | pawnAttacks[color^1]));
             positional_score[color] += mobility_knight[piece_mobility];
