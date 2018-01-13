@@ -1,14 +1,6 @@
 #include "eval.h"
 #include "movegen.h"
 
-/* Material */
-#define PAWN_VALUE      20
-#define KNIGHT_VALUE    65
-#define BISHOP_VALUE    65
-#define ROOK_VALUE     100
-#define QUEEN_VALUE    195
-#define BISHOP_PAIR     10
-
 /* Positional */
 #define PAWN_GUARDS_MINOR                3
 #define PAWN_GUARDS_PAWN                 1
@@ -290,7 +282,6 @@ short EVAL_evaluate_board(const chess_state_t *s)
     score += pawn_material_score[WHITE] - pawn_material_score[BLACK];
     score += material_score[WHITE] - material_score[BLACK];
     score += positional_score[WHITE] - positional_score[BLACK];
-
 
     /* Pawn shield */
     positional_score_o[WHITE] += EVAL_pawn_shield(s);
