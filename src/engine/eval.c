@@ -19,6 +19,8 @@
 #define ROOK_OPEN_FILE_E                 4
 #define ROOK_HALFOPEN_FILE_O             4
 #define ROOK_HALFOPEN_FILE_E             2
+#define ROOK_REARMOST_PAWN_O             2
+#define ROOK_REARMOST_PAWN_E             4
 #define TEMPO                            2
 
 static const int passed_pawn_scaling[8] = { 0, 7, 28, 64, 114, 178, 256, 0}; // Q8
@@ -126,6 +128,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
     short positional_score_o[NUM_COLORS]  = { 0, 0 };
     short positional_score_e[NUM_COLORS]  = { 0, 0 };
     int   king_pos[NUM_COLORS];
+    int   rearmost_pawn[NUM_COLORS];
     short score = 0;
     int   game_progress;
     int   color;
@@ -135,6 +138,9 @@ short EVAL_evaluate_board(const chess_state_t *s)
     bitboard_t pos_bitboard;
     bitboard_t pawnAttacks[2], passedPawns, isolatedPawns;
     bitboard_t moves, captures;
+
+    rearmost_pawn[WHITE] = s->bitboard[WHITE_PIECES+PAWN] ? BITBOARD_find_bit(s->bitboard[WHITE_PIECES+PAWN]) : -1;
+    rearmost_pawn[BLACK] = s->bitboard[BLACK_PIECES+PAWN] ? BITBOARD_find_bit_reversed(s->bitboard[BLACK_PIECES+PAWN]) : -1;
 
     EVAL_pawn_types(s, pawnAttacks, &passedPawns, &isolatedPawns);
 
@@ -253,6 +259,12 @@ short EVAL_evaluate_board(const chess_state_t *s)
                     positional_score_o[color] += ROOK_HALFOPEN_FILE_O;
                     positional_score_e[color] += ROOK_HALFOPEN_FILE_E;
                 }
+            }
+
+            /* Rooks on the rank of the opponents rearmost pawns */
+            if(BITBOARD_GET_RANK(pos) == rearmost_pawn[color^1]) {
+                positional_score_o[color] += ROOK_REARMOST_PAWN_O;
+                positional_score_e[color] += ROOK_REARMOST_PAWN_E;
             }
 
             pieces ^= BITBOARD_POSITION(pos);
