@@ -25,30 +25,6 @@ void MOVEGEN_all_pawns(const int color, const bitboard_t pawns, const bitboard_t
     *pawn_capture ^= *pawn_capture_promotion;
 }
 
-void MOVEGEN_pawn(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *pawn_push, bitboard_t *pawn_push2, bitboard_t *pawn_capture, bitboard_t *pawn_promotion, bitboard_t *pawn_capture_promotion)
-{
-    bitboard_t empty;
-    
-    empty = ~own & ~opponent;
-    
-    /* One push */
-    *pawn_push = bitboard_pawn_move[color][position] & empty;
-    
-    /* Two push */
-    *pawn_push2 = empty & bitboard_pawn_move2[color][position] & ((*pawn_push << 8) | (*pawn_push >> 8));
-    
-    /* Capture */
-    *pawn_capture = bitboard_pawn_capture[color][position] & opponent;
-    
-    /* Promotion, no capture */
-    *pawn_promotion = *pawn_push & BITBOARD_PROMOTION;
-    *pawn_push &= ~BITBOARD_PROMOTION;
-    
-    /* Promotion, capture */
-    *pawn_capture_promotion = *pawn_capture & BITBOARD_PROMOTION;
-    *pawn_capture &= ~BITBOARD_PROMOTION;
-}
-
 void MOVEGEN_knight(const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
     *captures = bitboard_knight[position] & opponent;
@@ -153,7 +129,7 @@ void MOVEGEN_piece(const int type, const int position, const bitboard_t own, con
 {
     switch(type) {
     case PAWN:
-        /* MOVEGEN_pawn should be used instead */
+        /* MOVEGEN_all_pawns should be used instead */
         assert(0);
         break;
     case KNIGHT:
