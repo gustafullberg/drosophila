@@ -3,6 +3,28 @@
 #include "defines.h"
 #include "movegen.h"
 
+void MOVEGEN_all_pawns(const int color, const bitboard_t pawns, const bitboard_t own, const bitboard_t opponent, bitboard_t *pawn_push, bitboard_t *pawn_push2, bitboard_t *pawn_capture, bitboard_t *pawn_promotion, bitboard_t *pawn_capture_promotion)
+{
+    bitboard_t empty = ~own & ~opponent;
+
+    if(color == WHITE) {
+        *pawn_push = (pawns << 8) & empty;
+        *pawn_push2 = ((pawns &  (BITBOARD_RANK << 8)) << 16) & empty & (empty << 8);
+        *pawn_capture = (((pawns & ~(BITBOARD_FILE << 0)) << 7) | ((pawns & ~(BITBOARD_FILE << 7)) << 9)) & opponent;
+        *pawn_promotion = *pawn_push & (BITBOARD_RANK << 56);
+        *pawn_capture_promotion = *pawn_capture & (BITBOARD_RANK << 56);
+    } else {
+        *pawn_push = (pawns >> 8) & empty;
+        *pawn_push2 = ((pawns &  (BITBOARD_RANK << 48)) >> 16) & empty & (empty >> 8);
+        *pawn_capture = (((pawns & ~(BITBOARD_FILE << 0)) >> 9) | ((pawns & ~(BITBOARD_FILE << 7)) >> 7)) & opponent;
+        *pawn_promotion = *pawn_push & (BITBOARD_RANK << 0);
+        *pawn_capture_promotion = *pawn_capture & (BITBOARD_RANK << 0);
+    }
+
+    *pawn_push ^= *pawn_promotion;
+    *pawn_capture ^= *pawn_capture_promotion;
+}
+
 void MOVEGEN_pawn(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *pawn_push, bitboard_t *pawn_push2, bitboard_t *pawn_capture, bitboard_t *pawn_promotion, bitboard_t *pawn_capture_promotion)
 {
     bitboard_t empty;
