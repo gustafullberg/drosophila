@@ -10,6 +10,8 @@
 
 #define DEPTH 12
 
+int total_nodes = 0;
+
 void move(engine_state_t *engine, const char *move_white, const char *move_black)
 {
     int result, pos_from, pos_to, promotion_type;
@@ -36,6 +38,7 @@ void send_search_output(int ply, int score, int time_ms, unsigned int nodes, int
 
     if(ply == DEPTH) {
         fprintf(stdout, "%d\t%8d\t", score, nodes);
+        total_nodes += nodes;
 
         if(promotion) {
             char pt = 0;
@@ -91,6 +94,6 @@ int main()
     move(engine, "Bd7", NULL);
     
     ENGINE_destroy(engine);
-    fprintf(stderr, "\n");
+    fprintf(stdout, "\nSearched nodes: %d\n", total_nodes);
     return 0;
 }
