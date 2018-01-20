@@ -1,35 +1,37 @@
 #include "moveorder.h"
 #include "see.h"
+#include "eval.h"
 
-/* MVV-LVA: Capture bonus + Value of captured piece - Value of own piece */
-static const int capture_score[6][6] = {
-    { 10 + 1 - 1, 10 + 3 - 1, 10 + 4 - 1, 10 + 5 - 1, 10 + 9 - 1, 10 + 10 - 1 },
-    { 10 + 1 - 3, 10 + 3 - 3, 10 + 4 - 3, 10 + 5 - 3, 10 + 9 - 3, 10 + 10 - 3 },
-    { 10 + 1 - 4, 10 + 3 - 4, 10 + 4 - 4, 10 + 5 - 4, 10 + 9 - 4, 10 + 10 - 4 },
-    { 10 + 1 - 5, 10 + 3 - 5, 10 + 4 - 5, 10 + 5 - 5, 10 + 9 - 5, 10 + 10 - 5 },
-    { 10 + 1 - 9, 10 + 3 - 9, 10 + 4 - 9, 10 + 5 - 9, 10 + 9 - 9, 10 + 10 - 9 },
-    { 10 + 1 -10, 10 + 3 -10, 10 + 4 -10, 10 + 5 -10, 10 + 9 -10, 10 + 10 -10 }
-};
+static const int piece_value[6] = { PAWN_VALUE, KNIGHT_VALUE, BISHOP_VALUE+BISHOP_PAIR, ROOK_VALUE, QUEEN_VALUE, 2*QUEEN_VALUE };
 
 static int MOVEORDER_compute_score(const chess_state_t *s, const move_t move)
 {
-    unsigned int score = 0;
+    unsigned int score = 100;
     
-    const int pos_to = MOVE_GET_POS_TO(move);
+    const int pos_from = MOVE_GET_POS_FROM(move);
+    const int pos_to   = MOVE_GET_POS_TO(move);
+    const int own_type = MOVE_GET_TYPE(move);
     
     if(MOVE_IS_CAPTURE(move)) {
         /* MVV-LVA */
-        int own_type      = MOVE_GET_TYPE(move);
         int captured_type = MOVE_GET_CAPTURE_TYPE(move);
-        score += capture_score[own_type][captured_type];
-        
+        score += piece_value[KING] + piece_value[captured_type] - piece_value[own_type];
+
         /* Recapture bonus */
         if(MOVE_IS_CAPTURE(s->last_move)) {
             if(pos_to == MOVE_GET_POS_TO(s->last_move)) {
-                score += 5;
+                score += PAWN_VALUE;
             }
         }
     }
+
+    if(MOVE_IS_PROMOTION(move)) {
+        score += piece_value[MOVE_PROMOTION_TYPE(move)] - piece_value[PAWN];
+    }
+
+    /* Piece-square tables */
+    int pos_mask = s->player * 0x38;
+    score += piecesquare[own_type][pos_to^pos_mask] - piecesquare[own_type][pos_from^pos_mask];
 
     return score;
 }

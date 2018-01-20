@@ -76,16 +76,16 @@ int STATE_generate_moves(const chess_state_t *s, move_t *moves)
         }
 
         if(pawn_promotion | pawn_capture_promotion) {
-            num_moves += STATE_add_moves_to_list(pawn_promotion, pos_from, type, 0, MOVE_KNIGHT_PROMOTION, moves + num_moves);
-            num_moves += STATE_add_moves_to_list(pawn_promotion, pos_from, type, 0, MOVE_BISHOP_PROMOTION, moves + num_moves);
-            num_moves += STATE_add_moves_to_list(pawn_promotion, pos_from, type, 0, MOVE_ROOK_PROMOTION, moves + num_moves);
             num_moves += STATE_add_moves_to_list(pawn_promotion, pos_from, type, 0, MOVE_QUEEN_PROMOTION, moves + num_moves);
+            num_moves += STATE_add_moves_to_list(pawn_promotion, pos_from, type, 0, MOVE_ROOK_PROMOTION, moves + num_moves);
+            num_moves += STATE_add_moves_to_list(pawn_promotion, pos_from, type, 0, MOVE_BISHOP_PROMOTION, moves + num_moves);
+            num_moves += STATE_add_moves_to_list(pawn_promotion, pos_from, type, 0, MOVE_KNIGHT_PROMOTION, moves + num_moves);
 
             for(opponent_type = 0; opponent_type < NUM_TYPES - 1; opponent_type++) {
-                num_moves += STATE_add_moves_to_list(pawn_capture_promotion & s->bitboard[opponent_index + opponent_type], pos_from, type, opponent_type, MOVE_KNIGHT_PROMOTION_CAPTURE, moves + num_moves);
-                num_moves += STATE_add_moves_to_list(pawn_capture_promotion & s->bitboard[opponent_index + opponent_type], pos_from, type, opponent_type, MOVE_BISHOP_PROMOTION_CAPTURE, moves + num_moves);
-                num_moves += STATE_add_moves_to_list(pawn_capture_promotion & s->bitboard[opponent_index + opponent_type], pos_from, type, opponent_type, MOVE_ROOK_PROMOTION_CAPTURE, moves + num_moves);
                 num_moves += STATE_add_moves_to_list(pawn_capture_promotion & s->bitboard[opponent_index + opponent_type], pos_from, type, opponent_type, MOVE_QUEEN_PROMOTION_CAPTURE, moves + num_moves);
+                num_moves += STATE_add_moves_to_list(pawn_capture_promotion & s->bitboard[opponent_index + opponent_type], pos_from, type, opponent_type, MOVE_ROOK_PROMOTION_CAPTURE, moves + num_moves);
+                num_moves += STATE_add_moves_to_list(pawn_capture_promotion & s->bitboard[opponent_index + opponent_type], pos_from, type, opponent_type, MOVE_BISHOP_PROMOTION_CAPTURE, moves + num_moves);
+                num_moves += STATE_add_moves_to_list(pawn_capture_promotion & s->bitboard[opponent_index + opponent_type], pos_from, type, opponent_type, MOVE_KNIGHT_PROMOTION_CAPTURE, moves + num_moves);
             }
         }
         

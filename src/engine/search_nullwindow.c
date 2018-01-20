@@ -107,7 +107,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         /* Iterate over all pseudo legal moves */
         for(i = 0; i < num_moves; i++) {
             /* Pick move with the highest score */
-            if(i < 5) MOVEORDER_best_move_first(&moves[i], num_moves - i);
+            MOVEORDER_best_move_first(&moves[i], num_moves - i);
 
             /* Futility pruning */
             if(do_futility_pruning) {
