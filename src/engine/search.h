@@ -26,6 +26,7 @@ typedef struct {
     thread_t            thread;
     move_t              move;
     int                 status;
+    move_t              killer_move[MAX_SEARCH_DEPTH][2];
 } search_state_t;
 
 int SEARCH_perform_search(const chess_state_t *s, search_state_t *search_state, short *score);

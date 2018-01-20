@@ -4,13 +4,18 @@
 
 static const int piece_value[6] = { PAWN_VALUE, KNIGHT_VALUE, BISHOP_VALUE+BISHOP_PAIR, ROOK_VALUE, QUEEN_VALUE, 2*QUEEN_VALUE };
 
-static int MOVEORDER_compute_score(const chess_state_t *s, const move_t move)
+static int MOVEORDER_compute_score(const chess_state_t *s, const move_t move, const move_t *killer)
 {
     unsigned int score = 100;
     
     const int pos_from = MOVE_GET_POS_FROM(move);
     const int pos_to   = MOVE_GET_POS_TO(move);
     const int own_type = MOVE_GET_TYPE(move);
+
+    if(killer) {
+        if(move == killer[0]) score += 55;
+        else if(move == killer[1]) score += 1;
+    }
     
     if(MOVE_IS_CAPTURE(move)) {
         /* MVV-LVA */
@@ -36,7 +41,7 @@ static int MOVEORDER_compute_score(const chess_state_t *s, const move_t move)
     return score;
 }
 
-int MOVEORDER_rate_moves(const chess_state_t *s, move_t moves[], int num_moves, const move_t best_guess)
+int MOVEORDER_rate_moves(const chess_state_t *s, move_t moves[], int num_moves, const move_t best_guess, const move_t *killer)
 {
     /* Get score for each move */
     for(int i = 0; i < num_moves; i++) {
@@ -46,7 +51,7 @@ int MOVEORDER_rate_moves(const chess_state_t *s, move_t moves[], int num_moves, 
             moves[i] = moves[num_moves-1];
             num_moves--;
         }
-        score = MOVEORDER_compute_score(s, moves[i]);
+        score = MOVEORDER_compute_score(s, moves[i], killer);
         moves[i] |= score << MOVE_SCORE_SHIFT;
     }
 
@@ -57,7 +62,7 @@ int MOVEORDER_rate_moves_quiescence(const chess_state_t *s, move_t moves[], int 
 {
     /* Get score for each move */
     for(int i = 0; i < num_moves; i++) {
-        int score = MOVEORDER_compute_score(s, moves[i]);
+        int score = MOVEORDER_compute_score(s, moves[i], 0);
         moves[i] |= score << MOVE_SCORE_SHIFT;
     }
 

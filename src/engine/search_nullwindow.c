@@ -95,7 +95,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     if(!skip_move_generation) {
         /* Generate and rate moves */
         num_moves = STATE_generate_moves(state, moves);
-        num_moves = MOVEORDER_rate_moves(state, moves, num_moves, *move);
+        num_moves = MOVEORDER_rate_moves(state, moves, num_moves, *move, search_state->killer_move[depth]);
 
         /* Check if node is eligible for futility pruning */
         if(depth == 1 && !is_in_check) {
@@ -153,10 +153,14 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
             /* Check if score improved by this move */
             if(score > best_score) {
                 best_score = score;
-                *move = moves[i];
+                *move = moves[i] & ~MOVE_SCORE_MASK;
                 
                 /* Beta-cuttoff */
                 if(best_score >= beta) {
+                    if(!MOVE_IS_CAPTURE_OR_PROMOTION(*move) && *move != search_state->killer_move[depth][0]) {
+                        search_state->killer_move[depth][1] = search_state->killer_move[depth][0];
+                        search_state->killer_move[depth][0] = *move;
+                    }
                     HISTORY_pop(search_state->history);
                     break;
                 }
