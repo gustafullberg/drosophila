@@ -152,6 +152,8 @@ short EVAL_evaluate_board(const chess_state_t *s)
         int pos_mask = color * 0x38;
         bitboard_t own_pieces = s->bitboard[NUM_TYPES*color + ALL];
         bitboard_t opp_pieces = s->bitboard[NUM_TYPES*(color^1) + ALL];
+        bitboard_t diagonal_sliders = s->bitboard[NUM_TYPES*color + BISHOP] | s->bitboard[NUM_TYPES*color + QUEEN];
+        bitboard_t straight_sliders = s->bitboard[NUM_TYPES*color + ROOK] | s->bitboard[NUM_TYPES*color + QUEEN];
 
         /* Pawns */
         pieces = s->bitboard[NUM_TYPES*color + PAWN];
@@ -226,7 +228,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
             pos_bitboard = BITBOARD_POSITION(pos);
             material_score[color] += BISHOP_VALUE;
             positional_score[color] += piecesquare[BISHOP][pos^pos_mask];
-            MOVEGEN_bishop(pos, own_pieces, opp_pieces, &moves, &captures);
+            MOVEGEN_bishop(pos, own_pieces & ~diagonal_sliders, opp_pieces, &moves, &captures);
             piece_mobility = BITBOARD_count_bits((moves | captures) & ~pawnAttacks[color^1]);
             positional_score[color] += mobility_bishop[piece_mobility];
             positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? PAWN_GUARDS_MINOR : 0; /* Guarded by pawn */
@@ -241,7 +243,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
             pos = BITBOARD_find_bit(pieces);
             material_score[color] += ROOK_VALUE;
             positional_score[color] += piecesquare[ROOK][pos^pos_mask];
-            MOVEGEN_rook(pos, own_pieces & ~s->bitboard[NUM_TYPES*color + ROOK], opp_pieces, &moves, &captures);
+            MOVEGEN_rook(pos, own_pieces & ~straight_sliders, opp_pieces, &moves, &captures);
             piece_mobility = BITBOARD_count_bits((moves | captures) & ~pawnAttacks[color^1]);
             positional_score_o[color] += mobility_rook_o[piece_mobility];
             positional_score_e[color] += mobility_rook_e[piece_mobility];
@@ -277,8 +279,8 @@ short EVAL_evaluate_board(const chess_state_t *s)
             pos = BITBOARD_find_bit(pieces);
             material_score[color] += QUEEN_VALUE;
             positional_score[color] += piecesquare[QUEEN][pos^pos_mask];
-            MOVEGEN_bishop(pos, own_pieces & ~s->bitboard[NUM_TYPES*color + BISHOP], opp_pieces, &moves_b, &captures_b);
-            MOVEGEN_rook(pos, own_pieces & ~s->bitboard[NUM_TYPES*color + ROOK], opp_pieces, &moves_r, &captures_r);
+            MOVEGEN_bishop(pos, own_pieces & ~diagonal_sliders, opp_pieces, &moves_b, &captures_b);
+            MOVEGEN_rook(pos, own_pieces & ~straight_sliders, opp_pieces, &moves_r, &captures_r);
             piece_mobility = BITBOARD_count_bits((moves_b | captures_b | moves_r | captures_r) & ~pawnAttacks[color^1]);
             positional_score_o[color] += mobility_queen_o[piece_mobility];
             positional_score_e[color] += mobility_queen_e[piece_mobility];
