@@ -71,36 +71,28 @@ static int STATE_add_moves_to_list(bitboard_t bitboard_to, int pos_from, int typ
     return num_moves;
 }
 
-int STATE_generate_moves(const chess_state_t *s, move_t *moves)
+static int STATE_add_pawn_captures_promotions(const chess_state_t *s, bitboard_t possible_captures, bitboard_t pawn_promotion, bitboard_t pawn_capture_promotion, move_t *moves)
 {
-    int type, opponent_type, pos_from;
-    bitboard_t pieces, possible_moves, possible_captures;
-    bitboard_t pawn_push2, pawn_promotion, pawn_capture_promotion;
-    int num_moves = 0;
     const int player = s->player;
     const int opponent = player ^ 1;
     const int player_index = NUM_TYPES*player;
     const int opponent_index = NUM_TYPES*opponent;
-    const bitboard_t player_pieces = s->bitboard[player_index + ALL];
-    const bitboard_t opponent_pieces = s->bitboard[opponent_index + ALL];
+    bitboard_t pieces = s->bitboard[player_index + PAWN];
+    int num_moves = 0;
 
-    type = PAWN;
-    pieces = s->bitboard[player_index + type];
-
-    MOVEGEN_all_pawns(player, pieces, player_pieces, opponent_pieces, &possible_moves, &pawn_push2, &possible_captures, &pawn_promotion, &pawn_capture_promotion);
     /* Captures */
-    for(opponent_type = PAWN; possible_captures; opponent_type++) {
+    for(int opponent_type = PAWN; possible_captures; opponent_type++) {
         bitboard_t captures = possible_captures & s->bitboard[opponent_index + opponent_type];
         possible_captures ^= captures;
         while(captures) {
             int pos_to = BITBOARD_find_bit(captures);
             bitboard_t pos_to_bb = BITBOARD_POSITION(pos_to);
             if(player == WHITE) {
-                if(((pos_to_bb & ~(BITBOARD_FILE<<0)) >> 9) & pieces) STATE_add_move_to_list(pos_to, pos_to-9, type, opponent_type, MOVE_CAPTURE, moves + num_moves++);
-                if(((pos_to_bb & ~(BITBOARD_FILE<<7)) >> 7) & pieces) STATE_add_move_to_list(pos_to, pos_to-7, type, opponent_type, MOVE_CAPTURE, moves + num_moves++);
+                if(((pos_to_bb & ~(BITBOARD_FILE<<0)) >> 9) & pieces) STATE_add_move_to_list(pos_to, pos_to-9, PAWN, opponent_type, MOVE_CAPTURE, moves + num_moves++);
+                if(((pos_to_bb & ~(BITBOARD_FILE<<7)) >> 7) & pieces) STATE_add_move_to_list(pos_to, pos_to-7, PAWN, opponent_type, MOVE_CAPTURE, moves + num_moves++);
             } else {
-                if(((pos_to_bb & ~(BITBOARD_FILE<<0)) << 7) & pieces) STATE_add_move_to_list(pos_to, pos_to+7, type, opponent_type, MOVE_CAPTURE, moves + num_moves++);
-                if(((pos_to_bb & ~(BITBOARD_FILE<<7)) << 9) & pieces) STATE_add_move_to_list(pos_to, pos_to+9, type, opponent_type, MOVE_CAPTURE, moves + num_moves++);
+                if(((pos_to_bb & ~(BITBOARD_FILE<<0)) << 7) & pieces) STATE_add_move_to_list(pos_to, pos_to+7, PAWN, opponent_type, MOVE_CAPTURE, moves + num_moves++);
+                if(((pos_to_bb & ~(BITBOARD_FILE<<7)) << 9) & pieces) STATE_add_move_to_list(pos_to, pos_to+9, PAWN, opponent_type, MOVE_CAPTURE, moves + num_moves++);
             }
             captures ^= pos_to_bb;
         }
@@ -113,7 +105,7 @@ int STATE_generate_moves(const chess_state_t *s, move_t *moves)
         pawn_promotion ^= BITBOARD_POSITION(pos_to);
     }
     /* Promotion with capture */
-    for(opponent_type = PAWN; pawn_capture_promotion; opponent_type++) {
+    for(int opponent_type = PAWN; pawn_capture_promotion; opponent_type++) {
         bitboard_t captures = pawn_capture_promotion & s->bitboard[opponent_index + opponent_type];
         pawn_capture_promotion ^= captures;
         while(captures) {
@@ -129,6 +121,14 @@ int STATE_generate_moves(const chess_state_t *s, move_t *moves)
             captures ^= pos_to_bb;
         }
     }
+    return num_moves;
+}
+
+static int STATE_add_pawn_quiet(const chess_state_t *s, bitboard_t possible_moves, bitboard_t pawn_push2, move_t *moves)
+{
+    const int player = s->player;
+    int num_moves = 0;
+
     /* Pawn push */
     while(possible_moves) {
         int pos_to = BITBOARD_find_bit(possible_moves);
@@ -141,7 +141,29 @@ int STATE_generate_moves(const chess_state_t *s, move_t *moves)
         STATE_add_move_to_list(pos_to, pos_to + ((player == WHITE) ? -16 : 16), PAWN, 0, MOVE_DOUBLE_PAWN_PUSH, moves + num_moves++);
         pawn_push2 ^= BITBOARD_POSITION(pos_to);
     }
-    
+    return num_moves;
+}
+
+int STATE_generate_moves(const chess_state_t *s, move_t *moves)
+{
+    int type, opponent_type, pos_from;
+    bitboard_t pieces, possible_moves, possible_captures;
+    bitboard_t pawn_push2, pawn_promotion, pawn_capture_promotion;
+    int num_moves = 0;
+    const int player = s->player;
+    const int opponent = player ^ 1;
+    const int player_index = NUM_TYPES*player;
+    const int opponent_index = NUM_TYPES*opponent;
+    const bitboard_t player_pieces = s->bitboard[player_index + ALL];
+    const bitboard_t opponent_pieces = s->bitboard[opponent_index + ALL];
+
+    /* Pawns */
+    type = PAWN;
+    pieces = s->bitboard[player_index + type];
+    MOVEGEN_all_pawns(player, pieces, player_pieces, opponent_pieces, &possible_moves, &pawn_push2, &possible_captures, &pawn_promotion, &pawn_capture_promotion);
+    num_moves += STATE_add_pawn_captures_promotions(s, possible_captures, pawn_promotion, pawn_capture_promotion, &moves[num_moves]);
+    num_moves += STATE_add_pawn_quiet(s, possible_moves, pawn_push2, &moves[num_moves]);
+
     for(type = KNIGHT; type < NUM_TYPES - 1; type++) { /* Loop through all types of pieces */
         pieces = s->bitboard[player_index + type];
 
@@ -234,52 +256,11 @@ int STATE_generate_moves_quiescence(const chess_state_t *s, move_t *moves)
     const bitboard_t player_pieces = s->bitboard[player_index + ALL];
     const bitboard_t opponent_pieces = s->bitboard[opponent_index + ALL];
     
+    /* Pawns */
     type = PAWN;
     pieces = s->bitboard[player_index + type];
     MOVEGEN_all_pawns(player, pieces, player_pieces, opponent_pieces, &possible_moves, &pawn_push2, &possible_captures, &pawn_promotion, &pawn_capture_promotion);
-    /* Captures */
-    for(opponent_type = PAWN; possible_captures; opponent_type++) {
-        bitboard_t captures = possible_captures & s->bitboard[opponent_index + opponent_type];
-        possible_captures ^= captures;
-        while(captures) {
-            int pos_to = BITBOARD_find_bit(captures);
-            bitboard_t pos_to_bb = BITBOARD_POSITION(pos_to);
-            if(player == WHITE) {
-                if(((pos_to_bb & ~(BITBOARD_FILE<<0)) >> 9) & pieces) STATE_add_move_to_list(pos_to, pos_to-9, type, opponent_type, MOVE_CAPTURE, moves + num_moves++);
-                if(((pos_to_bb & ~(BITBOARD_FILE<<7)) >> 7) & pieces) STATE_add_move_to_list(pos_to, pos_to-7, type, opponent_type, MOVE_CAPTURE, moves + num_moves++);
-            } else {
-                if(((pos_to_bb & ~(BITBOARD_FILE<<0)) << 7) & pieces) STATE_add_move_to_list(pos_to, pos_to+7, type, opponent_type, MOVE_CAPTURE, moves + num_moves++);
-                if(((pos_to_bb & ~(BITBOARD_FILE<<7)) << 9) & pieces) STATE_add_move_to_list(pos_to, pos_to+9, type, opponent_type, MOVE_CAPTURE, moves + num_moves++);
-            }
-            captures ^= pos_to_bb;
-        }
-    }
-    /* Promotion */
-    while(pawn_promotion) {
-        int pos_to = BITBOARD_find_bit(pawn_promotion);
-        int pos_from = pos_to + ((player == WHITE) ? -8 : 8);
-        STATE_add_move_to_list_promotion(pos_to, pos_from, moves + num_moves);
-        pawn_promotion ^= BITBOARD_POSITION(pos_to);
-    }
-    /* Promotion with capture */
-    for(opponent_type = PAWN; pawn_capture_promotion; opponent_type++) {
-        bitboard_t captures = pawn_capture_promotion & s->bitboard[opponent_index + opponent_type];
-        pawn_capture_promotion ^= captures;
-        while(captures) {
-            int pos_to = BITBOARD_find_bit(captures);
-            bitboard_t pos_to_bb = BITBOARD_POSITION(pos_to);
-            if(player == WHITE) {
-                if(player == WHITE) {
-                    if(((pos_to_bb & ~(BITBOARD_FILE<<0)) >> 9) & pieces) num_moves += STATE_add_move_to_list_promotion_capture(pos_to, pos_to-9, opponent_type, moves + num_moves);
-                    if(((pos_to_bb & ~(BITBOARD_FILE<<7)) >> 7) & pieces) num_moves += STATE_add_move_to_list_promotion_capture(pos_to, pos_to-7, opponent_type, moves + num_moves);
-                } else {
-                    if(((pos_to_bb & ~(BITBOARD_FILE<<0)) << 7) & pieces) num_moves += STATE_add_move_to_list_promotion_capture(pos_to, pos_to+7, opponent_type, moves + num_moves);
-                    if(((pos_to_bb & ~(BITBOARD_FILE<<7)) << 9) & pieces) num_moves += STATE_add_move_to_list_promotion_capture(pos_to, pos_to+9, opponent_type, moves + num_moves);
-                }
-            }
-            captures ^= pos_to_bb;
-        }
-    }
+    num_moves += STATE_add_pawn_captures_promotions(s, possible_captures, pawn_promotion, pawn_capture_promotion, &moves[num_moves]);
     
     for(type = KNIGHT; type < NUM_TYPES - 1; type++) { /* Loop through all types of pieces */
         pieces = s->bitboard[player_index + type];
