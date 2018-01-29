@@ -88,18 +88,6 @@ int STATE_generate_moves(const chess_state_t *s, move_t *moves)
     pieces = s->bitboard[player_index + type];
 
     MOVEGEN_all_pawns(player, pieces, player_pieces, opponent_pieces, &possible_moves, &pawn_push2, &possible_captures, &pawn_promotion, &pawn_capture_promotion);
-    /* Pawn push */
-    while(possible_moves) {
-        int pos_to = BITBOARD_find_bit(possible_moves);
-        STATE_add_move_to_list(pos_to, pos_to + ((player == WHITE) ? -8 : 8), PAWN, 0, MOVE_QUIET, moves + num_moves++);
-        possible_moves ^= BITBOARD_POSITION(pos_to);
-    }
-    /* Double push */
-    while(pawn_push2) {
-        int pos_to = BITBOARD_find_bit(pawn_push2);
-        STATE_add_move_to_list(pos_to, pos_to + ((player == WHITE) ? -16 : 16), PAWN, 0, MOVE_DOUBLE_PAWN_PUSH, moves + num_moves++);
-        pawn_push2 ^= BITBOARD_POSITION(pos_to);
-    }
     /* Captures */
     for(opponent_type = PAWN; possible_captures; opponent_type++) {
         bitboard_t captures = possible_captures & s->bitboard[opponent_index + opponent_type];
@@ -140,6 +128,18 @@ int STATE_generate_moves(const chess_state_t *s, move_t *moves)
             }
             captures ^= pos_to_bb;
         }
+    }
+    /* Pawn push */
+    while(possible_moves) {
+        int pos_to = BITBOARD_find_bit(possible_moves);
+        STATE_add_move_to_list(pos_to, pos_to + ((player == WHITE) ? -8 : 8), PAWN, 0, MOVE_QUIET, moves + num_moves++);
+        possible_moves ^= BITBOARD_POSITION(pos_to);
+    }
+    /* Double push */
+    while(pawn_push2) {
+        int pos_to = BITBOARD_find_bit(pawn_push2);
+        STATE_add_move_to_list(pos_to, pos_to + ((player == WHITE) ? -16 : 16), PAWN, 0, MOVE_DOUBLE_PAWN_PUSH, moves + num_moves++);
+        pawn_push2 ^= BITBOARD_POSITION(pos_to);
     }
     
     for(type = KNIGHT; type < NUM_TYPES - 1; type++) { /* Loop through all types of pieces */
