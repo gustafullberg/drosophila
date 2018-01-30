@@ -3,28 +3,31 @@
 #include "defines.h"
 #include "movegen.h"
 
-void MOVEGEN_pawn(const int color, const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *pawn_push, bitboard_t *pawn_push2, bitboard_t *pawn_capture, bitboard_t *pawn_promotion, bitboard_t *pawn_capture_promotion)
+void MOVEGEN_all_pawns(const int color, const bitboard_t pawns, const bitboard_t own, const bitboard_t opponent, bitboard_t *pawn_push, bitboard_t *pawn_push2, bitboard_t *pawn_capture_from_left, bitboard_t *pawn_capture_from_right, bitboard_t *pawn_promotion, bitboard_t *pawn_promotion_capture_from_left, bitboard_t *pawn_promotion_capture_from_right)
 {
-    bitboard_t empty;
-    
-    empty = ~own & ~opponent;
-    
-    /* One push */
-    *pawn_push = bitboard_pawn_move[color][position] & empty;
-    
-    /* Two push */
-    *pawn_push2 = empty & bitboard_pawn_move2[color][position] & ((*pawn_push << 8) | (*pawn_push >> 8));
-    
-    /* Capture */
-    *pawn_capture = bitboard_pawn_capture[color][position] & opponent;
-    
-    /* Promotion, no capture */
-    *pawn_promotion = *pawn_push & BITBOARD_PROMOTION;
-    *pawn_push &= ~BITBOARD_PROMOTION;
-    
-    /* Promotion, capture */
-    *pawn_capture_promotion = *pawn_capture & BITBOARD_PROMOTION;
-    *pawn_capture &= ~BITBOARD_PROMOTION;
+    bitboard_t empty = ~own & ~opponent;
+
+    if(color == WHITE) {
+        *pawn_push = (pawns << 8) & empty;
+        *pawn_push2 = ((pawns &  (BITBOARD_RANK << 8)) << 16) & empty & (empty << 8);
+	*pawn_capture_from_left = ((pawns & ~(BITBOARD_FILE << 7)) << 9) & opponent;
+	*pawn_capture_from_right = ((pawns & ~(BITBOARD_FILE << 0)) << 7) & opponent;
+        *pawn_promotion = *pawn_push & (BITBOARD_RANK << 56);
+        *pawn_promotion_capture_from_left = *pawn_capture_from_left & (BITBOARD_RANK << 56);
+	*pawn_promotion_capture_from_right = *pawn_capture_from_right & (BITBOARD_RANK << 56);
+    } else {
+        *pawn_push = (pawns >> 8) & empty;
+        *pawn_push2 = ((pawns &  (BITBOARD_RANK << 48)) >> 16) & empty & (empty >> 8);
+	*pawn_capture_from_left = ((pawns & ~(BITBOARD_FILE << 7)) >> 7) & opponent;
+	*pawn_capture_from_right = ((pawns & ~(BITBOARD_FILE << 0)) >> 9) & opponent;
+        *pawn_promotion = *pawn_push & (BITBOARD_RANK << 0);
+	*pawn_promotion_capture_from_left = *pawn_capture_from_left & (BITBOARD_RANK << 0);
+	*pawn_promotion_capture_from_right = *pawn_capture_from_right & (BITBOARD_RANK << 0);
+    }
+
+    *pawn_push ^= *pawn_promotion;
+    *pawn_capture_from_left ^= *pawn_promotion_capture_from_left;
+    *pawn_capture_from_right ^= *pawn_promotion_capture_from_right;
 }
 
 void MOVEGEN_knight(const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
@@ -131,7 +134,7 @@ void MOVEGEN_piece(const int type, const int position, const bitboard_t own, con
 {
     switch(type) {
     case PAWN:
-        /* MOVEGEN_pawn should be used instead */
+        /* MOVEGEN_all_pawns should be used instead */
         assert(0);
         break;
     case KNIGHT:
