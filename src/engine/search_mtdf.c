@@ -1,3 +1,4 @@
+#include <string.h>
 #include "search_mtdf.h"
 #include "search_nullwindow.h"
 #include "search.h"
@@ -51,6 +52,9 @@ short SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state
     move_t m;
     int64_t time_passed_ms = 0;
     m = 0;
+
+    /* Clear history heuristic */
+    memset(search_state->history_heuristic, 0, sizeof(search_state->history_heuristic));
     
     /* Limit maximum search depth */
     if(search_state->max_depth > MAX_SEARCH_DEPTH) search_state->max_depth = MAX_SEARCH_DEPTH;

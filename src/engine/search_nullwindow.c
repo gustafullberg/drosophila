@@ -95,7 +95,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     if(!skip_move_generation) {
         /* Generate and rate moves */
         num_moves = STATE_generate_moves(state, moves);
-        num_moves = MOVEORDER_rate_moves(state, moves, num_moves, *move, search_state->killer_move[depth]);
+        num_moves = MOVEORDER_rate_moves(state, moves, num_moves, *move, search_state->killer_move[depth], search_state->history_heuristic[state->player]);
 
         /* Check if node is eligible for futility pruning */
         if(depth == 1 && !is_in_check) {
@@ -157,9 +157,14 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                 
                 /* Beta-cuttoff */
                 if(best_score >= beta) {
-                    if(!MOVE_IS_CAPTURE_OR_PROMOTION(*move) && *move != search_state->killer_move[depth][0]) {
-                        search_state->killer_move[depth][1] = search_state->killer_move[depth][0];
-                        search_state->killer_move[depth][0] = *move;
+                    if(!MOVE_IS_CAPTURE_OR_PROMOTION(*move)) {
+                        /* Killer move */
+                        if(*move != search_state->killer_move[depth][0]) {
+                            search_state->killer_move[depth][1] = search_state->killer_move[depth][0];
+                            search_state->killer_move[depth][0] = *move;
+                        }
+                        /* History heuristic */
+                        search_state->history_heuristic[state->player][MOVE_GET_POS_FROM(*move)][MOVE_GET_POS_TO(*move)] += depth*depth;
                     }
                     HISTORY_pop(search_state->history);
                     break;

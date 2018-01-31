@@ -4,7 +4,7 @@
 
 static const int piece_value[6] = { PAWN_VALUE, KNIGHT_VALUE, BISHOP_VALUE+BISHOP_PAIR, ROOK_VALUE, QUEEN_VALUE, 2*QUEEN_VALUE };
 
-static int MOVEORDER_compute_score(const chess_state_t *s, const move_t move, const move_t *killer)
+static int MOVEORDER_compute_score(const chess_state_t *s, const move_t move, const move_t *killer, const int history_heuristic[64][64])
 {
     unsigned int score = 100;
     
@@ -12,26 +12,32 @@ static int MOVEORDER_compute_score(const chess_state_t *s, const move_t move, co
     const int pos_to   = MOVE_GET_POS_TO(move);
     const int own_type = MOVE_GET_TYPE(move);
 
-    if(killer) {
-        if(move == killer[0]) score += 55;
-        else if(move == killer[1]) score += 1;
-    }
-    
-    if(MOVE_IS_CAPTURE(move)) {
-        /* MVV-LVA */
-        int captured_type = MOVE_GET_CAPTURE_TYPE(move);
-        score += piece_value[KING] + piece_value[captured_type] - piece_value[own_type];
+    if(MOVE_IS_CAPTURE_OR_PROMOTION(move)) {
+        if(MOVE_IS_CAPTURE(move)) {
+            /* MVV-LVA */
+            int captured_type = MOVE_GET_CAPTURE_TYPE(move);
+            score += piece_value[KING] + piece_value[captured_type] - piece_value[own_type];
 
-        /* Recapture bonus */
-        if(MOVE_IS_CAPTURE(s->last_move)) {
-            if(pos_to == MOVE_GET_POS_TO(s->last_move)) {
-                score += PAWN_VALUE;
+            /* Recapture bonus */
+            if(MOVE_IS_CAPTURE(s->last_move)) {
+                if(pos_to == MOVE_GET_POS_TO(s->last_move)) {
+                    score += PAWN_VALUE;
+                }
             }
         }
-    }
 
-    if(MOVE_IS_PROMOTION(move)) {
-        score += piece_value[MOVE_PROMOTION_TYPE(move)] - piece_value[PAWN];
+        if(MOVE_IS_PROMOTION(move)) {
+            score += piece_value[MOVE_PROMOTION_TYPE(move)] - piece_value[PAWN];
+        }
+    } else {
+        if(killer) {
+            if(move == killer[0]) score += 55;
+            else if(move == killer[1]) score += 1;
+        }
+        if(history_heuristic) {
+            int hist_val = history_heuristic[pos_from][pos_to];
+            score += BITBOARD_find_bit_reversed(hist_val | 1) * 2;
+        }
     }
 
     /* Piece-square tables */
@@ -41,7 +47,7 @@ static int MOVEORDER_compute_score(const chess_state_t *s, const move_t move, co
     return score;
 }
 
-int MOVEORDER_rate_moves(const chess_state_t *s, move_t moves[], int num_moves, const move_t best_guess, const move_t *killer)
+int MOVEORDER_rate_moves(const chess_state_t *s, move_t moves[], int num_moves, const move_t best_guess, const move_t *killer, const int history_heuristic[64][64])
 {
     /* Get score for each move */
     for(int i = 0; i < num_moves; i++) {
@@ -51,7 +57,7 @@ int MOVEORDER_rate_moves(const chess_state_t *s, move_t moves[], int num_moves, 
             moves[i] = moves[num_moves-1];
             num_moves--;
         }
-        score = MOVEORDER_compute_score(s, moves[i], killer);
+        score = MOVEORDER_compute_score(s, moves[i], killer, history_heuristic);
         moves[i] |= score << MOVE_SCORE_SHIFT;
     }
 
@@ -62,7 +68,7 @@ int MOVEORDER_rate_moves_quiescence(const chess_state_t *s, move_t moves[], int 
 {
     /* Get score for each move */
     for(int i = 0; i < num_moves; i++) {
-        int score = MOVEORDER_compute_score(s, moves[i], 0);
+        int score = MOVEORDER_compute_score(s, moves[i], 0, 0);
         moves[i] |= score << MOVE_SCORE_SHIFT;
     }
 
