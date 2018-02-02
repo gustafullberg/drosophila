@@ -98,8 +98,8 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         num_moves = MOVEORDER_rate_moves(state, moves, num_moves, *move, search_state->killer_move[depth], search_state->history_heuristic[state->player]);
 
         /* Check if node is eligible for futility pruning */
-        if(depth == 1 && !is_in_check) {
-            if(beta > EVAL_evaluate_board(state) + 10) {
+        if(depth <= 2 && !is_in_check) {
+            if(beta > EVAL_evaluate_board(state) + 25) {
                 do_futility_pruning = 1;
             }
         }
@@ -125,7 +125,6 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                 continue;
             }
             num_legal_moves++;
-            
 
             HISTORY_push(search_state->history, next_state.hash);
             if(HISTORY_is_repetition(search_state->history, next_state.halfmove_clock) || EVAL_insufficient_material(&next_state)) {
