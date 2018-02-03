@@ -152,7 +152,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
             /* Check if score improved by this move */
             if(score > best_score) {
                 best_score = score;
-                *move = moves[i] & ~MOVE_SCORE_MASK;
+                *move = moves[i];
                 
                 /* Beta-cuttoff */
                 if(best_score >= beta) {
@@ -275,7 +275,6 @@ static inline short SEARCH_transpositiontable_retrieve(const hashtable_t *hashta
 
 static inline void SEARCH_transpositiontable_store(hashtable_t *hashtable, const bitboard_t hash, const unsigned char depth, const short best_score, move_t best_move, const short beta)
 {
-    best_move &= ~MOVE_SCORE_MASK;
     if(best_score < beta) {
         HASHTABLE_transition_store(hashtable, hash, depth, TTABLE_TYPE_UPPER_BOUND, best_score, best_move);
     } else {
