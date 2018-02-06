@@ -138,7 +138,8 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                     !is_in_check)                              /* No LMR if in check                            */
                 {
                     /* Search at reduced depth */
-                    score = -SEARCH_nullwindow(&next_state, search_state, depth-2, &next_move, -beta+1);
+                    unsigned char R_plus_1 = (num_legal_moves > 15 && depth > 3) ? 3 : 2;
+                    score = -SEARCH_nullwindow(&next_state, search_state, depth-R_plus_1, &next_move, -beta+1);
                     if(score >= beta) {
                         /* If reduced yields interesting results, do a full search */
                         score = -SEARCH_nullwindow(&next_state, search_state, depth-1, &next_move, -beta+1);
