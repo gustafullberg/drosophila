@@ -77,25 +77,10 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         }
     }
 
-    /* Try hash move */
-    if(!skip_move_generation && *move) {
-        next_state = *state;
-        STATE_apply_move(&next_state, *move);
-        if(!SEARCH_is_check(&next_state, state->player)) {
-            num_legal_moves++;
-            HISTORY_push(search_state->history, next_state.hash);
-            best_score = -SEARCH_nullwindow(&next_state, search_state, depth-1, &next_move, -beta+1);
-            HISTORY_pop(search_state->history);
-            if(best_score >= beta) {
-                skip_move_generation = 1;
-            }
-        }
-    }
-
     if(!skip_move_generation) {
         /* Generate and rate moves */
         num_moves = STATE_generate_moves(state, moves);
-        num_moves = MOVEORDER_rate_moves(state, moves, num_moves, *move, search_state->killer_move[depth], search_state->history_heuristic[state->player]);
+        MOVEORDER_rate_moves(state, moves, num_moves, *move, search_state->killer_move[depth], search_state->history_heuristic[state->player]);
 
         /* Check if node is eligible for futility pruning */
         if(depth <= 2 && !is_in_check) {
@@ -213,7 +198,7 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
     
     /* Generate and rate moves (captures and promotions only) */
     num_moves = STATE_generate_moves_quiescence(state, moves);
-    num_moves = MOVEORDER_rate_moves_quiescence(state, moves, num_moves);
+    MOVEORDER_rate_moves_quiescence(state, moves, num_moves);
     
     for(i = 0; i < num_moves; i++) {
         /* Pick move with the highest score */

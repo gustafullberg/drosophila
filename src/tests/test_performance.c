@@ -8,7 +8,7 @@
 #include <assert.h>
 #include "engine.h"
 
-#define DEPTH 12
+#define DEPTH 14
 
 int total_nodes = 0;
 
