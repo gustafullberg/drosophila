@@ -1,12 +1,8 @@
 #include "bitboard.h"
 #include <stdio.h>
 
-bitboard_t bitboard_less_than[NUM_POSITIONS];
-bitboard_t bitboard_more_than[NUM_POSITIONS];
 bitboard_t bitboard_file[NUM_POSITIONS];
 bitboard_t bitboard_rank[NUM_POSITIONS];
-bitboard_t bitboard_bltr[NUM_POSITIONS];
-bitboard_t bitboard_tlbr[NUM_POSITIONS];
 bitboard_t bitboard_left[NUM_POSITIONS];
 bitboard_t bitboard_right[NUM_POSITIONS];
 bitboard_t bitboard_up[NUM_POSITIONS];
@@ -31,6 +27,10 @@ char       distance[NUM_POSITIONS][NUM_POSITIONS];
 
 void BITBOARD_init()
 {
+    bitboard_t bitboard_less_than[NUM_POSITIONS];
+    bitboard_t bitboard_more_than[NUM_POSITIONS];
+    bitboard_t bitboard_bltr[NUM_POSITIONS];
+    bitboard_t bitboard_tlbr[NUM_POSITIONS];
     int i, j, tmp, rank, file, color, offset, base;
     
     /* LESS THAN */

@@ -27,12 +27,8 @@ typedef uint64_t bitboard_t;
 #define BITBOARD_CLEAR(bitboard, pos) (bitboard &= ~BITBOARD_POSITION(pos))
 #define BITBOARD_SET(bitboard, pos) (bitboard |= BITBOARD_POSITION(pos))
 
-extern bitboard_t bitboard_less_than[NUM_POSITIONS];
-extern bitboard_t bitboard_more_than[NUM_POSITIONS];
 extern bitboard_t bitboard_file[NUM_POSITIONS];
 extern bitboard_t bitboard_rank[NUM_POSITIONS];
-extern bitboard_t bitboard_bltr[NUM_POSITIONS];
-extern bitboard_t bitboard_tlbr[NUM_POSITIONS];
 extern bitboard_t bitboard_left[NUM_POSITIONS];
 extern bitboard_t bitboard_right[NUM_POSITIONS];
 extern bitboard_t bitboard_up[NUM_POSITIONS];
