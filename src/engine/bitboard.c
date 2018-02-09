@@ -1,5 +1,4 @@
 #include "bitboard.h"
-#include <stdlib.h>
 #include <stdio.h>
 
 bitboard_t bitboard_less_than[NUM_POSITIONS];
@@ -20,7 +19,6 @@ bitboard_t bitboard_between[NUM_POSITIONS][NUM_POSITIONS];
 bitboard_t bitboard_king[NUM_POSITIONS];
 bitboard_t bitboard_knight[NUM_POSITIONS];
 bitboard_t bitboard_pawn_move[NUM_COLORS][NUM_POSITIONS];
-bitboard_t bitboard_pawn_move2[NUM_COLORS][NUM_POSITIONS];
 bitboard_t bitboard_pawn_capture[NUM_COLORS][NUM_POSITIONS];
 bitboard_t bitboard_ep_capture[NUM_POSITIONS];
 bitboard_t bitboard_ep_capturers[NUM_COLORS][NUM_FILES];
@@ -29,10 +27,7 @@ bitboard_t bitboard_rook[NUM_POSITIONS];
 bitboard_t bitboard_king_castle_empty[NUM_COLORS];
 bitboard_t bitboard_queen_castle_empty[NUM_COLORS];
 bitboard_t bitboard_start_position[NUM_COLORS][NUM_TYPES-1];
-uint32_t   bitboard_zobrist_pawn[NUM_COLORS][NUM_POSITIONS];
 char       distance[NUM_POSITIONS][NUM_POSITIONS];
-
-static uint32_t BITBOARD_random_uint32();
 
 void BITBOARD_init()
 {
@@ -174,11 +169,8 @@ void BITBOARD_init()
             rank = BITBOARD_GET_RANK(i);
             file = BITBOARD_GET_FILE(i);
             bitboard_pawn_move[color][i] = 0;
-            bitboard_pawn_move2[color][i] = 0;
             bitboard_pawn_capture[color][i] = 0;
             if(BITBOARD_POS_VALID(rank+offset, file)) bitboard_pawn_move[color][i] = BITBOARD_RANK_FILE(rank+offset, file);
-            if(rank == base)
-                bitboard_pawn_move2[color][i] = BITBOARD_RANK_FILE(rank+2*offset, file);
             if(BITBOARD_POS_VALID(rank+offset, file-1)) bitboard_pawn_capture[color][i] |= BITBOARD_RANK_FILE(rank+offset, file-1);
             if(BITBOARD_POS_VALID(rank+offset, file+1)) bitboard_pawn_capture[color][i] |= BITBOARD_RANK_FILE(rank+offset, file+1);
         }
@@ -238,13 +230,6 @@ void BITBOARD_init()
     bitboard_start_position[BLACK][ROOK]    = 0x8100000000000000;
     bitboard_start_position[BLACK][QUEEN]   = 0x0800000000000000;
     bitboard_start_position[BLACK][KING]    = 0x1000000000000000;
-    
-    /* ZORBIST KEYS FOR PAWN HASH TABLE */
-    for(color = 0; color < NUM_COLORS; color++) {
-        for(i = 0; i < NUM_POSITIONS; i++) {
-            bitboard_zobrist_pawn[color][i] = BITBOARD_random_uint32();
-        }
-    }
 
     for(i = 0; i < NUM_POSITIONS; i++) {
         for(j = 0; j < NUM_POSITIONS; j++) {
@@ -257,13 +242,6 @@ void BITBOARD_init()
             distance[i][j] = (char)dx;
         }
     }
-}
-
-static uint32_t BITBOARD_random_uint32()
-{
-    uint32_t b;
-    b = ((rand() & 0xFFFF) << 16) | (rand() & 0xFFFF);
-    return b;
 }
 
 void BITBOARD_print_debug(const bitboard_t bitboard)

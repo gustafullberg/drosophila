@@ -45,7 +45,6 @@ extern bitboard_t bitboard_between[NUM_POSITIONS][NUM_POSITIONS];
 extern bitboard_t bitboard_king[NUM_POSITIONS];
 extern bitboard_t bitboard_knight[NUM_POSITIONS];
 extern bitboard_t bitboard_pawn_move[NUM_COLORS][NUM_POSITIONS];
-extern bitboard_t bitboard_pawn_move2[NUM_COLORS][NUM_POSITIONS];
 extern bitboard_t bitboard_pawn_capture[NUM_COLORS][NUM_POSITIONS];
 extern bitboard_t bitboard_ep_capture[NUM_POSITIONS];
 extern bitboard_t bitboard_ep_capturers[NUM_COLORS][NUM_FILES];
@@ -58,7 +57,6 @@ extern const bitboard_t bitboard_zobrist[NUM_COLORS][NUM_TYPES-1][NUM_POSITIONS]
 extern const bitboard_t bitboard_zobrist_color;
 extern const bitboard_t bitboard_zobrist_ep[NUM_FILES+1];
 extern const bitboard_t bitboard_zobrist_castling[NUM_COLORS][4];
-extern uint32_t   bitboard_zobrist_pawn[NUM_COLORS][NUM_POSITIONS];
 extern char       distance[NUM_POSITIONS][NUM_POSITIONS];
 
 void BITBOARD_init();
