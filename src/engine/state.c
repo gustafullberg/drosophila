@@ -390,11 +390,13 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
             
                 /* Rook capture disables castling */
                 if((opponent_type == ROOK) && (BITBOARD_POSITION(pos_to) & bitboard_start_position[opponent][ROOK])) {
+                    s->hash ^= bitboard_zobrist_castling[opponent][(int)s->castling[opponent]];
                     if(bitboard_file[pos_to] == bitboard_file[0]) {
                         s->castling[opponent] &= ~STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK;
                     } else {
                         s->castling[opponent] &= ~STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK;
                     }
+                    s->hash ^= bitboard_zobrist_castling[opponent][(int)s->castling[opponent]];
                 }
                 
                 /* Update hash with normal capture */
