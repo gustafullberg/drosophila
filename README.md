@@ -10,6 +10,17 @@ Drosophila was earlier named Pawned.
 
 ## Releases
 
+**[Drosophila 1.5](https://github.com/gustafullberg/drosophila/releases/download/v1.5/drosophila-1.5.zip)** - 2018-02-11
+
+* Evaluation improvements
+  * Better evaluation of passed pawns
+  * Mobility
+* Search improvements
+  * Improvements to late move reduction
+  * More aggressive futility pruning
+  * History heuristic
+  * Killer moves
+
 **[Drosophila 1.4](https://github.com/gustafullberg/drosophila/releases/download/v1.4/drosophila-1.4.zip)** - 2015-03-06
 
 * Improved evaluation
@@ -98,6 +109,7 @@ Evaluation:
 
 * Material
 * Piece-square tables
+* Mobility
 * Pawns defending other pawns and minor pieces
 * Pawn structure
 * Rooks on (half-)open files
