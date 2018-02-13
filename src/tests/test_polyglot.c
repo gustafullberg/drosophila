@@ -3,10 +3,8 @@
 #undef NDEBUG
 #endif
 
-#include <stdio.h>
 #include <assert.h>
 #include "fen.h"
-#include "openingbook.h"
 
 void hash_test(const char *fen, uint64_t hash)
 {

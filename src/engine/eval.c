@@ -1,39 +1,45 @@
 #include "eval.h"
 #include "movegen.h"
 
+//int tune[20] = { 3, 1, 5, 2, 10, 10, 5, -5, 10, 25, -3, -2, 2, 8, 4, 4, 2, 0, 0, 2 };
+//int tune[20] = { 2, 1, 5, 2, 11, 10, 6, -5,  6, 22, -3, -2, 2, 8, 2, 5, 4, 0, 3, 1 };
+//int tune[20] = { 2, 1, 5, 2, 11, 10, 5, -5,  6, 22, -3, -2, 2, 8, 2, 5, 4, 0, 3, 1 };
+//int tune[20] = { 2, 1, 5, 2, 11, 10, 5, 1,  6, 22, -3, -2, 2, 8, 2, 5, 4, 0, 3, 1 };
+int tune[20] = { 2, 1, 5, 2, 11, 10, 6, 1,  6, 22, -3, -2, 2, 8, 2, 5, 4, 0, 3, 1 };
+
 /* Positional */
-#define PAWN_GUARDS_MINOR                3
-#define PAWN_GUARDS_PAWN                 1
-#define PAWN_SHIELD_1                    5
-#define PAWN_SHIELD_2                    2
-#define PAWN_PASSED_O                   10
-#define PAWN_PASSED_E                   10
-#define PAWN_PASSED_DIST_OPP_KING_E      5
-#define PAWN_PASSED_DIST_OWN_KING_E     -5
-#define PAWN_PASSED_UNBLOCKED_E         10
-#define PAWN_PASSED_UNREACHABLE_E       25
-#define PAWN_ISOLATED_O                 -3
-#define PAWN_ISOLATED_E                 -2
-#define KNIGHT_REDUCTION                 2
-#define ROOK_OPEN_FILE_O                 8
-#define ROOK_OPEN_FILE_E                 4
-#define ROOK_HALFOPEN_FILE_O             4
-#define ROOK_HALFOPEN_FILE_E             2
-#define ROOK_REARMOST_PAWN_O             2
-#define ROOK_REARMOST_PAWN_E             4
-#define TEMPO                            2
+#define PAWN_GUARDS_MINOR                tune[0]
+#define PAWN_GUARDS_PAWN                 tune[1]
+#define PAWN_SHIELD_1                    tune[2]
+#define PAWN_SHIELD_2                    tune[3]
+#define PAWN_PASSED_O                    tune[4]
+#define PAWN_PASSED_E                   tune[5]
+#define PAWN_PASSED_DIST_KINGS_DIFF_E   tune[6]
+#define PAWN_PASSED_DIST_OWN_KING_E     tune[7]
+#define PAWN_PASSED_UNBLOCKED_E         tune[8]
+#define PAWN_PASSED_UNREACHABLE_E       tune[9]
+#define PAWN_ISOLATED_O                 tune[10]
+#define PAWN_ISOLATED_E                 tune[11]
+#define KNIGHT_REDUCTION                 tune[12]
+#define ROOK_OPEN_FILE_O                 tune[13]
+#define ROOK_OPEN_FILE_E                 tune[14]
+#define ROOK_HALFOPEN_FILE_O             tune[15]
+#define ROOK_HALFOPEN_FILE_E             tune[16]
+#define ROOK_REARMOST_PAWN_O             tune[17]
+#define ROOK_REARMOST_PAWN_E             tune[18]
+#define TEMPO                            tune[19]
 
 static const int passed_pawn_scaling[8] = { 0, 7, 28, 64, 114, 178, 256, 0}; // Q8
 static const int king_queen_tropism[8]  = { 0,  7, 7, 5, 0, 0, 0, 0 };
 static const int king_rook_tropism[8]   = { 0,  5, 5, 3, 0, 0, 0, 0 };
 static const int king_bishop_tropism[8] = { 0,  3, 3, 2, 0, 0, 0, 0 };
 static const int king_knight_tropism[8] = { 0,  0, 0, 2, 0, 0, 0, 0 };
-static const short mobility_knight[9] = { -6, -4, -2, -1, 0, 1, 2, 3, 4 };
-static const short mobility_bishop[14] = { -6, -4, -3, -2, -2, -1, 0, 0, 1, 1, 2, 2, 3, 3 };
-static const short mobility_rook_o[15] = { -3, -2, -2, -1, -1, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2 };
-static const short mobility_rook_e[15] = { -8, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8 };
-static const short mobility_queen_o[28] = { -3, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3 };
-static const short mobility_queen_e[28] = { -10, -9, -7, -6, -5, -5, -4, -3, -2, -1, -1, 0, 0, 1, 1, 2, 3, 4, 5, 5, 6, 7, 7, 8, 8, 9, 10, 10 };
+short mobility_knight[9] = { -6, -4, -2, -1, 0, 1, 2, 3, 4 };
+short mobility_bishop[14] = { -6, -4, -3, -2, -2, -1, 0, 0, 1, 1, 2, 2, 3, 3 };
+short mobility_rook_o[15] = { -3, -2, -2, -1, -1, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2 };
+short mobility_rook_e[15] = { -8, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+short mobility_queen_o[28] = { -3, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3 };
+short mobility_queen_e[28] = { -10, -9, -7, -6, -5, -5, -4, -3, -2, -1, -1, 0, 0, 1, 1, 2, 3, 4, 5, 5, 6, 7, 7, 8, 8, 9, 10, 10 };
 
 static const short sign[2] = { 1, -1 };
 
@@ -139,8 +145,8 @@ short EVAL_evaluate_board(const chess_state_t *s)
     bitboard_t pawnAttacks[2], passedPawns, isolatedPawns;
     bitboard_t moves, captures;
 
-    rearmost_pawn[WHITE] = s->bitboard[WHITE_PIECES+PAWN] ? BITBOARD_find_bit(s->bitboard[WHITE_PIECES+PAWN]) : -1;
-    rearmost_pawn[BLACK] = s->bitboard[BLACK_PIECES+PAWN] ? BITBOARD_find_bit_reversed(s->bitboard[BLACK_PIECES+PAWN]) : -1;
+    rearmost_pawn[WHITE] = s->bitboard[WHITE_PIECES+PAWN] ? BITBOARD_GET_RANK(BITBOARD_find_bit(s->bitboard[WHITE_PIECES+PAWN])) : -1;
+    rearmost_pawn[BLACK] = s->bitboard[BLACK_PIECES+PAWN] ? BITBOARD_GET_RANK(BITBOARD_find_bit_reversed(s->bitboard[BLACK_PIECES+PAWN])) : -1;
 
     EVAL_pawn_types(s, pawnAttacks, &passedPawns, &isolatedPawns);
 
@@ -173,8 +179,10 @@ short EVAL_evaluate_board(const chess_state_t *s)
                 short bonus_e = PAWN_PASSED_E;
 
                 /* Distance to kings */
-                bonus_e += distance[king_pos[color^1]][pos] * PAWN_PASSED_DIST_OPP_KING_E;
-                bonus_e += distance[king_pos[color]][pos] * PAWN_PASSED_DIST_OWN_KING_E;
+                int dist_own_king = distance[king_pos[color]][pos];
+                int dist_opp_king = distance[king_pos[color^1]][pos];
+                bonus_e += (dist_opp_king - dist_own_king) * PAWN_PASSED_DIST_KINGS_DIFF_E;
+                bonus_e += dist_own_king * PAWN_PASSED_DIST_OWN_KING_E;
 
                 /* Unblocked? */
                 if((bitboard_pawn_move[color][pos] & s->bitboard[OCCUPIED]) == 0) {
