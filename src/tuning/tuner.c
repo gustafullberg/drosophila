@@ -8,7 +8,9 @@
 #include "thread.h"
 #include "eval.h"
 
-#define NUM_THREADS 4
+#define NUM_THREADS 16
+
+extern eval_param_t param;
 
 float sigmoid(float x)
 {
@@ -143,7 +145,7 @@ float run_test(const char *buf)
 
     return mse;
 }
-extern eval_param_t param;
+
 int *c_opt = &param.mobility.queen_o[0];
 int num_elem = 28;
 
@@ -183,8 +185,95 @@ float optimize(const char *buf, int idx, float mse_start)
     return mse_best;
 }
 
+void print_value(int val)
+{
+    if(val >= 0) printf(" ");
+    if(val < 10 && val > -10) printf(" ");
+    printf("%d", val);
+}
+
+void print_psq(char *name, int psq[64])
+{
+    printf("        .%s =\n", name);
+    printf("        {\n");
+    for(int i = 0; i < 8; i++) {
+        printf("          ");
+        for(int j = 0; j < 8; j++) {
+            print_value(psq[8*i+j]);
+            if(i != 7 || j != 7) printf(",");
+        }
+        printf("\n");
+    }
+    printf("        },\n");
+}
+
+void print_mob(char *name, int *mob, int size)
+{
+    int len = size / sizeof(int);
+    printf("        .%s", name);
+    for(int i = 0; i < 8 - (int)strlen(name); i++) printf(" ");
+    printf("= {");
+    for(int i = 0; i < len; i++) {
+        print_value(mob[i]);
+        if(i < len - 1) printf(",");
+    }
+    printf(" },\n");
+}
+
+void print_params()
+{
+    printf("eval_param_t param =\n{\n");
+    printf("    .psq = {\n");
+    print_psq("pawn", param.psq.pawn);
+    print_psq("knight", param.psq.knight);
+    print_psq("bishop", param.psq.bishop);
+    print_psq("rook", param.psq.rook);
+    print_psq("queen", param.psq.queen);
+    print_psq("king_midgame", param.psq.king_midgame);
+    print_psq("king_endgame", param.psq.king_endgame);
+    printf("    },\n");
+    printf("    .mobility = {\n");
+    print_mob("knight", param.mobility.knight, sizeof(param.mobility.knight));
+    print_mob("bishop", param.mobility.bishop, sizeof(param.mobility.bishop));
+    print_mob("rook_o", param.mobility.rook_o, sizeof(param.mobility.rook_o));
+    print_mob("rook_e", param.mobility.rook_e, sizeof(param.mobility.rook_e));
+    print_mob("queen_o", param.mobility.queen_o, sizeof(param.mobility.queen_o));
+    print_mob("queen_e", param.mobility.queen_e, sizeof(param.mobility.queen_e));
+    printf("    },\n");
+    printf("    .tropism = {\n");
+    print_mob("knight", param.tropism.knight, sizeof(param.tropism.knight));
+    print_mob("bishop", param.tropism.bishop, sizeof(param.tropism.bishop));
+    print_mob("rook", param.tropism.rook, sizeof(param.tropism.rook));
+    print_mob("queen", param.tropism.queen, sizeof(param.tropism.queen));
+    printf("    },\n");
+    printf("    .positional = {\n");
+    printf("        .pawn_guards_minor             = %d,\n", param.positional.pawn_guards_minor);
+    printf("        .pawn_guards_pawn              = %d,\n", param.positional.pawn_guards_pawn);
+    printf("        .pawn_shield_1                 = %d,\n", param.positional.pawn_shield_1);
+    printf("        .pawn_shield_2                 = %d,\n", param.positional.pawn_shield_2);
+    printf("        .pawn_passed_o                 = %d,\n", param.positional.pawn_passed_o);
+    printf("        .pawn_passed_e                 = %d,\n", param.positional.pawn_passed_e);
+    printf("        .pawn_passed_dist_kings_diff_e = %d,\n", param.positional.pawn_passed_dist_kings_diff_e);
+    printf("        .pawn_passed_dist_own_king_e   = %d,\n", param.positional.pawn_passed_dist_own_king_e);
+    printf("        .pawn_passed_unblocked         = %d,\n", param.positional.pawn_passed_unblocked);
+    printf("        .pawn_passed_unreachable_e     = %d,\n", param.positional.pawn_passed_unreachable_e);
+    printf("        .pawn_isolated_o               = %d,\n", param.positional.pawn_isolated_o);
+    printf("        .pawn_isolated_e               = %d,\n", param.positional.pawn_isolated_e);
+    printf("        .knight_reduction              = %d,\n", param.positional.knight_reduction);
+    printf("        .rook_open_file_o              = %d,\n", param.positional.rook_open_file_o);
+    printf("        .rook_open_file_e              = %d,\n", param.positional.rook_open_file_e);
+    printf("        .rook_halfopen_file_o          = %d,\n", param.positional.rook_halfopen_file_o);
+    printf("        .rook_halfopen_file_e          = %d,\n", param.positional.rook_halfopen_file_e);
+    printf("        .rook_rearmost_pawn_o          = %d,\n", param.positional.rook_rearmost_pawn_o);
+    printf("        .rook_rearmost_pawn_e          = %d,\n", param.positional.rook_rearmost_pawn_e);
+    printf("        .tempo                         = %d,\n", param.positional.tempo);
+    print_mob("pawn_passed_scaling ", param.positional.pawn_passed_scaling, sizeof(param.positional.pawn_passed_scaling));
+    printf("    }\n");
+    printf("};\n");
+}
 int main(int argc, char **argv)
 {
+    print_params();return 0;
     if(argc < 2) {
         fprintf(stderr, "Error: No input file\n");
         return 1;

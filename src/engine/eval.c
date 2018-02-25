@@ -15,7 +15,6 @@ eval_param_t param =
            17, 17, 16, 18, 18, 18, 17,  6,
             0,  0,  0,  0,  0,  0,  0,  0
         },
-
         .knight =
         {
            -3,  0, -2,  1, -3,  1, -5,-12,
@@ -25,9 +24,8 @@ eval_param_t param =
             3,  3,  6,  7,  5,  8,  2,  6,
             2,  5,  5,  7,  7,  9,  4,  0,
             1,  2,  7,  5,  3,  5,  4, -4,
-            -7, 0,  2,  1,  3, -3,  1,-10
+           -7,  0,  2,  1,  3, -3,  1,-10
         },
-
         .bishop =
         {
            -2, -1,  0, -5, -2, -1, -5, -7,
@@ -39,7 +37,6 @@ eval_param_t param =
            -6,  0,  0, -2, -4, -1, -4,-10,
             0,  1, -1, -4, -4, -7, -5, -6
         },
-
         .rook =
         {
             0,  0, -1,  0,  0,  2,  3, -1,
@@ -51,7 +48,6 @@ eval_param_t param =
             6,  5,  4,  3,  2,  3,  3,  4,
             5,  3,  1, -3, -2,  0,  2,  3
         },
-
         .queen =
         {
            -2, -3, -2, -1, -1, -5,  0, -4,
@@ -63,7 +59,6 @@ eval_param_t param =
             0, -2,  2,  4,  4,  7,  4, 11,
            -3,  3,  3,  2,  0,  3,  5, -1
         },
-
         .king_midgame =
         {
            -3,  6,  6, -5, 12, -8,  4,  4,
@@ -74,9 +69,7 @@ eval_param_t param =
           -10,-10,-10,-10, -7, -8, -5, 10,
           -10,-10,-10,-10,-10,-10,-10,-10,
           -10,-10,-10,-10,-10,-10,-10,-10
-
         },
-
         .king_endgame =
         {
            -5, -3, -1, -2, -5, -2, -5, -9,
@@ -86,46 +79,45 @@ eval_param_t param =
             1,  3,  3,  2,  2,  4,  5,  1,
             5,  9,  7,  2,  2, 11, 11, 10,
             8, 12,  7,  5,  7, 10, 15,  5,
-          -17, -2, -1,  3,  3,  8,  3, -11
-        }
+          -17, -2, -1,  3,  3,  8,  3,-11
+        },
     },
-
     .mobility = {
-        .knight  = { -6, -4, -2, -1, 0, 1, 2, 3, 4 },
-        .bishop  = { -6, -4, -3, -2, -2, -1, 0, 0, 1, 1, 2, 2, 3, 3 },
-        .rook_o  = { -3, -2, -2, -1, -1, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2 },
-        .rook_e  = { -8, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8 },
-        .queen_o = { -3, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3 },
-        .queen_e = { -10, -9, -7, -6, -5, -5, -4, -3, -2, -1, -1, 0, 0, 1, 1, 2, 3, 4, 5, 5, 6, 7, 7, 8, 8, 9, 10, 10 }
+        .knight  = { -6, -4, -2, -1,  0,  1,  2,  3,  4 },
+        .bishop  = { -6, -4, -3, -2, -2, -1,  0,  0,  1,  1,  2,  2,  3,  3 },
+        .rook_o  = { -3, -2, -2, -1, -1,  0,  0,  1,  1,  1,  1,  2,  2,  2,  2 },
+        .rook_e  = { -8, -5, -4, -3, -2, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8 },
+        .queen_o = { -3, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1,  0,  0,  0,  1,  1,  1,  1,  1,  2,  2,  2,  2,  2,  3,  3,  3,  3 },
+        .queen_e = {-10, -9, -7, -6, -5, -5, -4, -3, -2, -1, -1,  0,  0,  1,  1,  2,  3,  4,  5,  5,  6,  7,  7,  8,  8,  9, 10, 10 },
     },
     .tropism = {
-        .knight = { 0, 0, 0, 2, 0, 0, 0, 0 },
-        .bishop = { 0, 3, 3, 2, 0, 0, 0, 0 },
-        .rook   = { 0, 5, 5, 3, 0, 0, 0, 0 },
-        .queen  = { 0, 7, 7, 5, 0, 0, 0, 0 }
+        .knight  = {  0,  0,  0,  2,  0,  0,  0,  0 },
+        .bishop  = {  0,  3,  3,  2,  0,  0,  0,  0 },
+        .rook    = {  0,  5,  5,  3,  0,  0,  0,  0 },
+        .queen   = {  0,  7,  7,  5,  0,  0,  0,  0 },
     },
     .positional = {
-        .pawn_guards_minor = 2,
-        .pawn_guards_pawn = 1,
-        .pawn_shield_1 = 5,
-        .pawn_shield_2 = 2,
-        .pawn_passed_o = 11,
-        .pawn_passed_e = 10,
+        .pawn_guards_minor             = 2,
+        .pawn_guards_pawn              = 1,
+        .pawn_shield_1                 = 5,
+        .pawn_shield_2                 = 2,
+        .pawn_passed_o                 = 11,
+        .pawn_passed_e                 = 10,
         .pawn_passed_dist_kings_diff_e = 6,
-        .pawn_passed_dist_own_king_e = 1,
-        .pawn_passed_unblocked = 6,
-        .pawn_passed_unreachable_e = 22,
-        .pawn_isolated_o = -3,
-        .pawn_isolated_e = -2,
-        .knight_reduction = 2,
-        .rook_open_file_o = 8,
-        .rook_open_file_e = 2,
-        .rook_halfopen_file_o = 5,
-        .rook_halfopen_file_e = 4,
-        .rook_rearmost_pawn_o = 0,
-        .rook_rearmost_pawn_e = 3,
-        .tempo = 1,
-        .pawn_passed_scaling = { 0, 7, 28, 64, 114, 178, 256, 0}
+        .pawn_passed_dist_own_king_e   = 1,
+        .pawn_passed_unblocked         = 6,
+        .pawn_passed_unreachable_e     = 22,
+        .pawn_isolated_o               = -3,
+        .pawn_isolated_e               = -2,
+        .knight_reduction              = 2,
+        .rook_open_file_o              = 8,
+        .rook_open_file_e              = 2,
+        .rook_halfopen_file_o          = 5,
+        .rook_halfopen_file_e          = 4,
+        .rook_rearmost_pawn_o          = 0,
+        .rook_rearmost_pawn_e          = 3,
+        .tempo                         = 1,
+        .pawn_passed_scaling = {  0,  7, 28, 64, 114, 178, 256,  0 },
     }
 };
 
