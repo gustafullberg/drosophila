@@ -9,7 +9,6 @@ set(files
     engine.h
     eval.c
     eval.h
-    eval_piecesquare.c
     fen.c
     fen.h
     hashtable.c

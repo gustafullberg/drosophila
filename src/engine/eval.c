@@ -1,45 +1,133 @@
 #include "eval.h"
 #include "movegen.h"
 
-//int tune[20] = { 3, 1, 5, 2, 10, 10, 5, -5, 10, 25, -3, -2, 2, 8, 4, 4, 2, 0, 0, 2 };
-//int tune[20] = { 2, 1, 5, 2, 11, 10, 6, -5,  6, 22, -3, -2, 2, 8, 2, 5, 4, 0, 3, 1 };
-//int tune[20] = { 2, 1, 5, 2, 11, 10, 5, -5,  6, 22, -3, -2, 2, 8, 2, 5, 4, 0, 3, 1 };
-//int tune[20] = { 2, 1, 5, 2, 11, 10, 5, 1,  6, 22, -3, -2, 2, 8, 2, 5, 4, 0, 3, 1 };
-int tune[20] = { 2, 1, 5, 2, 11, 10, 6, 1,  6, 22, -3, -2, 2, 8, 2, 5, 4, 0, 3, 1 };
+eval_param_t param =
+{
+    .psq = {
+        .pawn =
+        {
+            0,  0,  0,  0,  0,  0,  0,  0,
+            1, -1, -1, -1, -1,  2,  0, -1,
+            2,  1,  0,  2,  2,  1,  2,  2,
+            3,  2,  1,  3,  2,  2,  1,  1,
+            5,  3,  1,  3,  3,  2,  2,  4,
+           10,  9,  9, 10,  8,  8,  8,  8,
+           17, 17, 16, 18, 18, 18, 17,  6,
+            0,  0,  0,  0,  0,  0,  0,  0
+        },
 
-/* Positional */
-#define PAWN_GUARDS_MINOR                tune[0]
-#define PAWN_GUARDS_PAWN                 tune[1]
-#define PAWN_SHIELD_1                    tune[2]
-#define PAWN_SHIELD_2                    tune[3]
-#define PAWN_PASSED_O                    tune[4]
-#define PAWN_PASSED_E                   tune[5]
-#define PAWN_PASSED_DIST_KINGS_DIFF_E   tune[6]
-#define PAWN_PASSED_DIST_OWN_KING_E     tune[7]
-#define PAWN_PASSED_UNBLOCKED_E         tune[8]
-#define PAWN_PASSED_UNREACHABLE_E       tune[9]
-#define PAWN_ISOLATED_O                 tune[10]
-#define PAWN_ISOLATED_E                 tune[11]
-#define KNIGHT_REDUCTION                 tune[12]
-#define ROOK_OPEN_FILE_O                 tune[13]
-#define ROOK_OPEN_FILE_E                 tune[14]
-#define ROOK_HALFOPEN_FILE_O             tune[15]
-#define ROOK_HALFOPEN_FILE_E             tune[16]
-#define ROOK_REARMOST_PAWN_O             tune[17]
-#define ROOK_REARMOST_PAWN_E             tune[18]
-#define TEMPO                            tune[19]
+        .knight =
+        {
+           -3,  0, -2,  1, -3,  1, -5,-12,
+           -4,  0,  0,  4,  2,  3,  0,  1,
+           -3,  1,  1,  4,  4,  2,  2, -2,
+            1,  4,  4,  4,  5,  4,  3,  2,
+            3,  3,  6,  7,  5,  8,  2,  6,
+            2,  5,  5,  7,  7,  9,  4,  0,
+            1,  2,  7,  5,  3,  5,  4, -4,
+            -7, 0,  2,  1,  3, -3,  1,-10
+        },
 
-static const int passed_pawn_scaling[8] = { 0, 7, 28, 64, 114, 178, 256, 0}; // Q8
-static const int king_queen_tropism[8]  = { 0,  7, 7, 5, 0, 0, 0, 0 };
-static const int king_rook_tropism[8]   = { 0,  5, 5, 3, 0, 0, 0, 0 };
-static const int king_bishop_tropism[8] = { 0,  3, 3, 2, 0, 0, 0, 0 };
-static const int king_knight_tropism[8] = { 0,  0, 0, 2, 0, 0, 0, 0 };
-short mobility_knight[9] = { -6, -4, -2, -1, 0, 1, 2, 3, 4 };
-short mobility_bishop[14] = { -6, -4, -3, -2, -2, -1, 0, 0, 1, 1, 2, 2, 3, 3 };
-short mobility_rook_o[15] = { -3, -2, -2, -1, -1, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2 };
-short mobility_rook_e[15] = { -8, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8 };
-short mobility_queen_o[28] = { -3, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3 };
-short mobility_queen_e[28] = { -10, -9, -7, -6, -5, -5, -4, -3, -2, -1, -1, 0, 0, 1, 1, 2, 3, 4, 5, 5, 6, 7, 7, 8, 8, 9, 10, 10 };
+        .bishop =
+        {
+           -2, -1,  0, -5, -2, -1, -5, -7,
+           -4,  1, -3,  1,  2,  0,  3,  0,
+           -1,  1,  3,  1,  1,  1,  4,  1,
+           -2,  0,  2,  3,  2,  1, -2, -1,
+            2,  2,  1,  1,  1, -1,  0, -1,
+            0,  1,  1,  0, -1,  4, -1,  2,
+           -6,  0,  0, -2, -4, -1, -4,-10,
+            0,  1, -1, -4, -4, -7, -5, -6
+        },
+
+        .rook =
+        {
+            0,  0, -1,  0,  0,  2,  3, -1,
+           -2, -1, -2, -1, -1,  1,  1, -4,
+           -3, -1, -2, -1, -2,  1,  1,  0,
+            1,  0,  1,  0, -1,  0,  1,  1,
+            4,  3,  1,  0, -1, -1,  1,  2,
+            5,  4,  2,  0,  0,  2,  2,  3,
+            6,  5,  4,  3,  2,  3,  3,  4,
+            5,  3,  1, -3, -2,  0,  2,  3
+        },
+
+        .queen =
+        {
+           -2, -3, -2, -1, -1, -5,  0, -4,
+           -3,  0,  1,  1,  1,  2,  1, -2,
+           -3,  0,  1,  2,  2,  4,  5,  2,
+           -1,  0,  1,  1,  3,  4,  4,  2,
+           -2,  1,  2,  0,  2,  2,  1,  0,
+           -2,  2,  2,  4,  3, 12,  6,  3,
+            0, -2,  2,  4,  4,  7,  4, 11,
+           -3,  3,  3,  2,  0,  3,  5, -1
+        },
+
+        .king_midgame =
+        {
+           -3,  6,  6, -5, 12, -8,  4,  4,
+           10,  1,  4,  4,  2,  3, 11, 13,
+           -4, 14,  4, -3, -1,  3,  8,  2,
+           -6, -5, -6, -2, -1, -1,  0, -7,
+          -10,-10,  7,-10, -6,-10,  6,-11,
+          -10,-10,-10,-10, -7, -8, -5, 10,
+          -10,-10,-10,-10,-10,-10,-10,-10,
+          -10,-10,-10,-10,-10,-10,-10,-10
+
+        },
+
+        .king_endgame =
+        {
+           -5, -3, -1, -2, -5, -2, -5, -9,
+           -8, -1, -2, -2, -1, -1, -3, -4,
+           -8, -2, -1, -1,  0,  0, -1, -6,
+           -4, -1,  0,  0,  0,  1,  0, -3,
+            1,  3,  3,  2,  2,  4,  5,  1,
+            5,  9,  7,  2,  2, 11, 11, 10,
+            8, 12,  7,  5,  7, 10, 15,  5,
+          -17, -2, -1,  3,  3,  8,  3, -11
+        }
+    },
+
+    .mobility = {
+        .knight  = { -6, -4, -2, -1, 0, 1, 2, 3, 4 },
+        .bishop  = { -6, -4, -3, -2, -2, -1, 0, 0, 1, 1, 2, 2, 3, 3 },
+        .rook_o  = { -3, -2, -2, -1, -1, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2 },
+        .rook_e  = { -8, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8 },
+        .queen_o = { -3, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3 },
+        .queen_e = { -10, -9, -7, -6, -5, -5, -4, -3, -2, -1, -1, 0, 0, 1, 1, 2, 3, 4, 5, 5, 6, 7, 7, 8, 8, 9, 10, 10 }
+    },
+    .tropism = {
+        .knight = { 0, 0, 0, 2, 0, 0, 0, 0 },
+        .bishop = { 0, 3, 3, 2, 0, 0, 0, 0 },
+        .rook   = { 0, 5, 5, 3, 0, 0, 0, 0 },
+        .queen  = { 0, 7, 7, 5, 0, 0, 0, 0 }
+    },
+    .positional = {
+        .pawn_guards_minor = 2,
+        .pawn_guards_pawn = 1,
+        .pawn_shield_1 = 5,
+        .pawn_shield_2 = 2,
+        .pawn_passed_o = 11,
+        .pawn_passed_e = 10,
+        .pawn_passed_dist_kings_diff_e = 6,
+        .pawn_passed_dist_own_king_e = 1,
+        .pawn_passed_unblocked = 6,
+        .pawn_passed_unreachable_e = 22,
+        .pawn_isolated_o = -3,
+        .pawn_isolated_e = -2,
+        .knight_reduction = 2,
+        .rook_open_file_o = 8,
+        .rook_open_file_e = 2,
+        .rook_halfopen_file_o = 5,
+        .rook_halfopen_file_e = 4,
+        .rook_rearmost_pawn_o = 0,
+        .rook_rearmost_pawn_e = 3,
+        .tempo = 1,
+        .pawn_passed_scaling = { 0, 7, 28, 64, 114, 178, 256, 0}
+    }
+};
 
 static const short sign[2] = { 1, -1 };
 
@@ -108,19 +196,19 @@ static short EVAL_pawn_shield(const chess_state_t *s)
     short score = 0;
 
     if(s->bitboard[WHITE_PIECES+KING] & white_queenside) {
-        score += BITBOARD_count_bits((white_queenside <<  8) & s->bitboard[WHITE_PIECES+PAWN]) * PAWN_SHIELD_1;
-        score += BITBOARD_count_bits((white_queenside << 16) & s->bitboard[WHITE_PIECES+PAWN]) * PAWN_SHIELD_2;
+        score += BITBOARD_count_bits((white_queenside <<  8) & s->bitboard[WHITE_PIECES+PAWN]) * param.positional.pawn_shield_1;
+        score += BITBOARD_count_bits((white_queenside << 16) & s->bitboard[WHITE_PIECES+PAWN]) * param.positional.pawn_shield_2;
     } else if(s->bitboard[WHITE_PIECES+KING] & white_kingside) {
-        score += BITBOARD_count_bits((white_kingside <<  8) & s->bitboard[WHITE_PIECES+PAWN]) * PAWN_SHIELD_1;
-        score += BITBOARD_count_bits((white_kingside << 16) & s->bitboard[WHITE_PIECES+PAWN]) * PAWN_SHIELD_2;
+        score += BITBOARD_count_bits((white_kingside <<  8) & s->bitboard[WHITE_PIECES+PAWN]) * param.positional.pawn_shield_1;
+        score += BITBOARD_count_bits((white_kingside << 16) & s->bitboard[WHITE_PIECES+PAWN]) * param.positional.pawn_shield_2;
     }
 
     if(s->bitboard[BLACK_PIECES+KING] & black_queenside) {
-        score -= BITBOARD_count_bits((black_queenside >>  8) & s->bitboard[BLACK_PIECES+PAWN]) * PAWN_SHIELD_1;
-        score -= BITBOARD_count_bits((black_queenside >> 16) & s->bitboard[BLACK_PIECES+PAWN]) * PAWN_SHIELD_2;
+        score -= BITBOARD_count_bits((black_queenside >>  8) & s->bitboard[BLACK_PIECES+PAWN]) * param.positional.pawn_shield_1;
+        score -= BITBOARD_count_bits((black_queenside >> 16) & s->bitboard[BLACK_PIECES+PAWN]) * param.positional.pawn_shield_2;
     } else if(s->bitboard[BLACK_PIECES+KING] & black_kingside) {
-        score -= BITBOARD_count_bits((black_kingside >>  8) & s->bitboard[BLACK_PIECES+PAWN]) * PAWN_SHIELD_1;
-        score -= BITBOARD_count_bits((black_kingside >> 16) & s->bitboard[BLACK_PIECES+PAWN]) * PAWN_SHIELD_2;
+        score -= BITBOARD_count_bits((black_kingside >>  8) & s->bitboard[BLACK_PIECES+PAWN]) * param.positional.pawn_shield_1;
+        score -= BITBOARD_count_bits((black_kingside >> 16) & s->bitboard[BLACK_PIECES+PAWN]) * param.positional.pawn_shield_2;
     }
 
     return score;
@@ -169,42 +257,42 @@ short EVAL_evaluate_board(const chess_state_t *s)
             pos_bitboard = BITBOARD_POSITION(pos);
             rank = BITBOARD_GET_RANK(pos^pos_mask);
             pawn_material_score[color] += PAWN_VALUE;
-            positional_score[color] += piecesquare[PAWN][pos^pos_mask];
-            positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? PAWN_GUARDS_PAWN : 0; /* Guarded by other pawn */
+            positional_score[color] += param.psq.pawn[pos^pos_mask];
+            positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? param.positional.pawn_guards_pawn : 0; /* Guarded by other pawn */
 
             /* Passed pawn */
             if(pos_bitboard & passedPawns) {
                 /* Initial bonus for passed pawn */
-                short bonus_o = PAWN_PASSED_O;
-                short bonus_e = PAWN_PASSED_E;
+                short bonus_o = param.positional.pawn_passed_o;
+                short bonus_e = param.positional.pawn_passed_e;
 
                 /* Distance to kings */
                 int dist_own_king = distance[king_pos[color]][pos];
                 int dist_opp_king = distance[king_pos[color^1]][pos];
-                bonus_e += (dist_opp_king - dist_own_king) * PAWN_PASSED_DIST_KINGS_DIFF_E;
-                bonus_e += dist_own_king * PAWN_PASSED_DIST_OWN_KING_E;
+                bonus_e += (dist_opp_king - dist_own_king) * param.positional.pawn_passed_dist_kings_diff_e;
+                bonus_e += dist_own_king * param.positional.pawn_passed_dist_own_king_e;
 
                 /* Unblocked? */
                 if((bitboard_pawn_move[color][pos] & s->bitboard[OCCUPIED]) == 0) {
-                    bonus_e += PAWN_PASSED_UNBLOCKED_E;
+                    bonus_e += param.positional.pawn_passed_unblocked;
 
                     /* Unreachable by opponent king? */
                     int dist_prom = 7 - rank;
                     int prom_pos = (pos^pos_mask) + dist_prom * 8;
                     int dist_prom_opp_king = distance[king_pos[color^1]^pos_mask][prom_pos] - (color != s->player);
-                    bonus_e += PAWN_PASSED_UNREACHABLE_E * (dist_prom < dist_prom_opp_king);
+                    bonus_e += param.positional.pawn_passed_unreachable_e * (dist_prom < dist_prom_opp_king);
                 }
 
                 /* Scale bonus with rank */
-                int scale_factor = passed_pawn_scaling[rank];
+                int scale_factor = param.positional.pawn_passed_scaling[rank];
                 positional_score_o[color] += (short)((int)bonus_o * scale_factor >> 8);
                 positional_score_e[color] += (short)((int)bonus_e * scale_factor >> 8);
             }
 
             /* Isolated pawn */
             if(pos_bitboard & isolatedPawns) {
-                positional_score_o[color] += PAWN_ISOLATED_O;
-                positional_score_e[color] += PAWN_ISOLATED_E;
+                positional_score_o[color] += param.positional.pawn_isolated_o;
+                positional_score_e[color] += param.positional.pawn_isolated_e;
             }
 
             pieces ^= pos_bitboard;
@@ -216,12 +304,12 @@ short EVAL_evaluate_board(const chess_state_t *s)
         while(pieces) {
             pos = BITBOARD_find_bit(pieces);
             pos_bitboard = BITBOARD_POSITION(pos);
-            material_score[color] += KNIGHT_VALUE - (8 - num_opp_pawns) * KNIGHT_REDUCTION;
-            positional_score[color] += piecesquare[KNIGHT][pos^pos_mask];
+            material_score[color] += KNIGHT_VALUE - (8 - num_opp_pawns) * param.positional.knight_reduction;
+            positional_score[color] += param.psq.knight[pos^pos_mask];
             piece_mobility = BITBOARD_count_bits(bitboard_knight[pos] & ~(own_pieces | pawnAttacks[color^1]));
-            positional_score[color] += mobility_knight[piece_mobility];
-            positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? PAWN_GUARDS_MINOR : 0; /* Guarded by pawn */
-            positional_score[color] += king_knight_tropism[(int)distance[king_pos[color^1]][pos]];
+            positional_score[color] += param.mobility.knight[piece_mobility];
+            positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? param.positional.pawn_guards_minor : 0; /* Guarded by pawn */
+            positional_score[color] += param.tropism.knight[(int)distance[king_pos[color^1]][pos]];
             pieces ^= pos_bitboard;
         }
 
@@ -235,12 +323,12 @@ short EVAL_evaluate_board(const chess_state_t *s)
             pos = BITBOARD_find_bit(pieces);
             pos_bitboard = BITBOARD_POSITION(pos);
             material_score[color] += BISHOP_VALUE;
-            positional_score[color] += piecesquare[BISHOP][pos^pos_mask];
+            positional_score[color] += param.psq.bishop[pos^pos_mask];
             MOVEGEN_bishop(pos, own_pieces & ~diagonal_sliders, opp_pieces, &moves, &captures);
             piece_mobility = BITBOARD_count_bits((moves | captures) & ~pawnAttacks[color^1]);
-            positional_score[color] += mobility_bishop[piece_mobility];
-            positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? PAWN_GUARDS_MINOR : 0; /* Guarded by pawn */
-            positional_score[color] += king_bishop_tropism[(int)distance[king_pos[color^1]][pos]];
+            positional_score[color] += param.mobility.bishop[piece_mobility];
+            positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? param.positional.pawn_guards_minor : 0; /* Guarded by pawn */
+            positional_score[color] += param.tropism.bishop[(int)distance[king_pos[color^1]][pos]];
             pieces ^= pos_bitboard;
         }
 
@@ -250,31 +338,31 @@ short EVAL_evaluate_board(const chess_state_t *s)
             bitboard_t file;
             pos = BITBOARD_find_bit(pieces);
             material_score[color] += ROOK_VALUE;
-            positional_score[color] += piecesquare[ROOK][pos^pos_mask];
+            positional_score[color] += param.psq.rook[pos^pos_mask];
             MOVEGEN_rook(pos, own_pieces & ~straight_sliders, opp_pieces, &moves, &captures);
             piece_mobility = BITBOARD_count_bits((moves | captures) & ~pawnAttacks[color^1]);
-            positional_score_o[color] += mobility_rook_o[piece_mobility];
-            positional_score_e[color] += mobility_rook_e[piece_mobility];
-            positional_score[color] += king_rook_tropism[(int)distance[king_pos[color^1]][pos]];
+            positional_score_o[color] += param.mobility.rook_o[piece_mobility];
+            positional_score_e[color] += param.mobility.rook_e[piece_mobility];
+            positional_score[color] += param.tropism.rook[(int)distance[king_pos[color^1]][pos]];
 
             /* Check for (half-)open files */
             file = (BITBOARD_FILE << BITBOARD_GET_FILE(pos));
             if((file & s->bitboard[NUM_TYPES*color + PAWN]) == 0) {
                 if((file & s->bitboard[NUM_TYPES*(color^1) + PAWN]) == 0) {
                     /* Open file */
-                    positional_score_o[color] += ROOK_OPEN_FILE_O;
-                    positional_score_e[color] += ROOK_OPEN_FILE_E;
+                    positional_score_o[color] += param.positional.rook_open_file_o;
+                    positional_score_e[color] += param.positional.rook_open_file_e;
                 } else {
                     /* Half-open file */
-                    positional_score_o[color] += ROOK_HALFOPEN_FILE_O;
-                    positional_score_e[color] += ROOK_HALFOPEN_FILE_E;
+                    positional_score_o[color] += param.positional.rook_halfopen_file_o;
+                    positional_score_e[color] += param.positional.rook_halfopen_file_e;
                 }
             }
 
             /* Rooks on the rank of the opponents rearmost pawns */
             if(BITBOARD_GET_RANK(pos) == rearmost_pawn[color^1]) {
-                positional_score_o[color] += ROOK_REARMOST_PAWN_O;
-                positional_score_e[color] += ROOK_REARMOST_PAWN_E;
+                positional_score_o[color] += param.positional.rook_rearmost_pawn_o;
+                positional_score_e[color] += param.positional.rook_rearmost_pawn_e;
             }
 
             pieces ^= BITBOARD_POSITION(pos);
@@ -286,19 +374,19 @@ short EVAL_evaluate_board(const chess_state_t *s)
             bitboard_t moves_b, captures_b, moves_r, captures_r;
             pos = BITBOARD_find_bit(pieces);
             material_score[color] += QUEEN_VALUE;
-            positional_score[color] += piecesquare[QUEEN][pos^pos_mask];
+            positional_score[color] += param.psq.queen[pos^pos_mask];
             MOVEGEN_bishop(pos, own_pieces & ~diagonal_sliders, opp_pieces, &moves_b, &captures_b);
             MOVEGEN_rook(pos, own_pieces & ~straight_sliders, opp_pieces, &moves_r, &captures_r);
             piece_mobility = BITBOARD_count_bits((moves_b | captures_b | moves_r | captures_r) & ~pawnAttacks[color^1]);
-            positional_score_o[color] += mobility_queen_o[piece_mobility];
-            positional_score_e[color] += mobility_queen_e[piece_mobility];
-            positional_score[color] += king_queen_tropism[(int)distance[king_pos[color^1]][pos]];
+            positional_score_o[color] += param.mobility.queen_o[piece_mobility];
+            positional_score_e[color] += param.mobility.queen_e[piece_mobility];
+            positional_score[color] += param.tropism.queen[(int)distance[king_pos[color^1]][pos]];
             pieces ^= BITBOARD_POSITION(pos);
         }
 
         /* King */
-        positional_score_o[color] += piecesquare[KING][king_pos[color]^pos_mask];
-        positional_score_e[color] += piecesquare[KING+1][king_pos[color]^pos_mask];
+        positional_score_o[color] += param.psq.king_midgame[king_pos[color]^pos_mask];
+        positional_score_e[color] += param.psq.king_endgame[king_pos[color]^pos_mask];
     }
 
     score += pawn_material_score[WHITE] - pawn_material_score[BLACK];
@@ -317,7 +405,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
     score *= sign[(int)(s->player)];
 
     /* Add a bonus for the side with the right to move next */
-    score += TEMPO;
+    score += param.positional.tempo;
 
     return score;
 }

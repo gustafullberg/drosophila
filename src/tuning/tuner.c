@@ -6,6 +6,7 @@
 #include "state.h"
 #include "search.h"
 #include "thread.h"
+#include "eval.h"
 
 #define NUM_THREADS 4
 
@@ -142,8 +143,8 @@ float run_test(const char *buf)
 
     return mse;
 }
-extern short mobility_queen_e[28];
-short *c_opt = &mobility_queen_e[0];
+extern eval_param_t param;
+int *c_opt = &param.mobility.queen_o[0];
 int num_elem = 28;
 
 float optimize(const char *buf, int idx, float mse_start)
