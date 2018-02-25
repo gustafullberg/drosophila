@@ -146,42 +146,42 @@ float run_test(const char *buf)
     return mse;
 }
 
-int *c_opt = &param.mobility.queen_o[0];
-int num_elem = 28;
-
-float optimize(const char *buf, int idx, float mse_start)
+float optimize(const char *buf, int *c_opt, int idx, float mse_start, int min, int max)
 {
     int c_start = c_opt[idx];
-    fprintf(stderr, "Initial value for c_opt[%d] = %d => MSE %f\n", idx, c_opt[idx], mse_start);
-    //float mse_start = run_test(buf);
+    fprintf(stderr, "[%d] = %d => MSE %f\n", idx, c_opt[idx], mse_start);
     float mse_best = mse_start;
 
     // Step upwards
-    while(1) {
+    while(c_opt[idx] < max) {
         c_opt[idx]++;
-        fprintf(stderr, "Testing for c_opt[%d] = %d => ", idx, c_opt[idx]);
+        fprintf(stderr, "[%d] = %d => ", idx, c_opt[idx]);
         float mse = run_test(buf);
-        if(mse >= mse_best) break;
+        if(mse >= mse_best) {
+            c_opt[idx]--;
+            break;
+        }
         mse_best = mse;
     }
-    c_opt[idx]--;
 
     if(mse_best < mse_start) {
-        fprintf(stderr, "Coefficient optimized at value %d to MSE %f (from value %d, MSE %f)\n", c_opt[idx], mse_best, c_start, mse_start);
+        fprintf(stderr, "   [%d] = %d best (previous %d)\n", idx, c_opt[idx], c_start);
         return mse_best;
     }
 
     // Step downwards
-    while(1) {
+    while(c_opt[idx] > min) {
         c_opt[idx]--;
-        fprintf(stderr, "Testing for c_opt[%d] = %d => ", idx, c_opt[idx]);
+        fprintf(stderr, "[%d] = %d => ", idx, c_opt[idx]);
         float mse = run_test(buf);
-        if(mse >= mse_best) break;
+        if(mse >= mse_best) {
+            c_opt[idx]++;
+            break;
+        }
         mse_best = mse;
     }
-    c_opt[idx]++;
 
-    fprintf(stderr, "Coefficient optimized at value %d to MSE %f (from value %d, MSE %f)\n", c_opt[idx], mse_best, c_start, mse_start);
+    fprintf(stderr, "   [%d] = %d best (previous %d)\n", idx, c_opt[idx], c_start);
     return mse_best;
 }
 
@@ -273,7 +273,6 @@ void print_params()
 }
 int main(int argc, char **argv)
 {
-    print_params();return 0;
     if(argc < 2) {
         fprintf(stderr, "Error: No input file\n");
         return 1;
@@ -297,13 +296,23 @@ int main(int argc, char **argv)
 
     fprintf(stderr, "Initial => ");
     float mse_best = run_test(buf);
-    for(int i = 0; i < num_elem; i++) {
-        mse_best = optimize(buf, i, mse_best);
-    }
-    for(int i = 0; i < num_elem; i++) {
-        fprintf(stdout, "%d, ", c_opt[i]);
-    }
+
+    fprintf(stderr, "Optimizing PSQ pawn\n");
+    for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.pawn, i, mse_best, -10, 20);
+    fprintf(stderr, "Optimizing PSQ knight\n");
+    for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.knight, i, mse_best, -10, 10);
+    fprintf(stderr, "Optimizing PSQ bishop\n");
+    for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.bishop, i, mse_best, -10, 10);
+    fprintf(stderr, "Optimizing PSQ rook\n");
+    for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.rook, i, mse_best, -10, 10);
+    fprintf(stderr, "Optimizing PSQ queen\n");
+    for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.queen, i, mse_best, -10, 10);
+    fprintf(stderr, "Optimizing PSQ king_midgame\n");
+    for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.king_midgame, i, mse_best, -10, 10);
+    fprintf(stderr, "Optimizing PSQ king_endgame\n");
+    for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.king_endgame, i, mse_best, -10, 10);
 
     free(buf);
+    print_params();
     return 0;
 }
