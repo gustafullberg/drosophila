@@ -295,24 +295,37 @@ int main(int argc, char **argv)
     fclose(f);
 
     fprintf(stderr, "Initial => ");
-    float mse_best = run_test(buf);
+    float mse_start = run_test(buf);
+    float mse_best = mse_start;
 
-    fprintf(stderr, "Optimizing PSQ pawn\n");
-    for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.pawn, i, mse_best, -10, 20);
-    fprintf(stderr, "Optimizing PSQ knight\n");
-    for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.knight, i, mse_best, -10, 10);
-    fprintf(stderr, "Optimizing PSQ bishop\n");
-    for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.bishop, i, mse_best, -10, 10);
-    fprintf(stderr, "Optimizing PSQ rook\n");
-    for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.rook, i, mse_best, -10, 10);
-    fprintf(stderr, "Optimizing PSQ queen\n");
-    for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.queen, i, mse_best, -10, 10);
-    fprintf(stderr, "Optimizing PSQ king_midgame\n");
-    for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.king_midgame, i, mse_best, -10, 10);
-    fprintf(stderr, "Optimizing PSQ king_endgame\n");
-    for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.king_endgame, i, mse_best, -10, 10);
+    for(int epoch = 0; epoch < 1; epoch++) {
+        fprintf(stderr, "Optimizing PSQ pawn\n");
+        for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.pawn, i, mse_best, -10, 20);
+        fprintf(stderr, "Optimizing PSQ knight\n");
+        for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.knight, i, mse_best, -10, 10);
+        fprintf(stderr, "Optimizing PSQ bishop\n");
+        for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.bishop, i, mse_best, -10, 10);
+        fprintf(stderr, "Optimizing PSQ rook\n");
+        for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.rook, i, mse_best, -10, 10);
+        fprintf(stderr, "Optimizing PSQ queen\n");
+        for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.queen, i, mse_best, -10, 10);
+        fprintf(stderr, "Optimizing PSQ king_midgame\n");
+        for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.king_midgame, i, mse_best, -10, 10);
+        fprintf(stderr, "Optimizing PSQ king_endgame\n");
+        for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.king_endgame, i, mse_best, -10, 10);
 
+        fprintf(stderr, "Optimizing mobility\n");
+        for(int i = 0; i < sizeof(param.mobility)/sizeof(int); i++) mse_best = optimize(buf, (int*)&param.mobility, i, mse_best, -10, 10);
+
+        fprintf(stderr, "Optimizing king tropism\n");
+        for(int i = 0; i < sizeof(param.tropism)/sizeof(int); i++) mse_best = optimize(buf, (int*)&param.tropism, i, mse_best, 0, 10);
+
+        fprintf(stderr, "Optimizing positional parameters\n");
+        for(int i = 0; i < sizeof(param.positional)/sizeof(int); i++) mse_best = optimize(buf, (int*)&param.positional, i, mse_best, -25, 300);
+    }
     free(buf);
+    fprintf(stderr, "\nMSE reduction: %f\n\n", mse_start - mse_best);
     print_params();
+
     return 0;
 }
