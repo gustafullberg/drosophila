@@ -141,7 +141,7 @@ float run_test(const char *buf)
     }
 
     float mse = sqrtf(e2_tot/num_pos);
-    printf("MSE %f\n", mse);
+    fprintf(stderr, "MSE %f\n", mse);
 
     return mse;
 }
