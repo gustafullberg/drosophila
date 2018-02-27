@@ -3,7 +3,6 @@
 #undef NDEBUG
 #endif
 
-#include <stdio.h>
 #include <assert.h>
 #include "engine.h"
 #include "defines.h"

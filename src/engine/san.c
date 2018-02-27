@@ -47,9 +47,9 @@ move_t SAN_parse_move(const chess_state_t *state, const char *san)
     
     if(type == KING) {
         /* Is this a kingside castling? */
-        if(strcmp(san, "O-O") == 0) {
+        if(strncmp(san, "O-O-O", 5) == 0) {
             for(i = 0; i < num_moves; i++) {
-                if(MOVE_GET_SPECIAL_FLAGS(moves[i]) == MOVE_KING_CASTLE) {
+                if(MOVE_GET_SPECIAL_FLAGS(moves[i]) == MOVE_QUEEN_CASTLE) {
                     return moves[i];
                 }
             }
@@ -58,9 +58,9 @@ move_t SAN_parse_move(const chess_state_t *state, const char *san)
         }
         
         /* Is this a queenside castling? */
-        if(strcmp(san, "O-O-O") == 0) {
+        if(strncmp(san, "O-O", 3) == 0) {
             for(i = 0; i < num_moves; i++) {
-                if(MOVE_GET_SPECIAL_FLAGS(moves[i]) == MOVE_QUEEN_CASTLE) {
+                if(MOVE_GET_SPECIAL_FLAGS(moves[i]) == MOVE_KING_CASTLE) {
                     return moves[i];
                 }
             }
@@ -81,6 +81,11 @@ move_t SAN_parse_move(const chess_state_t *state, const char *san)
     
     /* Is this move a check? */
     if(san[len-1] == '+') {
+        len -= 1;
+    }
+
+    /* Is this move a check mate? */
+    if(san[len-1] == '#') {
         len -= 1;
     }
     
@@ -132,7 +137,7 @@ move_t SAN_parse_move(const chess_state_t *state, const char *san)
             }
         }
     }
-    
+
     /* Find candidate move */
     for(i = 0; i < num_moves; i++) {
         int pos_from;
@@ -149,7 +154,7 @@ move_t SAN_parse_move(const chess_state_t *state, const char *san)
         num_candidates++;
         candidate = move;
     }
-    
+
     if(num_candidates == 1) {
         return candidate;
     } else {
