@@ -30,6 +30,7 @@ int IO_ready()
     DWORD num_bytes = 0;
     HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
     PeekNamedPipe(handle, NULL, 0, NULL, &num_bytes, NULL);
+    if(num_bytes == 0) Sleep(1);
     return num_bytes > 0;
 #else
     fd_set set;
