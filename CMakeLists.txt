@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 project(drosophila)
-add_definitions(-D_VERSION="1.5")
+add_definitions(-D_VERSION="1.5.1")
 
 include(cmake/options.cmake)
 
