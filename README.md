@@ -10,6 +10,10 @@ Drosophila was earlier named Pawned.
 
 ## Releases
 
+**[Drosophila 1.5.1](https://github.com/gustafullberg/drosophila/releases/download/v1.5.1/drosophila-1.5.1.zip)** - 2018-03-05
+
+* Bugfix: Avoid unnecessary CPU load while waiting for input (Windows only)
+
 **[Drosophila 1.5](https://github.com/gustafullberg/drosophila/releases/download/v1.5/drosophila-1.5.zip)** - 2018-02-11
 
 * Evaluation improvements
