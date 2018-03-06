@@ -109,7 +109,7 @@ void* worker_thread(void *_arg)
 
             chess_state_t **state = (chess_state_t **)engine;
 
-            if(half_moves < 12) continue;
+            if(half_moves < 20) continue;
             short score = ENGINE_static_evaluation(engine);
             arg->num_positions++;
 
@@ -141,48 +141,71 @@ float run_test(const char *buf)
     }
 
     float mse = sqrtf(e2_tot/num_pos);
-    fprintf(stderr, "MSE %f\n", mse);
-
     return mse;
 }
 
-float optimize(const char *buf, int *c_opt, int idx, float mse_start, int min, int max)
+float optimize(const char *buf, int *x, int idx, float mse_start, int min, int max)
 {
-    int c_start = c_opt[idx];
-    fprintf(stderr, "[%d] = %d => MSE %f\n", idx, c_opt[idx], mse_start);
+    int x_init = x[idx];
+    if(min < x_init - 1) min = x_init - 1;
+    if(max > x_init + 1) max = x_init + 1;
+
+    fprintf(stderr, "[%d] = %d=>%f", idx, x[idx], mse_start);
     float mse_best = mse_start;
 
     // Step upwards
-    while(c_opt[idx] < max) {
-        c_opt[idx]++;
-        fprintf(stderr, "[%d] = %d => ", idx, c_opt[idx]);
+    while(x[idx] < max) {
+        x[idx]++;
         float mse = run_test(buf);
+        fprintf(stderr, ", %d=>%f", x[idx], mse);
         if(mse >= mse_best) {
-            c_opt[idx]--;
+            x[idx]--;
             break;
         }
         mse_best = mse;
     }
 
     if(mse_best < mse_start) {
-        fprintf(stderr, "   [%d] = %d best (previous %d)\n", idx, c_opt[idx], c_start);
+        fprintf(stderr, "  CHANGED from %d to %d - MSE %f\n", x_init, x[idx], mse_best);
         return mse_best;
     }
 
     // Step downwards
-    while(c_opt[idx] > min) {
-        c_opt[idx]--;
-        fprintf(stderr, "[%d] = %d => ", idx, c_opt[idx]);
+    while(x[idx] > min) {
+        x[idx]--;
         float mse = run_test(buf);
+        fprintf(stderr, ", %d=>%f", x[idx], mse);
         if(mse >= mse_best) {
-            c_opt[idx]++;
+            x[idx]++;
             break;
         }
         mse_best = mse;
     }
 
-    fprintf(stderr, "   [%d] = %d best (previous %d)\n", idx, c_opt[idx], c_start);
+    if(mse_best < mse_start) {
+        fprintf(stderr, "  CHANGED from %d to %d - MSE %f\n", x_init, x[idx], mse_best);
+    } else {
+        fprintf(stderr, "\n");
+    }
     return mse_best;
+}
+
+float tune_array(const char *buf, int *x, int len, float mse, int min, int max)
+{
+    int *tuned = calloc(len, sizeof(int));
+    int num_left = len;
+    int idx;
+
+    while(num_left) {
+        do {
+            idx = rand() % len;
+        } while(tuned[idx] != 0);
+        num_left--;
+        tuned[idx] = 1;
+        mse = optimize(buf, x, idx, mse, min, max);
+    }
+
+    return mse;
 }
 
 void print_value(int val)
@@ -270,6 +293,7 @@ void print_params()
     print_mob("pawn_passed_scaling ", param.positional.pawn_passed_scaling, sizeof(param.positional.pawn_passed_scaling));
     printf("    }\n");
     printf("};\n");
+    fflush(stdout);
 }
 int main(int argc, char **argv)
 {
@@ -294,38 +318,43 @@ int main(int argc, char **argv)
     fread(buf, 1, file_size, f);
     fclose(f);
 
-    fprintf(stderr, "Initial => ");
-    float mse_start = run_test(buf);
+    float mse_initial = run_test(buf);
+    float mse_start = mse_initial;
     float mse_best = mse_start;
+    fprintf(stderr, "Initial => %f\n", mse_initial);
 
-    for(int epoch = 0; epoch < 1; epoch++) {
-        fprintf(stderr, "Optimizing PSQ pawn\n");
-        for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.pawn, i, mse_best, -10, 20);
-        fprintf(stderr, "Optimizing PSQ knight\n");
-        for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.knight, i, mse_best, -10, 10);
-        fprintf(stderr, "Optimizing PSQ bishop\n");
-        for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.bishop, i, mse_best, -10, 10);
-        fprintf(stderr, "Optimizing PSQ rook\n");
-        for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.rook, i, mse_best, -10, 10);
-        fprintf(stderr, "Optimizing PSQ queen\n");
-        for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.queen, i, mse_best, -10, 10);
-        fprintf(stderr, "Optimizing PSQ king_midgame\n");
-        for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.king_midgame, i, mse_best, -10, 10);
-        fprintf(stderr, "Optimizing PSQ king_endgame\n");
-        for(int i = 0; i < 64; i++) mse_best = optimize(buf, param.psq.king_endgame, i, mse_best, -10, 10);
-
+    int iter;
+    for(int iter = 0; iter < 2; iter++) {
         fprintf(stderr, "Optimizing mobility\n");
-        for(int i = 0; i < sizeof(param.mobility)/sizeof(int); i++) mse_best = optimize(buf, (int*)&param.mobility, i, mse_best, -10, 10);
+        mse_best = tune_array(buf, (int*)&param.mobility, sizeof(param.mobility)/sizeof(int), mse_best, -10, 10);
 
         fprintf(stderr, "Optimizing king tropism\n");
-        for(int i = 0; i < sizeof(param.tropism)/sizeof(int); i++) mse_best = optimize(buf, (int*)&param.tropism, i, mse_best, 0, 10);
+        mse_best = tune_array(buf, (int*)&param.tropism, sizeof(param.tropism)/sizeof(int), mse_best, 0, 10);
 
         fprintf(stderr, "Optimizing positional parameters\n");
-        for(int i = 0; i < sizeof(param.positional)/sizeof(int); i++) mse_best = optimize(buf, (int*)&param.positional, i, mse_best, -25, 300);
+        mse_best = tune_array(buf, (int*)&param.positional, sizeof(param.positional)/sizeof(int), mse_best, -25, 300);
+
+        fprintf(stderr, "Optimizing PSQ pawn\n");
+        mse_best = tune_array(buf, param.psq.pawn, 64, mse_best, -10, 20);
+        fprintf(stderr, "Optimizing PSQ knight\n");
+        mse_best = tune_array(buf, param.psq.knight, 64, mse_best, -10, 10);
+        fprintf(stderr, "Optimizing PSQ bishop\n");
+        mse_best = tune_array(buf, param.psq.bishop, 64, mse_best, -10, 10);
+        fprintf(stderr, "Optimizing PSQ rook\n");
+        mse_best = tune_array(buf, param.psq.rook, 64, mse_best, -10, 10);
+        fprintf(stderr, "Optimizing PSQ queen\n");
+        mse_best = tune_array(buf, param.psq.queen, 64, mse_best, -10, 10);
+        fprintf(stderr, "Optimizing PSQ king_midgame\n");
+        mse_best = tune_array(buf, param.psq.king_midgame, 64, mse_best, -10, 10);
+        fprintf(stderr, "Optimizing PSQ king_endgame\n");
+        mse_best = tune_array(buf, param.psq.king_endgame, 64, mse_best, -10, 10);
+
+        print_params();
+        fprintf(stderr, "\nMSE reduction in iteration %d: %f. Total reduction: %f.\n\n", iter, mse_start - mse_best, mse_initial - mse_best);
+        if(mse_best >= mse_start) break;
+        mse_start = mse_best;
     }
     free(buf);
-    fprintf(stderr, "\nMSE reduction: %f\n\n", mse_start - mse_best);
-    print_params();
 
     return 0;
 }
