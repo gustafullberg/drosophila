@@ -460,17 +460,16 @@ int main(int argc, char **argv)
     /* Main loop */
     while(1) {
         int c = getchar();
-        if(c == EOF) state.flag_quit = 1;
-        else command_buffer[len++] = c;
-        command_buffer[len] = '\0';
+        command_buffer[len++] = c;
 
         /* Full command received. Take proper action */
         if(c == '\n') {
+            command_buffer[len] = '\0';
             process_command(engine, command_buffer, &state);
             len = 0;
         }
 
-        if(state.flag_quit) {
+        if(state.flag_quit || c == EOF || len == COMMAND_BUFFER_SIZE-1) {
             /* Shutdown if we get the 'quit' command or reach EOF */
             break;
         }
