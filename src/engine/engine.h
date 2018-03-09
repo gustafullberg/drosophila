@@ -32,7 +32,7 @@ int  ENGINE_search(engine_state_t *state, const int moves_left_in_period, const 
 void ENGINE_deprecated_think_start(engine_state_t *state, const int moves_left_in_period, const int time_left_ms, const int time_incremental_ms, const unsigned char max_depth);
 void ENGINE_deprecated_think_stop(engine_state_t *state);
 int  ENGINE_deprecated_think_get_status(engine_state_t *state);
-void ENGINE_think_get_result(engine_state_t *state, int *pos_from, int *pos_to, int *promotion_type);
+void ENGINE_deprecated_think_get_result(engine_state_t *state, int *pos_from, int *pos_to, int *promotion_type);
 int  ENGINE_result(const engine_state_t *state);
 void ENGINE_register_thinking_output_cb(engine_state_t *state, thinking_output_cb think_cb);
 void ENGINE_resize_hashtable(engine_state_t *state, const int size_mb);
