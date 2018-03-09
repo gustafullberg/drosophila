@@ -16,8 +16,8 @@ void move(engine_state_t *engine, const char *move_white, const char *move_black
 {
     int result, pos_from, pos_to, promotion_type;
     
-    ENGINE_think_start(engine, 1, 1000000, 0, DEPTH);
-    ENGINE_think_get_result(engine, &pos_from, &pos_to, &promotion_type);
+    ENGINE_deprecated_think_start(engine, 1, 1000000, 0, DEPTH);
+    ENGINE_deprecated_think_get_result(engine, &pos_from, &pos_to, &promotion_type);
     
     if(move_white) {
         result = ENGINE_apply_move_san(engine, move_white);

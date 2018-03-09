@@ -195,7 +195,7 @@ void search_move(state_t *state, engine_state_t *engine)
     state->flag_searching = 1;
 
     /* Spawn a new thread and start searching */
-    ENGINE_think_start(engine, moves_left_in_period, time_left_ms, time_incremental_ms, 100);
+    ENGINE_deprecated_think_start(engine, moves_left_in_period, time_left_ms, time_incremental_ms, 100);
 }
 
 /* Start pondering */
@@ -204,7 +204,7 @@ void search_pondering(state_t *state, engine_state_t *engine)
     /* Only start ponder if pondering is enabled */
     if(state->flag_pondering) {
         /* Limit search to one hour or a depth of 100 */
-        ENGINE_think_start(engine, 1, 3600*1000, 0, 100);
+        ENGINE_deprecated_think_start(engine, 1, 3600*1000, 0, 100);
     }
 }
 
@@ -217,12 +217,12 @@ void search_stop(state_t *state, engine_state_t *engine, int *pos_from, int *pos
     state->flag_searching = 0;
 
     /* Check if a search is going on */
-    if(ENGINE_think_get_status(engine) != ENGINE_SEARCH_NONE) {
+    if(ENGINE_deprecated_think_get_status(engine) != ENGINE_SEARCH_NONE) {
         /* Abort the search */
-        ENGINE_think_stop(engine);
+        ENGINE_deprecated_think_stop(engine);
 
         /* Get the result */
-        ENGINE_think_get_result(engine, &_pos_from, &_pos_to, &_promotion_type);
+        ENGINE_deprecated_think_get_result(engine, &_pos_from, &_pos_to, &_promotion_type);
     }
 
     if(pos_from && pos_to && promotion_type) {
@@ -235,7 +235,7 @@ void search_stop(state_t *state, engine_state_t *engine, int *pos_from, int *pos
 /* Return non-zero if a search has been completed and result is waiting */
 int search_is_completed(state_t *state, engine_state_t *engine)
 {
-    return ENGINE_think_get_status(engine) == ENGINE_SEARCH_COMPLETED;
+    return ENGINE_deprecated_think_get_status(engine) == ENGINE_SEARCH_COMPLETED;
 }
 
 /* Remove first newline of a string and terminate it */

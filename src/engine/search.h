@@ -23,9 +23,9 @@ typedef struct {
     unsigned char       max_depth;
     unsigned int        num_nodes_searched;
     thinking_output_cb  think_cb;
-    thread_t            thread;
-    move_t              move;
-    int                 status;
+    thread_t            thread_deprecated;
+    move_t              move_deprecated;
+    int                 status_deprecated;
     move_t              killer_move[MAX_SEARCH_DEPTH+1][2];
     int                 history_heuristic[2][64][64];
 } search_state_t;
