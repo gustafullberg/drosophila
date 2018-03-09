@@ -5,8 +5,6 @@ endif()
 set(files
     cecp.c
     cecp_features.h
-    io.c
-    io.h
 )
 
 add_executable(

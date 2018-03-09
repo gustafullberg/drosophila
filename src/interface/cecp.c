@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "cecp_features.h"
-#include "io.h"
 #include "engine.h"
 
 #define COMMAND_BUFFER_SIZE 512
@@ -251,7 +250,7 @@ void str_remove_newline(char *p)
 }
 
 /* Get a move (result from search) and send it to the GUI */
-void get_and_send_move(state_t *state, engine_state_t *engine)
+void deprecated_get_and_send_move(state_t *state, engine_state_t *engine)
 {
     int pos_from, pos_to, promotion_type, result;
 
@@ -396,7 +395,7 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
         /* If a search for next move is ongoing */
         if(state->flag_searching) {
             /* Abort the search and send the move now */
-            get_and_send_move(state, engine);
+            deprecated_get_and_send_move(state, engine);
         }
     }
 
@@ -442,10 +441,12 @@ int main(int argc, char **argv)
 {
     engine_state_t *engine;
     char command_buffer[COMMAND_BUFFER_SIZE];
+    int len = 0;
     state_t state;
     state_clear(&state);
     
-    IO_init();
+    /* Disable buffering for stdout */
+    setbuf(stdout, NULL);
     
     /* Create engine instance */
     ENGINE_create(&engine);
@@ -458,21 +459,20 @@ int main(int argc, char **argv)
     
     /* Main loop */
     while(1) {
-        /* Check if a command is sent from Xboard */
-        if(IO_read_input(command_buffer, COMMAND_BUFFER_SIZE)) {
-            /* Take proper action */
+        int c = getchar();
+        if(c == EOF) state.flag_quit = 1;
+        else command_buffer[len++] = c;
+        command_buffer[len] = '\0';
+
+        /* Full command received. Take proper action */
+        if(c == '\n') {
             process_command(engine, command_buffer, &state);
-            if(state.flag_quit) {
-                /* Shutdown if we get the 'quit' command etc */
-                break;
-            }
+            len = 0;
         }
 
-        /* Poll for found move */
-        if(state.flag_searching) {
-            if(search_is_completed(&state, engine)) {
-                get_and_send_move(&state, engine);
-            }
+        if(state.flag_quit) {
+            /* Shutdown if we get the 'quit' command or reach EOF */
+            break;
         }
     }
 
