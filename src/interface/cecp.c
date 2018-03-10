@@ -2,10 +2,12 @@
 #include <string.h>
 #include "cecp_features.h"
 #include "engine.h"
+#include "thread.h"
 
 #define COMMAND_BUFFER_SIZE 512
 
 typedef struct {
+    engine_state_t *engine;
     int flag_forced;
     int flag_quit;
     int flag_searching;             /* Is currently searching for a move                */
@@ -20,6 +22,7 @@ typedef struct {
 /* Reset state to known defaults */
 void state_clear(state_t *state)
 {
+    state->engine = NULL;
     state->flag_forced = 0;
     state->flag_quit = 0;
     state->flag_searching = 0;
@@ -178,7 +181,7 @@ void parse_time_control(state_t *state, const char *level)
 }
 
 /* Start searching for the next move */
-void search_move(state_t *state, engine_state_t *engine)
+void deprecated_search_move(state_t *state, engine_state_t *engine)
 {
     int time_left_ms = state->time_left_centiseconds * 10;
     int time_incremental_ms = state->time_incremental_seconds * 1000;
@@ -198,7 +201,7 @@ void search_move(state_t *state, engine_state_t *engine)
 }
 
 /* Start pondering */
-void search_pondering(state_t *state, engine_state_t *engine)
+void deprecated_search_pondering(state_t *state, engine_state_t *engine)
 {
     /* Only start ponder if pondering is enabled */
     if(state->flag_pondering) {
@@ -208,7 +211,7 @@ void search_pondering(state_t *state, engine_state_t *engine)
 }
 
 /* Abort search (move or pondering) */
-void search_stop(state_t *state, engine_state_t *engine, int *pos_from, int *pos_to, int *promotion_type)
+void deprecated_search_stop(state_t *state, engine_state_t *engine, int *pos_from, int *pos_to, int *promotion_type)
 {
     int _pos_from = 0, _pos_to = 0, _promotion_type = 0;
 
@@ -254,7 +257,7 @@ void deprecated_get_and_send_move(state_t *state, engine_state_t *engine)
 {
     int pos_from, pos_to, promotion_type, result;
 
-    search_stop(state, engine, &pos_from, &pos_to, &promotion_type);
+    deprecated_search_stop(state, engine, &pos_from, &pos_to, &promotion_type);
     result = ENGINE_apply_move(engine, pos_from, pos_to, promotion_type);
 
     send_move(pos_from, pos_to, promotion_type);
@@ -263,7 +266,7 @@ void deprecated_get_and_send_move(state_t *state, engine_state_t *engine)
     send_result(result);
 
     if(result == ENGINE_RESULT_NONE) {
-        search_pondering(state, engine);
+        deprecated_search_pondering(state, engine);
     }
 }
 
@@ -274,7 +277,7 @@ void cmd_usermove(state_t *state, engine_state_t *engine, const char *move_str, 
     int pos_from, pos_to, promotion_type;
 
     /* Stop ongoing pondering */
-    search_stop(state, engine, NULL, NULL, NULL);
+    deprecated_search_stop(state, engine, NULL, NULL, NULL);
 
     /* Parse the user move */
     parse_move(move_str, &pos_from, &pos_to, &promotion_type);
@@ -284,7 +287,8 @@ void cmd_usermove(state_t *state, engine_state_t *engine, const char *move_str, 
     if(result == ENGINE_RESULT_NONE) {
         state->num_half_moves++;
         if(respond_to_move) {
-            search_move(state, engine);
+            //deprecated_search_move(state, engine);
+            state->flag_searching = 1;
         }
     } else if(result == ENGINE_RESULT_ILLEGAL_MOVE) {
         /* Illegal move */
@@ -296,8 +300,10 @@ void cmd_usermove(state_t *state, engine_state_t *engine, const char *move_str, 
 }
 
 /* Process command from GUI */
-static void process_command(engine_state_t *engine, char *command, state_t *state)
+static void process_command(char *command, state_t *state)
 {
+    engine_state_t *engine = state->engine;
+
     /* Commands that do reqire action from the engine */
     
     /* protover */
@@ -328,20 +334,21 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
         state->flag_forced = 0;
 
         /* Move */
-        search_move(state, engine);
+        //deprecated_search_move(state, engine);
+        state->flag_searching = 1;
     }
     
     /*  quit */
     else if(strcmp(command, "quit\n") == 0) {
         state->flag_quit = 1;
-        search_stop(state, engine, NULL, NULL, NULL);
+        deprecated_search_stop(state, engine, NULL, NULL, NULL);
     }
     
     /* force */
     else if(strcmp(command, "force\n") == 0) {
         /* Enter force mode */
         state->flag_forced = 1;
-        search_stop(state, engine, NULL, NULL, NULL);
+        deprecated_search_stop(state, engine, NULL, NULL, NULL);
     }
 
     /* level */
@@ -387,7 +394,7 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
 
     /* result */
     else if(strncmp(command, "result ", 7) == 0) {
-        search_stop(state, engine, NULL, NULL, NULL);
+        deprecated_search_stop(state, engine, NULL, NULL, NULL);
     }
 
     /* ? (move now) */
@@ -436,12 +443,43 @@ static void process_command(engine_state_t *engine, char *command, state_t *stat
     }
 }
 
+void *search_thread(void *arg)
+{
+    state_t *state = (state_t*)arg;
+    while(1) {
+        while(!state->flag_searching && !state->flag_quit) sleep(1); /* TODO: Replace with condition variable */
+
+        if(state->flag_quit) break;
+
+        int time_left_ms = state->time_left_centiseconds * 10;
+        int time_incremental_ms = state->time_incremental_seconds * 1000;
+        int moves_left_in_period = 0;
+
+        /* Calculate time available for search */
+        if(state->time_period) {
+            int num_moves = state->num_half_moves / 2;
+            moves_left_in_period = state->time_period - (num_moves % state->time_period);
+        }
+
+        /* Spawn a new thread and start searching */
+        int pos_from, pos_to, promotion_type;
+        ENGINE_search(state->engine, moves_left_in_period, time_left_ms, time_incremental_ms, 100, &pos_from, &pos_to, &promotion_type);
+
+        /* Handle result */
+        int result = ENGINE_apply_move(state->engine, pos_from, pos_to, promotion_type);
+        send_move(pos_from, pos_to, promotion_type);
+        state->num_half_moves++;
+        send_result(result);
+        state->flag_searching = 0;
+    }
+    return NULL;
+}
 
 int main(int argc, char **argv)
 {
-    engine_state_t *engine;
     char command_buffer[COMMAND_BUFFER_SIZE];
     int len = 0;
+    thread_t thread_search;
     state_t state;
     state_clear(&state);
     
@@ -449,8 +487,10 @@ int main(int argc, char **argv)
     setbuf(stdout, NULL);
     
     /* Create engine instance */
-    ENGINE_create(&engine);
-    ENGINE_register_thinking_output_cb(engine, &send_search_output);
+    ENGINE_create(&state.engine);
+    ENGINE_register_thinking_output_cb(state.engine, &send_search_output);
+
+    THREAD_create(&thread_search, search_thread, &state);
 
     /* Welcome */
     fprintf(stdout, "# Welcome to Drosophila " _VERSION "\n");
@@ -465,7 +505,7 @@ int main(int argc, char **argv)
         /* Full command received. Take proper action */
         if(c == '\n') {
             command_buffer[len] = '\0';
-            process_command(engine, command_buffer, &state);
+            process_command(command_buffer, &state);
             len = 0;
         }
 
@@ -475,8 +515,10 @@ int main(int argc, char **argv)
         }
     }
 
+    THREAD_join(thread_search);
+
     /* Free engine instance */
-    ENGINE_destroy(engine);
+    ENGINE_destroy(state.engine);
     
     return 0;
 }

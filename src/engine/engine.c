@@ -40,7 +40,7 @@ void ENGINE_create(engine_state_t **state)
     (*state)->obook = OPENINGBOOK_create("book.bin");
     (*state)->think_cb = NULL;
     (*state)->search_state.hashtable = (*state)->hashtable;
-    (*state)->search_state.history;
+    (*state)->search_state.history = (*state)->history;
     (*state)->search_state_deprecated = NULL;
     ENGINE_reset(*state);
 }
