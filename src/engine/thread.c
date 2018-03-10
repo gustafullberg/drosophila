@@ -18,3 +18,35 @@ void THREAD_join(thread_t thread)
     pthread_join(thread, NULL);
 #endif
 }
+
+void MUTEX_create(mutex_t *mutex)
+{
+#ifdef _WIN32
+#else
+    pthread_mutex_init(mutex, NULL);
+#endif
+}
+
+void MUTEX_destroy(mutex_t *mutex)
+{
+#ifdef _WIN32
+#else
+    pthread_mutex_destroy(mutex);
+#endif
+}
+
+void MUTEX_lock(mutex_t *mutex)
+{
+#ifdef _WIN32
+#else
+    pthread_mutex_lock(mutex);
+#endif
+}
+
+void MUTEX_unlock(mutex_t *mutex)
+{
+#ifdef _WIN32
+#else
+    pthread_mutex_unlock(mutex);
+#endif
+}
