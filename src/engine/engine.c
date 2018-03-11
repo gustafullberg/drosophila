@@ -145,6 +145,8 @@ int ENGINE_search(engine_state_t *state, const int moves_left_in_period, const i
         time_for_move_ms = time_left_ms - 100;
     }
 
+    if(time_for_move_ms < 0) time_for_move_ms = 1;
+
     /* Setup search state */
     state->search_state.abort_search = 0;
     state->search_state.next_clock_check = SEARCH_ITERATIONS_BETWEEN_CLOCK_CHECK;
@@ -259,11 +261,9 @@ void ENGINE_deprecated_think_start(engine_state_t *state, const int moves_left_i
     THREAD_create(&state->search_state_deprecated->thread_deprecated, &ENGINE_deprecated_think_thread, (void*)state);
 }
 
-void ENGINE_deprecated_think_stop(engine_state_t *state)
+void ENGINE_think_stop(engine_state_t *state)
 {
-    if(state->search_state_deprecated) {
-        state->search_state_deprecated->abort_search = 1;
-    }
+    state->search_state.abort_search = 1;
 }
 
 int  ENGINE_deprecated_think_get_status(engine_state_t *state)

@@ -30,7 +30,7 @@ int  ENGINE_apply_move(engine_state_t *state, const int pos_from, const int pos_
 int  ENGINE_apply_move_san(engine_state_t *state, const char *san);
 int  ENGINE_search(engine_state_t *state, const int moves_left_in_period, const int time_left_ms, const int time_incremental_ms, const unsigned char max_depth, int *pos_from, int *pos_to, int *promotion_type);
 void ENGINE_deprecated_think_start(engine_state_t *state, const int moves_left_in_period, const int time_left_ms, const int time_incremental_ms, const unsigned char max_depth);
-void ENGINE_deprecated_think_stop(engine_state_t *state);
+void ENGINE_think_stop(engine_state_t *state);
 int  ENGINE_deprecated_think_get_status(engine_state_t *state);
 void ENGINE_deprecated_think_get_result(engine_state_t *state, int *pos_from, int *pos_to, int *promotion_type);
 int  ENGINE_result(const engine_state_t *state);

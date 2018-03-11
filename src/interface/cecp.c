@@ -8,6 +8,8 @@
 
 typedef struct {
     engine_state_t *engine;
+    mutex_t mtx_engine;
+    pthread_cond_t cv;
     int flag_forced;
     int flag_quit;
     int flag_searching;             /* Is currently searching for a move                */
@@ -23,6 +25,8 @@ typedef struct {
 void state_clear(state_t *state)
 {
     state->engine = NULL;
+    MUTEX_create(&state->mtx_engine); // TODO: Destroy
+    pthread_cond_init(&state->cv, 0); // TODO: Destroy
     state->flag_forced = 0;
     state->flag_quit = 0;
     state->flag_searching = 0;
@@ -42,6 +46,22 @@ void state_clear_time(state_t *state)
     state->time_incremental_seconds = 0;
     state->time_left_centiseconds = 0;
     state->num_half_moves = 0;
+}
+
+void search_start(state_t *state)
+{
+    MUTEX_lock(&state->mtx_engine);
+    state->flag_searching = 1;
+    pthread_cond_signal(&state->cv);
+    MUTEX_unlock(&state->mtx_engine);
+}
+
+void search_stop(state_t *state)
+{
+    ENGINE_think_stop(state->engine);
+    MUTEX_lock(&state->mtx_engine);
+    pthread_cond_signal(&state->cv);
+    MUTEX_unlock(&state->mtx_engine);
 }
 
 /* Send all the supported features of the CECP to GUI */
@@ -180,26 +200,6 @@ void parse_time_control(state_t *state, const char *level)
     state->time_incremental_seconds = inc_seconds;
 }
 
-/* Start searching for the next move */
-void deprecated_search_move(state_t *state, engine_state_t *engine)
-{
-    int time_left_ms = state->time_left_centiseconds * 10;
-    int time_incremental_ms = state->time_incremental_seconds * 1000;
-    int moves_left_in_period = 0;
-
-    /* Calculate time available for search */
-    if(state->time_period) {
-        int num_moves = state->num_half_moves / 2;
-        moves_left_in_period = state->time_period - (num_moves % state->time_period);
-    }
-
-    /* Flag that a search is in progress */
-    state->flag_searching = 1;
-
-    /* Spawn a new thread and start searching */
-    ENGINE_deprecated_think_start(engine, moves_left_in_period, time_left_ms, time_incremental_ms, 100);
-}
-
 /* Start pondering */
 void deprecated_search_pondering(state_t *state, engine_state_t *engine)
 {
@@ -207,30 +207,6 @@ void deprecated_search_pondering(state_t *state, engine_state_t *engine)
     if(state->flag_pondering) {
         /* Limit search to one hour or a depth of 100 */
         ENGINE_deprecated_think_start(engine, 1, 3600*1000, 0, 100);
-    }
-}
-
-/* Abort search (move or pondering) */
-void deprecated_search_stop(state_t *state, engine_state_t *engine, int *pos_from, int *pos_to, int *promotion_type)
-{
-    int _pos_from = 0, _pos_to = 0, _promotion_type = 0;
-
-    /* Flag that no search for a move is going on */
-    state->flag_searching = 0;
-
-    /* Check if a search is going on */
-    if(ENGINE_deprecated_think_get_status(engine) != ENGINE_SEARCH_NONE) {
-        /* Abort the search */
-        ENGINE_deprecated_think_stop(engine);
-
-        /* Get the result */
-        ENGINE_deprecated_think_get_result(engine, &_pos_from, &_pos_to, &_promotion_type);
-    }
-
-    if(pos_from && pos_to && promotion_type) {
-        *pos_from = _pos_from;
-        *pos_to = _pos_to;
-        *promotion_type = _promotion_type;
     }
 }
 
@@ -252,24 +228,6 @@ void str_remove_newline(char *p)
     }
 }
 
-/* Get a move (result from search) and send it to the GUI */
-void deprecated_get_and_send_move(state_t *state, engine_state_t *engine)
-{
-    int pos_from, pos_to, promotion_type, result;
-
-    deprecated_search_stop(state, engine, &pos_from, &pos_to, &promotion_type);
-    result = ENGINE_apply_move(engine, pos_from, pos_to, promotion_type);
-
-    send_move(pos_from, pos_to, promotion_type);
-
-    state->num_half_moves++;
-    send_result(result);
-
-    if(result == ENGINE_RESULT_NONE) {
-        deprecated_search_pondering(state, engine);
-    }
-}
-
 /* Handle a "usermove" command */
 void cmd_usermove(state_t *state, engine_state_t *engine, const char *move_str, int respond_to_move)
 {
@@ -277,7 +235,7 @@ void cmd_usermove(state_t *state, engine_state_t *engine, const char *move_str, 
     int pos_from, pos_to, promotion_type;
 
     /* Stop ongoing pondering */
-    deprecated_search_stop(state, engine, NULL, NULL, NULL);
+    search_stop(state);
 
     /* Parse the user move */
     parse_move(move_str, &pos_from, &pos_to, &promotion_type);
@@ -287,8 +245,7 @@ void cmd_usermove(state_t *state, engine_state_t *engine, const char *move_str, 
     if(result == ENGINE_RESULT_NONE) {
         state->num_half_moves++;
         if(respond_to_move) {
-            //deprecated_search_move(state, engine);
-            state->flag_searching = 1;
+            search_start(state);
         }
     } else if(result == ENGINE_RESULT_ILLEGAL_MOVE) {
         /* Illegal move */
@@ -334,21 +291,20 @@ static void process_command(char *command, state_t *state)
         state->flag_forced = 0;
 
         /* Move */
-        //deprecated_search_move(state, engine);
-        state->flag_searching = 1;
+        search_start(state);
     }
     
     /*  quit */
     else if(strcmp(command, "quit\n") == 0) {
         state->flag_quit = 1;
-        deprecated_search_stop(state, engine, NULL, NULL, NULL);
+        search_stop(state);
     }
     
     /* force */
     else if(strcmp(command, "force\n") == 0) {
         /* Enter force mode */
         state->flag_forced = 1;
-        deprecated_search_stop(state, engine, NULL, NULL, NULL);
+        search_stop(state);
     }
 
     /* level */
@@ -394,16 +350,13 @@ static void process_command(char *command, state_t *state)
 
     /* result */
     else if(strncmp(command, "result ", 7) == 0) {
-        deprecated_search_stop(state, engine, NULL, NULL, NULL);
+        search_stop(state);
     }
 
     /* ? (move now) */
     else if(strncmp(command, "?\n", 2) == 0) {
-        /* If a search for next move is ongoing */
-        if(state->flag_searching) {
-            /* Abort the search and send the move now */
-            deprecated_get_and_send_move(state, engine);
-        }
+        /* Abort the search and send the move now */
+        search_stop(state);
     }
 
     /* Commands that do not reqire action from the engine (or not implemented) */
@@ -446,8 +399,11 @@ static void process_command(char *command, state_t *state)
 void *search_thread(void *arg)
 {
     state_t *state = (state_t*)arg;
+
+    MUTEX_lock(&state->mtx_engine);
     while(1) {
-        while(!state->flag_searching && !state->flag_quit) sleep(1); /* TODO: Replace with condition variable */
+        while(!state->flag_searching && !state->flag_quit)
+            pthread_cond_wait(&state->cv, &state->mtx_engine);
 
         if(state->flag_quit) break;
 
@@ -472,6 +428,7 @@ void *search_thread(void *arg)
         send_result(result);
         state->flag_searching = 0;
     }
+    MUTEX_unlock(&state->mtx_engine);
     return NULL;
 }
 
