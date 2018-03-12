@@ -9,7 +9,7 @@
 typedef struct {
     engine_state_t *engine;
     mutex_t mtx_engine;
-    pthread_cond_t cv;
+    cond_t cv;
     int flag_forced;
     int flag_quit;
     int flag_searching;             /* Is currently searching for a move                */
@@ -25,8 +25,6 @@ typedef struct {
 void state_clear(state_t *state)
 {
     state->engine = NULL;
-    MUTEX_create(&state->mtx_engine); // TODO: Destroy
-    pthread_cond_init(&state->cv, 0); // TODO: Destroy
     state->flag_forced = 0;
     state->flag_quit = 0;
     state->flag_searching = 0;
@@ -52,15 +50,15 @@ void search_start(state_t *state)
 {
     MUTEX_lock(&state->mtx_engine);
     state->flag_searching = 1;
-    pthread_cond_signal(&state->cv);
+    MUTEX_cond_signal(&state->cv);
     MUTEX_unlock(&state->mtx_engine);
 }
 
 void search_stop(state_t *state)
 {
-    ENGINE_think_stop(state->engine);
+    ENGINE_search_stop(state->engine);
     MUTEX_lock(&state->mtx_engine);
-    pthread_cond_signal(&state->cv);
+    MUTEX_cond_signal(&state->cv);
     MUTEX_unlock(&state->mtx_engine);
 }
 
@@ -200,22 +198,6 @@ void parse_time_control(state_t *state, const char *level)
     state->time_incremental_seconds = inc_seconds;
 }
 
-/* Start pondering */
-void deprecated_search_pondering(state_t *state, engine_state_t *engine)
-{
-    /* Only start ponder if pondering is enabled */
-    if(state->flag_pondering) {
-        /* Limit search to one hour or a depth of 100 */
-        ENGINE_deprecated_think_start(engine, 1, 3600*1000, 0, 100);
-    }
-}
-
-/* Return non-zero if a search has been completed and result is waiting */
-int search_is_completed(state_t *state, engine_state_t *engine)
-{
-    return ENGINE_deprecated_think_get_status(engine) == ENGINE_SEARCH_COMPLETED;
-}
-
 /* Remove first newline of a string and terminate it */
 void str_remove_newline(char *p)
 {
@@ -229,7 +211,7 @@ void str_remove_newline(char *p)
 }
 
 /* Handle a "usermove" command */
-void cmd_usermove(state_t *state, engine_state_t *engine, const char *move_str, int respond_to_move)
+void cmd_usermove(state_t *state, const char *move_str, int respond_to_move)
 {
     int result;
     int pos_from, pos_to, promotion_type;
@@ -241,7 +223,7 @@ void cmd_usermove(state_t *state, engine_state_t *engine, const char *move_str, 
     parse_move(move_str, &pos_from, &pos_to, &promotion_type);
 
     /* Move piece */
-    result = ENGINE_apply_move(engine, pos_from, pos_to, promotion_type);
+    result = ENGINE_apply_move(state->engine, pos_from, pos_to, promotion_type);
     if(result == ENGINE_RESULT_NONE) {
         state->num_half_moves++;
         if(respond_to_move) {
@@ -259,8 +241,6 @@ void cmd_usermove(state_t *state, engine_state_t *engine, const char *move_str, 
 /* Process command from GUI */
 static void process_command(char *command, state_t *state)
 {
-    engine_state_t *engine = state->engine;
-
     /* Commands that do reqire action from the engine */
     
     /* protover */
@@ -270,8 +250,10 @@ static void process_command(char *command, state_t *state)
     
     /* new */
     else if(strcmp(command, "new\n") == 0) {
+        search_stop(state);
+
         /* Reset board */
-        ENGINE_reset(engine);
+        ENGINE_reset(state->engine);
         
         /* Reset time control */
         state_clear_time(state);
@@ -282,7 +264,7 @@ static void process_command(char *command, state_t *state)
     
     /* usermove */
     else if(strncmp(command, "usermove ", 9) == 0) {
-        cmd_usermove(state, engine, command + 9, !state->flag_forced);
+        cmd_usermove(state, command + 9, !state->flag_forced);
     }
     
     /* go */
@@ -290,7 +272,8 @@ static void process_command(char *command, state_t *state)
         /* Leave force mode */
         state->flag_forced = 0;
 
-        /* Move */
+        /* Start searching */
+        search_stop(state);
         search_start(state);
     }
     
@@ -328,12 +311,14 @@ static void process_command(char *command, state_t *state)
     else if(strncmp(command, "memory ", 7) == 0) {
         int hash_size_mb = 0;
         sscanf(command + 7, "%d\n", &hash_size_mb);
-        ENGINE_resize_hashtable(engine, hash_size_mb);
+        search_stop(state);
+        ENGINE_resize_hashtable(state->engine, hash_size_mb);
     }
 
     /* setboard */
     else if(strncmp(command, "setboard ", 9) == 0) {
-        if(ENGINE_set_board(engine, command + 9) != 0) {
+        search_stop(state);
+        if(ENGINE_set_board(state->engine, command + 9) != 0) {
             fprintf(stdout, "tellusererror Illegal position\n");
         }
     }
@@ -403,7 +388,7 @@ void *search_thread(void *arg)
     MUTEX_lock(&state->mtx_engine);
     while(1) {
         while(!state->flag_searching && !state->flag_quit)
-            pthread_cond_wait(&state->cv, &state->mtx_engine);
+            MUTEX_cond_wait(&state->mtx_engine, &state->cv);
 
         if(state->flag_quit) break;
 
@@ -417,7 +402,7 @@ void *search_thread(void *arg)
             moves_left_in_period = state->time_period - (num_moves % state->time_period);
         }
 
-        /* Spawn a new thread and start searching */
+        /* Start searching */
         int pos_from, pos_to, promotion_type;
         ENGINE_search(state->engine, moves_left_in_period, time_left_ms, time_incremental_ms, 100, &pos_from, &pos_to, &promotion_type);
 
@@ -439,14 +424,19 @@ int main(int argc, char **argv)
     thread_t thread_search;
     state_t state;
     state_clear(&state);
-    
+
     /* Disable buffering for stdout */
     setbuf(stdout, NULL);
     
     /* Create engine instance */
     ENGINE_create(&state.engine);
-    ENGINE_register_thinking_output_cb(state.engine, &send_search_output);
+    ENGINE_register_search_output_cb(state.engine, &send_search_output);
 
+    /* Create mutex and condition variable */
+    MUTEX_create(&state.mtx_engine);
+    MUTEX_cond_create(&state.cv);
+
+    /* Create search thread */
     THREAD_create(&thread_search, search_thread, &state);
 
     /* Welcome */
@@ -472,10 +462,14 @@ int main(int argc, char **argv)
         }
     }
 
+    /* Free thread mutex and condition variable */
+    search_stop(&state);
     THREAD_join(thread_search);
+    MUTEX_cond_destroy(&state.cv);
+    MUTEX_destroy(&state.mtx_engine);
 
     /* Free engine instance */
     ENGINE_destroy(state.engine);
-    
+
     return 0;
 }

@@ -50,3 +50,35 @@ void MUTEX_unlock(mutex_t *mutex)
     pthread_mutex_unlock(mutex);
 #endif
 }
+
+void MUTEX_cond_create(cond_t *cv)
+{
+#ifdef _WIN32
+#else
+    pthread_cond_init(cv, 0);
+#endif
+}
+
+void MUTEX_cond_destroy(cond_t *cv)
+{
+#ifdef _WIN32
+#else
+    pthread_cond_destroy(cv);
+#endif
+}
+
+void MUTEX_cond_wait(mutex_t *mutex, cond_t *cv)
+{
+#ifdef _WIN32
+#else
+    pthread_cond_wait(cv, mutex);
+#endif
+}
+
+void MUTEX_cond_signal(cond_t *cv)
+{
+#ifdef _WIN32
+#else
+    pthread_cond_signal(cv);
+#endif
+}

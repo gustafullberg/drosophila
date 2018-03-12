@@ -19,7 +19,6 @@ struct engine_state {
     openingbook_t       *obook;
     thinking_output_cb  think_cb;
     search_state_t      search_state;
-    search_state_t      *search_state_deprecated;
 };
 
 static void ENGINE_init()
@@ -41,7 +40,6 @@ void ENGINE_create(engine_state_t **state)
     (*state)->think_cb = NULL;
     (*state)->search_state.hashtable = (*state)->hashtable;
     (*state)->search_state.history = (*state)->history;
-    (*state)->search_state_deprecated = NULL;
     ENGINE_reset(*state);
 }
 
@@ -50,7 +48,6 @@ void ENGINE_destroy(engine_state_t *state)
     HASHTABLE_destroy(state->hashtable);
     HISTORY_destroy(state->history);
     OPENINGBOOK_destroy(state->obook);
-    if(state->search_state_deprecated) free(state->search_state_deprecated);
     free(state->chess_state);
     free(state);
 }
@@ -59,10 +56,29 @@ void ENGINE_reset(engine_state_t *state)
 {
     STATE_reset(state->chess_state);
     HISTORY_reset(state->history);
-    if(state->search_state_deprecated) {
-        free(state->search_state_deprecated);
-        state->search_state_deprecated = NULL;
+}
+
+static int ENGINE_result(const engine_state_t *state)
+{
+    if(SEARCH_is_mate(state->chess_state)) {
+        if(SEARCH_is_check(state->chess_state, state->chess_state->player)) {
+            if(state->chess_state->player == WHITE) {
+                return ENGINE_RESULT_BLACK_MATES;
+            } else {
+                return ENGINE_RESULT_WHITE_MATES;
+            }
+        } else {
+            return ENGINE_RESULT_DRAW_STALE_MATE;
+        }
+    } else if(EVAL_insufficient_material(state->chess_state)) {
+        return ENGINE_RESULT_DRAW_INSUFFICIENT_MATERIAL;
+    } else if(EVAL_fifty_move_rule(state->chess_state)) {
+        return ENGINE_RESULT_DRAW_FIFTY_MOVE;
+    } else if(HISTORY_is_threefold_repetition(state->history, state->chess_state->halfmove_clock)) {
+        return ENGINE_RESULT_DRAW_REPETITION;
     }
+
+    return ENGINE_RESULT_NONE;
 }
 
 int ENGINE_apply_move(engine_state_t *state, const int pos_from, const int pos_to, const int promotion_type)
@@ -197,162 +213,12 @@ int ENGINE_search(engine_state_t *state, const int moves_left_in_period, const i
     return score;
 }
 
-static void *ENGINE_deprecated_think_thread(void *arg)
-{
-    engine_state_t *state = (engine_state_t*)arg;
-
-    move_t move;
-    short score;
-    
-    /* Look for a move in the opening book */
-    move = OPENINGBOOK_get_move(state->obook, state->chess_state);
-    if(!move) {
-        /* No move in the opening book. Search! */
-        move = SEARCH_perform_search(state->chess_state, state->search_state_deprecated, &score);
-    }
-    
-    state->search_state_deprecated->move_deprecated = move;
-    state->search_state_deprecated->status_deprecated = ENGINE_SEARCH_COMPLETED;
-
-    return NULL;
-}
-
-void ENGINE_deprecated_think_start(engine_state_t *state, const int moves_left_in_period, const int time_left_ms, const int time_incremental_ms, const unsigned char max_depth)
-{
-    int64_t time_for_move_ms;
-
-    if(state->search_state_deprecated) {
-        /* Search already in progress => abort */
-        return;
-    }
-
-    /* Create search state */
-    state->search_state_deprecated = calloc(1, sizeof(search_state_t));
-
-    /* Calculate time for this move */
-    if(moves_left_in_period) {
-        time_for_move_ms = time_left_ms / moves_left_in_period;
-    } else {
-        time_for_move_ms = time_left_ms * 2 / 100;
-    }
-
-    /* Add incremental time */
-    time_for_move_ms += time_incremental_ms;
-
-    /* Make sure we have 100 ms margin */
-    if(time_for_move_ms > time_left_ms - 100) {
-        time_for_move_ms = time_left_ms - 100;
-    }
-
-    /* Set members of search_state */
-    state->search_state_deprecated->hashtable = state->hashtable;
-    state->search_state_deprecated->history = state->history;
-    state->search_state_deprecated->abort_search = 0;
-    state->search_state_deprecated->next_clock_check = SEARCH_ITERATIONS_BETWEEN_CLOCK_CHECK;
-    state->search_state_deprecated->start_time_ms = CLOCK_now();
-    state->search_state_deprecated->time_for_move_ms = time_for_move_ms;
-    state->search_state_deprecated->max_depth = max_depth;
-    state->search_state_deprecated->num_nodes_searched = 0;
-    state->search_state_deprecated->think_cb = state->think_cb;
-    state->search_state_deprecated->move_deprecated = 0;
-    state->search_state_deprecated->status_deprecated = ENGINE_SEARCH_RUNNING;
-
-    /* Spawn search thread */
-    THREAD_create(&state->search_state_deprecated->thread_deprecated, &ENGINE_deprecated_think_thread, (void*)state);
-}
-
-void ENGINE_think_stop(engine_state_t *state)
+void ENGINE_search_stop(engine_state_t *state)
 {
     state->search_state.abort_search = 1;
 }
 
-int  ENGINE_deprecated_think_get_status(engine_state_t *state)
-{
-    if(state->search_state_deprecated) {
-        return state->search_state_deprecated->status_deprecated;
-    } else {
-        return ENGINE_SEARCH_NONE;
-    }
-}
-
-void ENGINE_deprecated_think_get_result(engine_state_t *state, int *pos_from, int *pos_to, int *promotion_type)
-{
-    move_t move;
-    int special;
-
-    if(!state->search_state_deprecated) {
-        /* No search to get result from */
-        return;
-    }
-
-    /* Join search thread */
-    THREAD_join(state->search_state_deprecated->thread_deprecated);
-
-    /* Get best move */
-    move = state->search_state_deprecated->move_deprecated;
-
-    /* Free memory in search state */
-    free(state->search_state_deprecated);
-    state->search_state_deprecated = NULL;
-
-    *pos_from = MOVE_GET_POS_FROM(move);
-    *pos_to = MOVE_GET_POS_TO(move);
-    special = MOVE_GET_SPECIAL_FLAGS(move);
-
-    /* Translate move to: pos_from, pos_to, promotion_type */
-
-    switch(special)
-    {
-        case MOVE_KNIGHT_PROMOTION:
-        case MOVE_KNIGHT_PROMOTION_CAPTURE:
-        *promotion_type = ENGINE_PROMOTION_KNIGHT;
-        break;
-
-        case MOVE_BISHOP_PROMOTION:
-        case MOVE_BISHOP_PROMOTION_CAPTURE:
-        *promotion_type = ENGINE_PROMOTION_BISHOP;
-        break;
-
-        case MOVE_ROOK_PROMOTION:
-        case MOVE_ROOK_PROMOTION_CAPTURE:
-        *promotion_type = ENGINE_PROMOTION_ROOK;
-        break;
-
-        case MOVE_QUEEN_PROMOTION:
-        case MOVE_QUEEN_PROMOTION_CAPTURE:
-        *promotion_type = ENGINE_PROMOTION_QUEEN;
-        break;
-
-        default:
-        *promotion_type = ENGINE_PROMOTION_NONE;
-        break;
-    }
-}
-
-int ENGINE_result(const engine_state_t *state)
-{
-    if(SEARCH_is_mate(state->chess_state)) {
-        if(SEARCH_is_check(state->chess_state, state->chess_state->player)) {
-            if(state->chess_state->player == WHITE) {
-                return ENGINE_RESULT_BLACK_MATES;
-            } else {
-                return ENGINE_RESULT_WHITE_MATES;
-            }
-        } else {
-            return ENGINE_RESULT_DRAW_STALE_MATE;
-        }
-    } else if(EVAL_insufficient_material(state->chess_state)) {
-        return ENGINE_RESULT_DRAW_INSUFFICIENT_MATERIAL;
-    } else if(EVAL_fifty_move_rule(state->chess_state)) {
-        return ENGINE_RESULT_DRAW_FIFTY_MOVE;
-    } else if(HISTORY_is_threefold_repetition(state->history, state->chess_state->halfmove_clock)) {
-        return ENGINE_RESULT_DRAW_REPETITION;
-    }
-    
-    return ENGINE_RESULT_NONE;
-}
-
-void ENGINE_register_thinking_output_cb(engine_state_t *state, thinking_output_cb think_cb)
+void ENGINE_register_search_output_cb(engine_state_t *state, thinking_output_cb think_cb)
 {
     state->think_cb = think_cb;
 }
@@ -374,6 +240,7 @@ int ENGINE_set_board(engine_state_t *state, const char *fen)
     return 1;
 }
 
+/* TODO: remove this function */
 short ENGINE_static_evaluation(engine_state_t *state)
 {
     search_state_t search_state;
@@ -386,8 +253,6 @@ short ENGINE_static_evaluation(engine_state_t *state)
     search_state.max_depth = 0;
     search_state.num_nodes_searched = 0;
     search_state.think_cb = NULL;
-    search_state.move_deprecated = 0;
-    search_state.status_deprecated = ENGINE_SEARCH_RUNNING;
 
     short score;
     SEARCH_perform_search(state->chess_state, &search_state, &score);
