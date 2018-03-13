@@ -4,6 +4,8 @@
 #ifdef _WIN32
 #include <windows.h>
 typedef HANDLE thread_t;
+typedef CRITICAL_SECTION mutex_t;
+typedef CONDITION_VARIABLE cond_t;
 #else
 #include <pthread.h>
 typedef pthread_t thread_t;
