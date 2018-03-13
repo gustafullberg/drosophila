@@ -239,24 +239,3 @@ int ENGINE_set_board(engine_state_t *state, const char *fen)
     }
     return 1;
 }
-
-/* TODO: remove this function */
-short ENGINE_static_evaluation(engine_state_t *state)
-{
-    search_state_t search_state;
-    search_state.hashtable = state->hashtable;
-    search_state.history = state->history;
-    search_state.abort_search = 0;
-    search_state.next_clock_check = SEARCH_ITERATIONS_BETWEEN_CLOCK_CHECK;
-    search_state.start_time_ms = CLOCK_now();
-    search_state.time_for_move_ms = 1000;
-    search_state.max_depth = 0;
-    search_state.num_nodes_searched = 0;
-    search_state.think_cb = NULL;
-
-    short score;
-    SEARCH_perform_search(state->chess_state, &search_state, &score);
-
-    if(state->chess_state->player != 0) score = -score;
-    return score;
-}

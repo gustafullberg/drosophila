@@ -33,6 +33,5 @@ void ENGINE_search_stop(engine_state_t *state);
 void ENGINE_register_search_output_cb(engine_state_t *state, thinking_output_cb think_cb);
 void ENGINE_resize_hashtable(engine_state_t *state, const int size_mb);
 int  ENGINE_set_board(engine_state_t *state, const char *fen);
-short ENGINE_static_evaluation(engine_state_t *state);
 
 #endif

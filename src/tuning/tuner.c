@@ -109,15 +109,13 @@ void* worker_thread(void *_arg)
 
             chess_state_t **state = (chess_state_t **)engine;
 
-            if(half_moves <= 20) continue;
-#if 1
+            if(half_moves < 20) continue;
+
             /* Evaluate position */
             int pos_from, pos_to, promotion_type;
             short score = ENGINE_search(engine, 1, 3600*1000, 0, 0, &pos_from, &pos_to, &promotion_type);
-            if(half_moves % 1 == 0) score -= score; /* Invert score for black */
-#else
-            short score = ENGINE_static_evaluation(engine);
-#endif
+            if(half_moves % 2 == 1) score = -score; /* Invert score for black */
+
             arg->num_positions++;
 
             float e2 = error(result, score);
