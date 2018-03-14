@@ -56,6 +56,7 @@ void search_start(state_t *state)
 
 void search_stop(state_t *state)
 {
+    state->flag_searching = 0;
     ENGINE_search_stop(state->engine);
     MUTEX_lock(&state->mtx_engine);
     MUTEX_cond_signal(&state->cv);
@@ -381,6 +382,40 @@ static void process_command(char *command, state_t *state)
     }
 }
 
+void search(state_t *state)
+{
+    int time_left_ms = state->time_left_centiseconds * 10;
+    int time_incremental_ms = state->time_incremental_seconds * 1000;
+    int moves_left_in_period = 0;
+
+    /* Calculate time available for search */
+    if(state->time_period) {
+        int num_moves = state->num_half_moves / 2;
+        moves_left_in_period = state->time_period - (num_moves % state->time_period);
+    }
+
+    /* Start searching */
+    int pos_from, pos_to, promotion_type;
+    ENGINE_search(state->engine, moves_left_in_period, time_left_ms, time_incremental_ms, 100, &pos_from, &pos_to, &promotion_type);
+
+    /* Handle result */
+    int result = ENGINE_apply_move(state->engine, pos_from, pos_to, promotion_type);
+    send_move(pos_from, pos_to, promotion_type);
+    state->num_half_moves++;
+    send_result(result);
+}
+
+void search_ponder(state_t *state)
+{
+    int time_left_ms = 3600000; /* 1 hour */
+    int time_incremental_ms = 0;
+    int moves_left_in_period = 1;
+
+    /* Start searching */
+    int pos_from, pos_to, promotion_type;
+    ENGINE_search(state->engine, moves_left_in_period, time_left_ms, time_incremental_ms, 100, &pos_from, &pos_to, &promotion_type);
+}
+
 void *search_thread(void *arg)
 {
     state_t *state = (state_t*)arg;
@@ -392,25 +427,12 @@ void *search_thread(void *arg)
 
         if(state->flag_quit) break;
 
-        int time_left_ms = state->time_left_centiseconds * 10;
-        int time_incremental_ms = state->time_incremental_seconds * 1000;
-        int moves_left_in_period = 0;
+        search(state);
 
-        /* Calculate time available for search */
-        if(state->time_period) {
-            int num_moves = state->num_half_moves / 2;
-            moves_left_in_period = state->time_period - (num_moves % state->time_period);
+        if(state->flag_searching && state->flag_pondering) {
+            search_ponder(state);
         }
 
-        /* Start searching */
-        int pos_from, pos_to, promotion_type;
-        ENGINE_search(state->engine, moves_left_in_period, time_left_ms, time_incremental_ms, 100, &pos_from, &pos_to, &promotion_type);
-
-        /* Handle result */
-        int result = ENGINE_apply_move(state->engine, pos_from, pos_to, promotion_type);
-        send_move(pos_from, pos_to, promotion_type);
-        state->num_half_moves++;
-        send_result(result);
         state->flag_searching = 0;
     }
     MUTEX_unlock(&state->mtx_engine);
