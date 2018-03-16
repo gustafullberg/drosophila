@@ -134,6 +134,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                     score = -SEARCH_nullwindow(&next_state, search_state, depth-1, &next_move, -beta+1);
                 }
             }
+            HISTORY_pop(search_state->history);
             
             /* Check if score improved by this move */
             if(score > best_score) {
@@ -151,12 +152,9 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                         /* History heuristic */
                         search_state->history_heuristic[state->player][MOVE_GET_POS_FROM(*move)][MOVE_GET_POS_TO(*move)] += depth*depth;
                     }
-                    HISTORY_pop(search_state->history);
                     break;
                 }
             }
-
-            HISTORY_pop(search_state->history);
         }
         
         /* Detect checkmate and stalemate */
