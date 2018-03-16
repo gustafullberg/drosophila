@@ -64,16 +64,14 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     }
 
     /* Null move pruning */
-    if(depth > 4 && state->last_move && !STATE_risk_zugzwang(state)) {
-        if(!SEARCH_is_check(state, state->player)) {
-            unsigned char R_plus_1 = ((depth > 5) ? 4 : 3);
-            next_state = *state;
-            STATE_apply_move(&next_state, 0);
-            score = -SEARCH_nullwindow(&next_state, search_state, depth-R_plus_1, &next_move, -beta+1);
-            if(score >= beta) {
-                best_score = beta;
-                skip_move_generation = 1;
-            }
+    if(depth > 4 && state->last_move && !is_in_check && !STATE_risk_zugzwang(state)) {
+        unsigned char R_plus_1 = ((depth > 5) ? 4 : 3);
+        next_state = *state;
+        STATE_apply_move(&next_state, 0);
+        score = -SEARCH_nullwindow(&next_state, search_state, depth-R_plus_1, &next_move, -beta+1);
+        if(score >= beta) {
+            best_score = beta;
+            skip_move_generation = 1;
         }
     }
 
@@ -159,7 +157,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         
         /* Detect checkmate and stalemate */
         if(num_legal_moves == 0) {
-            if(SEARCH_is_check(state, state->player)) {
+            if(is_in_check) {
                 /* Checkmate (worst case) */
             } else {
                 /* Stalemate */
