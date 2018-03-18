@@ -46,7 +46,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     is_in_check = SEARCH_is_check(state, state->player);
     
     /* Check extension */
-    if(is_in_check && depth == 0) {
+    if(is_in_check) {
         depth += 1;
     }
 
