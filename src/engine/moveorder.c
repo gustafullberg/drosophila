@@ -39,7 +39,7 @@ void MOVEORDER_rate_moves(const chess_state_t *s, move_t moves[], int num_moves,
             } else { /* Quiet moves */
                 /* Killer moves */
                 if(moves[i] == killer[0]) score += 55;
-                else if(moves[i] == killer[1]) score += 30;
+                else if(moves[i] == killer[1]) score += 20;
 
                 /* History heuristic */
                 int hist_val = history_heuristic[pos_from][pos_to];
