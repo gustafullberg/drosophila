@@ -26,7 +26,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     int do_futility_pruning = 0;
 
     *move = 0;
-    
+
     /* Check if time is up */
     search_state->next_clock_check--;
     if(search_state->next_clock_check <= 0) {
@@ -44,7 +44,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
 
     /* Is playing side in check? */
     is_in_check = SEARCH_is_check(state, state->player);
-    
+
     /* Check extension */
     if(is_in_check) {
         depth += 1;
@@ -54,7 +54,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     if(depth == 0) {
         return SEARCH_nullwindow_quiescence(state, search_state, beta);
     }
-    
+
     /* Query the transposition table */
     ttable_score = SEARCH_transpositiontable_retrieve(search_state->hashtable, state->hash, depth, beta, move, &cutoff);
     if(cutoff) {
@@ -92,17 +92,17 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
             /* Pick move with the highest score */
             MOVEORDER_best_move_first(&moves[i], num_moves - i);
 
+            /* Apply move */
+            next_state = *state;
+            STATE_apply_move(&next_state, moves[i]);
+
             /* Futility pruning */
             if(do_futility_pruning) {
-                if(num_legal_moves > 1 && !MOVE_IS_CAPTURE_OR_PROMOTION(moves[i])) {
+                if(num_legal_moves > 1 && !MOVE_IS_CAPTURE_OR_PROMOTION(moves[i]) && !SEARCH_is_check(&next_state, next_state.player)) {
                     continue;
                 }
             }
 
-            /* Apply move */
-            next_state = *state;
-            STATE_apply_move(&next_state, moves[i]);
-            
             /* If not in check, the move is legal */
             if(SEARCH_is_check(&next_state, state->player)) {
                 continue;
@@ -133,12 +133,12 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                 }
             }
             HISTORY_pop(search_state->history);
-            
+
             /* Check if score improved by this move */
             if(score > best_score) {
                 best_score = score;
                 *move = moves[i];
-                
+
                 /* Beta-cuttoff */
                 if(best_score >= beta) {
                     if(!MOVE_IS_CAPTURE_OR_PROMOTION(*move)) {
@@ -154,7 +154,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                 }
             }
         }
-        
+
         /* Detect checkmate and stalemate */
         if(num_legal_moves == 0) {
             if(is_in_check) {
@@ -170,7 +170,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     if(!search_state->abort_search) {
         SEARCH_transpositiontable_store(search_state->hashtable, state->hash, depth, best_score, *move, beta);
     }
-    
+
     /* Return score */
     return best_score;
 }
@@ -191,11 +191,11 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
     if(best_score >= beta) {
         return best_score;
     }
-    
+
     /* Generate and rate moves (captures and promotions only) */
     num_moves = STATE_generate_moves_quiescence(state, moves);
     MOVEORDER_rate_moves_quiescence(state, moves, num_moves);
-    
+
     for(i = 0; i < num_moves; i++) {
         /* Pick move with the highest score */
         MOVEORDER_best_move_first(&moves[i], num_moves - i);
@@ -206,7 +206,7 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
                 continue;
             }
         }
-        
+
         next_state = *state;
         STATE_apply_move(&next_state, moves[i]);
         if(SEARCH_is_check(&next_state, state->player)) {
@@ -222,7 +222,7 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
             }
         }
     }
-    
+
     return best_score;
 }
 
@@ -248,10 +248,10 @@ static inline short SEARCH_transpositiontable_retrieve(const hashtable_t *hashta
                 }
             }
         }
-        
+
         *cutoff = 0;
     }
-    
+
     return 0;
 }
 
