@@ -151,9 +151,10 @@ float run_test(const char *buf)
 
 float optimize(const char *buf, int *x, int idx, float mse_start, int min, int max)
 {
+    int max_diff = 1;
     int x_init = x[idx];
-    if(min < x_init - 1) min = x_init - 1;
-    if(max > x_init + 1) max = x_init + 1;
+    if(min < x_init - max_diff) min = x_init - max_diff;
+    if(max > x_init + max_diff) max = x_init + max_diff;
 
     fprintf(stderr, "[%d] = %d=>%f", idx, x[idx], mse_start);
     float mse_best = mse_start;
@@ -268,11 +269,13 @@ void print_params()
     print_mob("queen_o", param.mobility.queen_o, sizeof(param.mobility.queen_o));
     print_mob("queen_e", param.mobility.queen_e, sizeof(param.mobility.queen_e));
     printf("    },\n");
-    printf("    .tropism = {\n");
-    print_mob("knight", param.tropism.knight, sizeof(param.tropism.knight));
-    print_mob("bishop", param.tropism.bishop, sizeof(param.tropism.bishop));
-    print_mob("rook", param.tropism.rook, sizeof(param.tropism.rook));
-    print_mob("queen", param.tropism.queen, sizeof(param.tropism.queen));
+    printf("    .pressure = {\n");
+    print_mob("knight", param.pressure.knight, sizeof(param.pressure.knight));
+    print_mob("bishop", param.pressure.bishop, sizeof(param.pressure.bishop));
+    print_mob("rook", param.pressure.rook, sizeof(param.pressure.rook));
+    print_mob("queen", param.pressure.queen, sizeof(param.pressure.queen));
+    print_mob("scaling_midgame", param.pressure.scaling_midgame, sizeof(param.pressure.scaling_midgame));
+    print_mob("scaling_endgame", param.pressure.scaling_endgame, sizeof(param.pressure.scaling_endgame));
     printf("    },\n");
     printf("    .positional = {\n");
     printf("        .pawn_guards_minor             = %d,\n", param.positional.pawn_guards_minor);
@@ -328,17 +331,25 @@ int main(int argc, char **argv)
     float mse_best = mse_start;
     fprintf(stderr, "Initial => %f\n", mse_initial);
 
-    int iter;
-    for(int iter = 0; iter < 2; iter++) {
+    for(int iter = 0; iter < 10; iter++) {
+#if 1
         fprintf(stderr, "Optimizing mobility\n");
         mse_best = tune_array(buf, (int*)&param.mobility, sizeof(param.mobility)/sizeof(int), mse_best, -10, 10);
-
-        fprintf(stderr, "Optimizing king tropism\n");
-        mse_best = tune_array(buf, (int*)&param.tropism, sizeof(param.tropism)/sizeof(int), mse_best, 0, 10);
-
+#endif
+#if 1
+        fprintf(stderr, "Optimizing king pressure\n");
+        mse_best = tune_array(buf, (int*)&param.pressure.knight, sizeof(param.pressure.knight)/sizeof(int), mse_best, 0, 15);
+        mse_best = tune_array(buf, (int*)&param.pressure.bishop, sizeof(param.pressure.bishop)/sizeof(int), mse_best, 0, 15);
+        mse_best = tune_array(buf, (int*)&param.pressure.rook, sizeof(param.pressure.rook)/sizeof(int), mse_best, 0, 15);
+        mse_best = tune_array(buf, (int*)&param.pressure.queen, sizeof(param.pressure.queen)/sizeof(int), mse_best, 0, 15);
+        mse_best = tune_array(buf, (int*)&param.pressure.scaling_midgame, sizeof(param.pressure.scaling_midgame)/sizeof(int), mse_best, 0, 64);
+        mse_best = tune_array(buf, (int*)&param.pressure.scaling_endgame, sizeof(param.pressure.scaling_endgame)/sizeof(int), mse_best, 0, 64);
+#endif
+#if 1
         fprintf(stderr, "Optimizing positional parameters\n");
         mse_best = tune_array(buf, (int*)&param.positional, sizeof(param.positional)/sizeof(int), mse_best, -25, 300);
-
+#endif
+#if 1
         fprintf(stderr, "Optimizing PSQ pawn\n");
         mse_best = tune_array(buf, param.psq.pawn, 64, mse_best, -10, 20);
         fprintf(stderr, "Optimizing PSQ knight\n");
@@ -353,7 +364,7 @@ int main(int argc, char **argv)
         mse_best = tune_array(buf, param.psq.king_midgame, 64, mse_best, -10, 10);
         fprintf(stderr, "Optimizing PSQ king_endgame\n");
         mse_best = tune_array(buf, param.psq.king_endgame, 64, mse_best, -10, 10);
-
+#endif
         print_params();
         fprintf(stderr, "\nMSE reduction in iteration %d: %f. Total reduction: %f.\n\n", iter, mse_start - mse_best, mse_initial - mse_best);
         if(mse_best >= mse_start) break;

@@ -37,7 +37,9 @@ typedef struct {
         int bishop[8];
         int rook[8];
         int queen[8];
-    } tropism;
+        int scaling_midgame[5];
+        int scaling_endgame[5];
+    } pressure;
     struct {
         int pawn_guards_minor;
         int pawn_guards_pawn;

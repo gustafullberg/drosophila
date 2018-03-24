@@ -90,11 +90,13 @@ eval_param_t param =
         .queen_o = { -2, -5, -4, -4, -3, -3, -2, -2, -2, -1, -1,  0,  0,  1,  2,  2,  2,  3,  6,  4,  6,  7,  7,  7,  5,  5,  3,  6 },
         .queen_e = {-10,-10,-10, -8, -9, -8, -7, -4, -2, -1,  2,  4,  5,  6,  6,  7,  8,  9, 10, 10,  9,  8,  8,  4,  7,  5,  8,  0 },
     },
-    .tropism = {
-        .knight  = {  0,  3,  4,  4,  3,  0,  1,  0 },
-        .bishop  = {  0,  0,  1,  1,  1,  1,  1,  1 },
-        .rook    = {  0,  5,  4,  4,  3,  2,  1,  2 },
-        .queen   = {  0, 10, 10,  6,  2,  0,  0,  0 },
+    .pressure = {
+        .knight  = {  0,  2,  6,  4,  2,  0,  0,  0 },
+        .bishop  = {  0,  1,  3,  1,  0,  0,  3,  0 },
+        .rook    = {  0,  6,  6,  4,  4,  1,  0,  1 },
+        .queen   = {  0, 15, 13,  7,  1,  1,  0,  1 },
+        .scaling_midgame= {  0, 11, 27, 40, 54 },
+        .scaling_endgame= {  0,  5,  9, 14,  5 },
     },
     .positional = {
         .pawn_guards_minor             = 1,
@@ -224,6 +226,8 @@ short EVAL_evaluate_board(const chess_state_t *s)
     bitboard_t pos_bitboard;
     bitboard_t pawnAttacks[2], passedPawns, isolatedPawns;
     bitboard_t moves, captures;
+    bitboard_t king_zone[NUM_COLORS];
+    bitboard_t mobility_moves;
 
     rearmost_pawn[WHITE] = s->bitboard[WHITE_PIECES+PAWN] ? BITBOARD_GET_RANK(BITBOARD_find_bit(s->bitboard[WHITE_PIECES+PAWN])) : -1;
     rearmost_pawn[BLACK] = s->bitboard[BLACK_PIECES+PAWN] ? BITBOARD_GET_RANK(BITBOARD_find_bit_reversed(s->bitboard[BLACK_PIECES+PAWN])) : -1;
@@ -233,6 +237,10 @@ short EVAL_evaluate_board(const chess_state_t *s)
     /* Kings */
     king_pos[WHITE] = BITBOARD_find_bit(s->bitboard[WHITE_PIECES + KING]);
     king_pos[BLACK] = BITBOARD_find_bit(s->bitboard[BLACK_PIECES + KING]);
+    king_zone[WHITE] = bitboard_king[king_pos[WHITE]];
+    king_zone[WHITE] |= king_zone[WHITE] << 8;
+    king_zone[BLACK] = bitboard_king[king_pos[BLACK]];
+    king_zone[BLACK] |= king_zone[BLACK] >> 8;
 
     for(color = WHITE; color <= BLACK; color++) {
         int pos_mask = color * 0x38;
@@ -240,6 +248,8 @@ short EVAL_evaluate_board(const chess_state_t *s)
         bitboard_t opp_pieces = s->bitboard[NUM_TYPES*(color^1) + ALL];
         bitboard_t diagonal_sliders = s->bitboard[NUM_TYPES*color + BISHOP] | s->bitboard[NUM_TYPES*color + QUEEN];
         bitboard_t straight_sliders = s->bitboard[NUM_TYPES*color + ROOK] | s->bitboard[NUM_TYPES*color + QUEEN];
+        int num_king_attackers = 0;
+        int king_pressure = 0;
 
         /* Pawns */
         pieces = s->bitboard[NUM_TYPES*color + PAWN];
@@ -298,10 +308,14 @@ short EVAL_evaluate_board(const chess_state_t *s)
             pos_bitboard = BITBOARD_POSITION(pos);
             material_score[color] += KNIGHT_VALUE - (8 - num_opp_pawns) * param.positional.knight_reduction;
             positional_score[color] += param.psq.knight[pos^pos_mask];
-            piece_mobility = BITBOARD_count_bits(bitboard_knight[pos] & ~(own_pieces | pawnAttacks[color^1]));
+            mobility_moves = bitboard_knight[pos] & ~(own_pieces | pawnAttacks[color^1]);
+            piece_mobility = BITBOARD_count_bits(mobility_moves);
             positional_score[color] += param.mobility.knight[piece_mobility];
             positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? param.positional.pawn_guards_minor : 0; /* Guarded by pawn */
-            positional_score[color] += param.tropism.knight[(int)distance[king_pos[color^1]][pos]];
+            if(mobility_moves & king_zone[color^1]) {
+                king_pressure += param.pressure.knight[(int)distance[king_pos[color^1]][pos]];
+                ++num_king_attackers;
+            }
             pieces ^= pos_bitboard;
         }
 
@@ -317,10 +331,14 @@ short EVAL_evaluate_board(const chess_state_t *s)
             material_score[color] += BISHOP_VALUE;
             positional_score[color] += param.psq.bishop[pos^pos_mask];
             MOVEGEN_bishop(pos, own_pieces & ~diagonal_sliders, opp_pieces, &moves, &captures);
-            piece_mobility = BITBOARD_count_bits((moves | captures) & ~pawnAttacks[color^1]);
+            mobility_moves = (moves | captures) & ~pawnAttacks[color^1];
+            piece_mobility = BITBOARD_count_bits(mobility_moves);
             positional_score[color] += param.mobility.bishop[piece_mobility];
             positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? param.positional.pawn_guards_minor : 0; /* Guarded by pawn */
-            positional_score[color] += param.tropism.bishop[(int)distance[king_pos[color^1]][pos]];
+            if(mobility_moves & king_zone[color^1]) {
+                king_pressure += param.pressure.bishop[(int)distance[king_pos[color^1]][pos]];
+                ++num_king_attackers;
+            }
             pieces ^= pos_bitboard;
         }
 
@@ -332,10 +350,14 @@ short EVAL_evaluate_board(const chess_state_t *s)
             material_score[color] += ROOK_VALUE;
             positional_score[color] += param.psq.rook[pos^pos_mask];
             MOVEGEN_rook(pos, own_pieces & ~straight_sliders, opp_pieces, &moves, &captures);
-            piece_mobility = BITBOARD_count_bits((moves | captures) & ~pawnAttacks[color^1]);
+            mobility_moves = (moves | captures) & ~pawnAttacks[color^1];
+            piece_mobility = BITBOARD_count_bits(mobility_moves);
             positional_score_o[color] += param.mobility.rook_o[piece_mobility];
             positional_score_e[color] += param.mobility.rook_e[piece_mobility];
-            positional_score[color] += param.tropism.rook[(int)distance[king_pos[color^1]][pos]];
+            if(mobility_moves & king_zone[color^1]) {
+                king_pressure += param.pressure.rook[(int)distance[king_pos[color^1]][pos]];
+                ++num_king_attackers;
+            }
 
             /* Check for (half-)open files */
             file = (BITBOARD_FILE << BITBOARD_GET_FILE(pos));
@@ -369,16 +391,24 @@ short EVAL_evaluate_board(const chess_state_t *s)
             positional_score[color] += param.psq.queen[pos^pos_mask];
             MOVEGEN_bishop(pos, own_pieces & ~diagonal_sliders, opp_pieces, &moves_b, &captures_b);
             MOVEGEN_rook(pos, own_pieces & ~straight_sliders, opp_pieces, &moves_r, &captures_r);
-            piece_mobility = BITBOARD_count_bits((moves_b | captures_b | moves_r | captures_r) & ~pawnAttacks[color^1]);
+            mobility_moves = (moves_b | captures_b | moves_r | captures_r) & ~pawnAttacks[color^1];
+            piece_mobility = BITBOARD_count_bits(mobility_moves);
             positional_score_o[color] += param.mobility.queen_o[piece_mobility];
             positional_score_e[color] += param.mobility.queen_e[piece_mobility];
-            positional_score[color] += param.tropism.queen[(int)distance[king_pos[color^1]][pos]];
+            if(mobility_moves & king_zone[color^1]) {
+                king_pressure += param.pressure.queen[(int)distance[king_pos[color^1]][pos]];
+                ++num_king_attackers;
+            }
             pieces ^= BITBOARD_POSITION(pos);
         }
 
         /* King */
         positional_score_o[color] += param.psq.king_midgame[king_pos[color]^pos_mask];
         positional_score_e[color] += param.psq.king_endgame[king_pos[color]^pos_mask];
+
+        if(num_king_attackers > 4) num_king_attackers = 4;
+        positional_score_o[color] += king_pressure * param.pressure.scaling_midgame[num_king_attackers] >> 4;
+        positional_score_e[color] += king_pressure * param.pressure.scaling_endgame[num_king_attackers] >> 4;
     }
 
     score += pawn_material_score[WHITE] - pawn_material_score[BLACK];
