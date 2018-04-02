@@ -9,7 +9,7 @@ static inline short SEARCH_transpositiontable_retrieve(const hashtable_t *hashta
 static inline void SEARCH_transpositiontable_store(hashtable_t *hashtable, const bitboard_t hash, const unsigned char depth, const short best_score, move_t best_move, const short beta);
 
 /* Alpha-Beta search with Nega Max and null-window */
-short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state, unsigned char depth, move_t *move, short beta)
+short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state, unsigned char depth, unsigned char ply, move_t *move, short beta)
 {
     int num_moves;
     int num_legal_moves = 0;
@@ -38,6 +38,8 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     if(search_state->abort_search) {
         return 0;
     }
+
+    if(ply > MAX_SEARCH_DEPTH) ply = MAX_SEARCH_DEPTH;
 
     /* We will query the transition table soon, time to prefetch */
     HASHTABLE_transition_prefetch(search_state->hashtable, state->hash);
@@ -68,7 +70,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         unsigned char R_plus_1 = ((depth > 5) ? 4 : 3);
         next_state = *state;
         STATE_apply_move(&next_state, 0);
-        score = -SEARCH_nullwindow(&next_state, search_state, depth-R_plus_1, &next_move, -beta+1);
+        score = -SEARCH_nullwindow(&next_state, search_state, depth-R_plus_1, ply+1, &next_move, -beta+1);
         if(score >= beta) {
             best_score = beta;
             skip_move_generation = 1;
@@ -78,7 +80,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     if(!skip_move_generation) {
         /* Generate and rate moves */
         num_moves = STATE_generate_moves(state, moves);
-        MOVEORDER_rate_moves(state, moves, num_moves, *move, search_state->killer_move[depth], search_state->history_heuristic[state->player]);
+        MOVEORDER_rate_moves(state, moves, num_moves, *move, search_state->killer_move[ply], search_state->history_heuristic[state->player]);
 
         /* Check if node is eligible for futility pruning */
         if(depth <= 2 && !is_in_check) {
@@ -122,14 +124,14 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                 {
                     /* Search at reduced depth */
                     unsigned char R_plus_1 = (num_legal_moves > 15 && depth > 3) ? 3 : 2;
-                    score = -SEARCH_nullwindow(&next_state, search_state, depth-R_plus_1, &next_move, -beta+1);
+                    score = -SEARCH_nullwindow(&next_state, search_state, depth-R_plus_1, ply+1, &next_move, -beta+1);
                     if(score >= beta) {
                         /* If reduced yields interesting results, do a full search */
-                        score = -SEARCH_nullwindow(&next_state, search_state, depth-1, &next_move, -beta+1);
+                        score = -SEARCH_nullwindow(&next_state, search_state, depth-1, ply+1, &next_move, -beta+1);
                     }
                 } else {
                     /* Normal search */
-                    score = -SEARCH_nullwindow(&next_state, search_state, depth-1, &next_move, -beta+1);
+                    score = -SEARCH_nullwindow(&next_state, search_state, depth-1, ply+1, &next_move, -beta+1);
                 }
             }
             HISTORY_pop(search_state->history);
@@ -143,9 +145,9 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                 if(best_score >= beta) {
                     if(!MOVE_IS_CAPTURE_OR_PROMOTION(*move)) {
                         /* Killer move */
-                        if(*move != search_state->killer_move[depth][0]) {
-                            search_state->killer_move[depth][1] = search_state->killer_move[depth][0];
-                            search_state->killer_move[depth][0] = *move;
+                        if(*move != search_state->killer_move[ply][0]) {
+                            search_state->killer_move[ply][1] = search_state->killer_move[ply][0];
+                            search_state->killer_move[ply][0] = *move;
                         }
                         /* History heuristic */
                         search_state->history_heuristic[state->player][MOVE_GET_POS_FROM(*move)][MOVE_GET_POS_TO(*move)] += depth*depth;
