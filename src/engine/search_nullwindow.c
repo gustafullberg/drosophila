@@ -50,6 +50,12 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         depth += 1;
     }
 
+    /* Pawn extension */
+    if(MOVE_GET_TYPE(state->last_move) == PAWN) {
+        int rank = BITBOARD_GET_RANK(MOVE_GET_POS_TO(state->last_move));
+        if(rank == 1 || rank == 6) depth +=1;
+    }
+
     /* Quiescence search */
     if(depth == 0) {
         return SEARCH_nullwindow_quiescence(state, search_state, beta);
