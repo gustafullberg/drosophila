@@ -469,7 +469,7 @@ int main(int argc, char **argv)
     /* Main loop */
     while(1) {
         int c = getchar();
-        command_buffer[len++] = c;
+        command_buffer[len++] = (char)c;
 
         /* Full command received. Take proper action */
         if(c == '\n') {

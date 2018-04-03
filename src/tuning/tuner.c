@@ -84,7 +84,7 @@ void* worker_thread(void *_arg)
         int comment = 0;
         int half_moves = 0;
         char *save_ptr;
-        while(t = strtok_r(s, " \n", &save_ptr)) {
+        while((t = strtok_r(s, " \n", &save_ptr))) {
             s = NULL;
             int len = strlen(t);
             if(len == 0) continue;
@@ -106,9 +106,6 @@ void* worker_thread(void *_arg)
             }
 
             half_moves++;
-
-            chess_state_t **state = (chess_state_t **)engine;
-
             if(half_moves < 20) continue;
 
             /* Evaluate position */
@@ -124,6 +121,8 @@ void* worker_thread(void *_arg)
     } while(1);
 
     ENGINE_destroy(engine);
+
+    return 0;
 }
 
 float run_test(const char *buf)

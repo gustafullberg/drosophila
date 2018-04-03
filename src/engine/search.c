@@ -4,7 +4,7 @@
 #include "eval.h"
 #include "clock.h"
 
-int SEARCH_perform_search(const chess_state_t *s, search_state_t *search_state, short *score)
+move_t SEARCH_perform_search(const chess_state_t *s, search_state_t *search_state, short *score)
 {
     move_t move = 0;
     *score = SEARCH_mtdf_iterative(s, search_state, &move);

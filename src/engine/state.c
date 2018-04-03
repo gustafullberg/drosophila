@@ -75,9 +75,7 @@ static int STATE_add_pawn_captures_promotions(const chess_state_t *s, bitboard_t
 {
     const int player = s->player;
     const int opponent = player ^ 1;
-    const int player_index = NUM_TYPES*player;
     const int opponent_index = NUM_TYPES*opponent;
-    bitboard_t pieces = s->bitboard[player_index + PAWN];
     int num_moves = 0;
     int attack_from_left, attack_from_right, step;
 
@@ -455,7 +453,7 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
             if(special == MOVE_DOUBLE_PAWN_PUSH) {
                 int file = BITBOARD_GET_FILE(pos_from);
                 if(bitboard_ep_capturers[opponent][file] & s->bitboard[opponent_index+PAWN]) {
-                    s->ep_file = file;
+                    s->ep_file = (unsigned char)file;
                     s->hash ^= bitboard_zobrist_ep[file];
                 }
             }
@@ -479,7 +477,7 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
         s->hash ^= bitboard_zobrist_castling[player][(int)s->castling[player]];
     }    
     /* Switch side to play */
-    s->player = (char)opponent;
+    s->player = (unsigned char)opponent;
     s->hash ^= bitboard_zobrist_color;
     
     /* Store last move */

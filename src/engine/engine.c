@@ -93,7 +93,7 @@ int ENGINE_apply_move(engine_state_t *state, const int pos_from, const int pos_t
     
     /* Loop through all generated moves to find the right one */
     for(i = 0; i < num_moves; i++) {
-        int move = moves[i];
+        move_t move = moves[i];
         if(MOVE_GET_POS_FROM(move) != pos_from) continue;
         if(MOVE_GET_POS_TO(move) != pos_to) continue;
         if(MOVE_PROMOTION_TYPE(move) != promotion_type) continue;

@@ -31,7 +31,7 @@ void BITBOARD_init()
     bitboard_t bitboard_more_than[NUM_POSITIONS];
     bitboard_t bitboard_bltr[NUM_POSITIONS];
     bitboard_t bitboard_tlbr[NUM_POSITIONS];
-    int i, j, tmp, rank, file, color, offset, base;
+    int i, j, tmp, rank, file, color, offset;
     
     /* LESS THAN */
     bitboard_less_than[0] = 0;
@@ -160,10 +160,8 @@ void BITBOARD_init()
     for(color = 0; color < NUM_COLORS; color++) {
         if(color == 0) {
             offset = 1;
-            base = 1;
         } else {
             offset = -1;
-            base = 6;
         }
         for(i = 0; i < NUM_POSITIONS; i++) {
             rank = BITBOARD_GET_RANK(i);

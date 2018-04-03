@@ -61,13 +61,13 @@ typedef uint32_t move_t;
 
 /* Type describing the state of the game */
 typedef struct chess_state_t {
-    bitboard_t  bitboard[NUM_COLORS*NUM_TYPES+1];
-    bitboard_t  hash;
-    move_t      last_move;
-    char        castling[2];
-    char        ep_file;
-    char        player;
-    char        halfmove_clock;
+    bitboard_t    bitboard[NUM_COLORS*NUM_TYPES+1];
+    bitboard_t    hash;
+    move_t        last_move;
+    char          castling[2];
+    unsigned char ep_file;
+    unsigned char player;
+    char          halfmove_clock;
 } chess_state_t;
 
 #define WHITE_PIECES    0

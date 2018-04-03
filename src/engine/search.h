@@ -26,7 +26,7 @@ typedef struct {
     int                 history_heuristic[2][64][64];
 } search_state_t;
 
-int SEARCH_perform_search(const chess_state_t *s, search_state_t *search_state, short *score);
+move_t SEARCH_perform_search(const chess_state_t *s, search_state_t *search_state, short *score);
 int SEARCH_is_check(const chess_state_t *s, const int color);
 int SEARCH_is_mate(const chess_state_t *state);
 int SEARCH_find_pv(const chess_state_t *state, hashtable_t *hashtable, int depth, int *pos_from, int *pos_to, int *promotion_type);

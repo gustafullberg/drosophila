@@ -265,8 +265,8 @@ short EVAL_evaluate_board(const chess_state_t *s)
             /* Passed pawn */
             if(pos_bitboard & passedPawns) {
                 /* Initial bonus for passed pawn */
-                short bonus_o = param.positional.pawn_passed_o;
-                short bonus_e = param.positional.pawn_passed_e;
+                short bonus_o = (short)param.positional.pawn_passed_o;
+                short bonus_e = (short)param.positional.pawn_passed_e;
 
                 /* Distance to kings */
                 int dist_own_king = distance[king_pos[color]][pos];
@@ -476,7 +476,6 @@ int EVAL_position_is_attacked(const chess_state_t *s, const int color, const int
 int EVAL_insufficient_material(const chess_state_t *s)
 {
     int num_pieces = BITBOARD_count_bits(s->bitboard[OCCUPIED]);
-    bitboard_t no_kings;
 
     switch(num_pieces){
     case 2:
