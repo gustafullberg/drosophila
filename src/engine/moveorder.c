@@ -2,7 +2,7 @@
 #include "see.h"
 #include "eval.h"
 
-static const int piece_value[6] = { PAWN_VALUE, KNIGHT_VALUE, BISHOP_VALUE+BISHOP_PAIR, ROOK_VALUE, QUEEN_VALUE, 2*QUEEN_VALUE };
+static const int piece_value[6] = { PAWN_VALUE, KNIGHT_VALUE, BISHOP_VALUE+BISHOP_PAIR, ROOK_VALUE, QUEEN_VALUE, KING_VALUE };
 
 void MOVEORDER_rate_moves(const chess_state_t *s, move_t moves[], int num_moves, const move_t hash_move, const move_t *killer, const int history_heuristic[64][64])
 {
@@ -20,9 +20,8 @@ void MOVEORDER_rate_moves(const chess_state_t *s, move_t moves[], int num_moves,
             if(MOVE_IS_CAPTURE_OR_PROMOTION(moves[i])) {
                 /* Captures */
                 if(MOVE_IS_CAPTURE(moves[i])) {
-                    /* MVV-LVA */
-                    int captured_type = MOVE_GET_CAPTURE_TYPE(moves[i]);
-                    score += piece_value[KING] + piece_value[captured_type] - piece_value[own_type];
+                    /* SEE */
+                    score += piece_value[KING] + see(s, moves[i]) - (piece_value[own_type] >> 2);
 
                     /* Recapture bonus */
                     if(MOVE_IS_CAPTURE(s->last_move)) {
