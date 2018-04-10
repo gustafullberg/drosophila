@@ -83,8 +83,8 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         MOVEORDER_rate_moves(state, moves, num_moves, *move, search_state->killer_move[ply], search_state->history_heuristic[state->player]);
 
         /* Check if node is eligible for futility pruning */
-        if(depth <= 2 && !is_in_check) {
-            if(beta > EVAL_evaluate_board(state) + 25) {
+        if(depth <= 3 && !is_in_check) {
+            if(beta > EVAL_evaluate_board(state) + 25*depth) {
                 do_futility_pruning = 1;
             }
         }
