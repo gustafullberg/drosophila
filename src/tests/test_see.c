@@ -36,7 +36,7 @@ void test_see(const char *fen, int pos_from, int pos_to, short expected_result)
     assert(move);
     result = see(&s, move);
     printf("%s\n", fen);
-    printf("\tresult %d (%d centipawns)\n", result, result*5);
+    printf("\tresult %d (%d centipawns)\n", result, result*100);
     assert(result == expected_result);
 }
 
@@ -46,11 +46,11 @@ int main()
 {
     BITBOARD_init();
 
-    test_see("1k1r4/1pp4p/p7/4p3/8/P5P1/1PP4P/2K1R3 w - -", E1, E5, PAWN_VALUE);
-    test_see("1k1r3q/1ppn3p/p4b2/4p3/8/P2N2P1/1PP1R1BP/2K1Q3 w - -", D3, E5, PAWN_VALUE-KNIGHT_VALUE);
-    test_see("1k1r3q/1pp4p/p4b2/4p3/8/P2N2P1/1PP1R1BP/2K1Q3 b - -", D8, D3, KNIGHT_VALUE-ROOK_VALUE);
-    test_see("k7/8/1q1r4/2p5/3P4/2P1K2/8/8 b - - 0 1", C5, D4, PAWN_VALUE);
-    test_see("8/8/1k6/2p5/3K4/4B3/8/8 w - - 0 1", D4, C5, PAWN_VALUE-KING_VALUE);
+    test_see("1k1r4/1pp4p/p7/4p3/8/P5P1/1PP4P/2K1R3 w - -", E1, E5, 1);
+    test_see("1k1r3q/1ppn3p/p4b2/4p3/8/P2N2P1/1PP1R1BP/2K1Q3 w - -", D3, E5, 1-3);
+    test_see("1k1r3q/1pp4p/p4b2/4p3/8/P2N2P1/1PP1R1BP/2K1Q3 b - -", D8, D3, 3-5);
+    test_see("k7/8/1q1r4/2p5/3P4/2P1K2/8/8 b - - 0 1", C5, D4, 1);
+    test_see("8/8/1k6/2p5/3K4/4B3/8/8 w - - 0 1", D4, C5, 1-20);
     
     return 0;
 }

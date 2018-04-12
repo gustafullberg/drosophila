@@ -1,7 +1,7 @@
 #include "see.h"
 #include "eval.h"
 
-static short piece_value[] = { PAWN_VALUE, KNIGHT_VALUE, BISHOP_VALUE, ROOK_VALUE, QUEEN_VALUE, KING_VALUE };
+static short piece_value[] = { 1, 3, 3, 5, 9, 20 };
 
 static bitboard_t SEE_find_all_attackers(const chess_state_t *s, const bitboard_t occupied, const int pos, bitboard_t *blocked_attackers)
 {
@@ -120,8 +120,12 @@ short see(const chess_state_t *s, const move_t move)
     }
     
     /* Add first captured piece to swap list */
-    type = MOVE_GET_CAPTURE_TYPE(move);
-    swap_list[0] = piece_value[type];
+    if(MOVE_IS_CAPTURE(move)) {
+        type = MOVE_GET_CAPTURE_TYPE(move);
+        swap_list[0] = piece_value[type];
+    } else {
+        swap_list[0] = 0;
+    }
     
     /* Add first capturing piece to swap list */
     last_type = type = MOVE_GET_TYPE(move);
