@@ -2,15 +2,31 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <map>
+extern "C" {
 #include "engine.h"
 #include "state.h"
 #include "search.h"
 #include "thread.h"
 #include "eval.h"
+}
+#include "pgn.hpp"
 
 #define NUM_THREADS 16
 
 extern eval_param_t param;
+
+struct Result {
+    float target;
+    float sum_val;
+    float num;
+    float result;
+    bool hasResult;
+    Result() : target(0.0f), sum_val(0.0f), num(0.0f), result(0.0f), hasResult(false) {}
+    void update(float result) { sum_val += result; num += 1.0f; target = sum_val / num; }
+};
+
+std::map<uint64_t, Result> res; // Global
 
 float sigmoid(float x)
 {
@@ -24,99 +40,111 @@ float error(float result, float score)
     return e*e;
 }
 
+float computeMse()
+{
+    float e2_tot = 0.0;
+    float num_pos = 0.0f;
+    for(auto &kv : res) {
+        Result &r = kv.second;
+        if(r.hasResult) {
+            e2_tot += error(r.target, r.result);
+            num_pos++;
+            r.hasResult = false;
+        }
+    }
+    return sqrtf(e2_tot/num_pos);
+}
+
+void computeTarget(char *buf)
+{
+    engine_state_t *engine;
+    ENGINE_create(&engine);
+    PGN pgn(buf);
+    int c = 0;
+    while(1) {
+        // New game
+        ENGINE_reset(engine);
+
+        float result = pgn.nextGame();
+        if(pgn.isEOF()) break;
+        if(pgn.isError()) {
+            fprintf(stderr, "Error: Could not parse file\n");
+            exit(1);
+        }
+
+        /* Parse game */
+        char *san;
+        while((san = pgn.nextMove())) {
+            int r = ENGINE_apply_move_san(engine, san);
+            if(r == ENGINE_RESULT_ILLEGAL_MOVE) {
+                fprintf(stderr, "SAN parse error: \"%s\"\n", san);
+                exit(1);
+            }
+            c++;
+
+            uint64_t hash = ENGINE_get_hash(engine);
+            Result &target = res[hash];
+            target.update(result);
+        }
+    }
+    ENGINE_destroy(engine);
+
+    printf("Total positions  %d\nUnique positions %d\n", c, res.size());
+}
+
 typedef struct {
     int index;
     const char *buf;
-    float error;
-    int num_positions;
 } thread_arg_t;
 
 void* worker_thread(void *_arg)
 {
     thread_arg_t *arg = (thread_arg_t*)_arg;
-    arg->error = 0;
-    arg->num_positions = 0;
-
     engine_state_t *engine;
     ENGINE_create(&engine);
 
-    char game[1024*100];
-    const char *game_end = arg->buf;
-    const char *game_start;
-    int game_number = 0;
+    PGN pgn(arg->buf);
+
     do {
-        /* Find start of game */
-        game_start = strstr(game_end, "\n\n");
-        if(!game_start) break;
-        game_start += 2;
-
-        /* Find end of game */
-        game_end = strstr(game_start, "\n\n") + 2;
-
-        ENGINE_reset(engine);
-
-        /* Game result */
-        float result;
-        if(game_end[-3] == '0') result = 1.0f;
-        else if(game_end[-3] == '1') result = 0.0f;
-        else if(game_end[-3] == '2') result = 0.5f;
-        else {
+        float result = pgn.nextGame();
+        if(pgn.isEOF()) break;
+        if(pgn.isError()) {
             fprintf(stderr, "Error: Could not parse file\n");
             exit(1);
         }
 
-        int game_len = game_end - game_start;
-        strncpy(game, game_start, game_len);
-        game[game_len] = '\0';
-        if(game_end - game_start - 2 > sizeof(game) ) {
-            fprintf(stderr, "\ntoo small game buffer\n");
-            exit(1);
-        }
+        ENGINE_reset(engine);
 
-        ++game_number;
-        //if(game_number>1000) break;
-        if(game_number % NUM_THREADS != arg->index) continue;
-
+        //if(pgn.gameNumber() > 1000) break;
+        if(pgn.gameNumber() % NUM_THREADS != arg->index) continue;
 
         /* Parse game */
-        char *s = game;
-        char *t;
-        int comment = 0;
         int half_moves = 0;
-        char *save_ptr;
-        while((t = strtok_r(s, " \n", &save_ptr))) {
-            s = NULL;
-            int len = strlen(t);
-            if(len == 0) continue;
-            if(t[0] == '{') {
-                comment = 1;
-                continue;
-            }
-            if(t[len-1] == '}') {
-                comment = 0;
-                continue;
-            }
-            if(comment) continue;
-
-            if(t[0] >= '0' && t[0] <= '9') continue;
-
-            int r = ENGINE_apply_move_san(engine, t);
+        char *san;
+        while((san = pgn.nextMove())) {
+            int r = ENGINE_apply_move_san(engine, san);
             if(r == ENGINE_RESULT_ILLEGAL_MOVE) {
-                break;
+                fprintf(stderr, "SAN parse error: \"%s\"\n", san);
+                exit(1);
             }
 
             half_moves++;
             if(half_moves < 20) continue;
+
+            uint64_t hash = ENGINE_get_hash(engine);
+            {
+                Result &target = res[hash];
+                if(target.hasResult) continue;
+            }
 
             /* Evaluate position */
             int pos_from, pos_to, promotion_type;
             short score = ENGINE_search(engine, 1, 3600*1000, 0, 0, &pos_from, &pos_to, &promotion_type);
             if(half_moves % 2 == 1) score = -score; /* Invert score for black */
 
-            arg->num_positions++;
-
-            float e2 = error(result, score);
-            arg->error += e2;
+            Result &target = res[hash];
+            target.result = float(score);
+            target.hasResult = true;
         }
     } while(1);
 
@@ -136,15 +164,11 @@ float run_test(const char *buf)
         THREAD_create(&t[i], worker_thread, &t_arg[i]);
     }
 
-    float e2_tot = 0.0f;
-    int num_pos = 0;
     for(int i = 0; i < NUM_THREADS; i++) {
         THREAD_join(t[i]);
-        e2_tot += t_arg[i].error;
-        num_pos += t_arg[i].num_positions;
     }
 
-    float mse = sqrtf(e2_tot/num_pos);
+    float mse = computeMse();
     return mse;
 }
 
@@ -197,7 +221,7 @@ float optimize(const char *buf, int *x, int idx, float mse_start, int min, int m
 
 float tune_array(const char *buf, int *x, int len, float mse, int min, int max)
 {
-    int *tuned = calloc(len, sizeof(int));
+    int *tuned = (int*)calloc(len, sizeof(int));
     int num_left = len;
     int idx;
 
@@ -220,7 +244,7 @@ void print_value(int val)
     printf("%d", val);
 }
 
-void print_psq(char *name, int psq[64])
+void print_psq(const char *name, int psq[64])
 {
     printf("        .%s =\n", name);
     printf("        {\n");
@@ -235,7 +259,7 @@ void print_psq(char *name, int psq[64])
     printf("        },\n");
 }
 
-void print_mob(char *name, int *mob, int size)
+void print_mob(const char *name, int *mob, int size)
 {
     int len = size / sizeof(int);
     printf("        .%s", name);
@@ -321,9 +345,11 @@ int main(int argc, char **argv)
     fseek(f, 0, SEEK_SET);
 
     /* Read and close file */
-    char *buf = malloc(file_size);
+    char *buf = (char*)malloc(file_size);
     fread(buf, 1, file_size, f);
     fclose(f);
+
+    computeTarget(buf);
 
     float mse_initial = run_test(buf);
     float mse_start = mse_initial;
