@@ -90,7 +90,6 @@ void* worker_thread(void *_arg)
             if(len == 0) continue;
             if(t[0] == '{') {
                 comment = 1;
-                continue;
             }
             if(t[len-1] == '}') {
                 comment = 0;
@@ -102,7 +101,8 @@ void* worker_thread(void *_arg)
 
             int r = ENGINE_apply_move_san(engine, t);
             if(r == ENGINE_RESULT_ILLEGAL_MOVE) {
-                break;
+                fprintf(stderr, "\nInvalid move \"%s\"\n", t);
+                exit(1);
             }
 
             half_moves++;
@@ -121,7 +121,6 @@ void* worker_thread(void *_arg)
     } while(1);
 
     ENGINE_destroy(engine);
-
     return 0;
 }
 
