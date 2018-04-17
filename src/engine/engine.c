@@ -121,21 +121,13 @@ int ENGINE_apply_move(engine_state_t *state, const int pos_from, const int pos_t
 int ENGINE_apply_move_san(engine_state_t *state, const char *san)
 {
     move_t move;
-    chess_state_t temporary_state;
     move = SAN_parse_move(state->chess_state, san);
     
     if(move) {
-        /* Pseudo legal move found: Apply to state */
-        temporary_state = *state->chess_state;
-        STATE_apply_move(&temporary_state, move);
-        
-        /* Check if the move is legal */
-        if(!SEARCH_is_check(&temporary_state, state->chess_state->player)) {
-            /* Legal */
-            *state->chess_state = temporary_state;
-            HISTORY_push(state->history, state->chess_state->hash);
-            return ENGINE_result(state);
-        }
+        /* Legal move found: Apply to state */
+        STATE_apply_move(state->chess_state, move);
+        HISTORY_push(state->history, state->chess_state->hash);
+        return ENGINE_result(state);
     }
 
     /* No valid move found: Illegal move */

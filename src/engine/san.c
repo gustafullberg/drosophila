@@ -1,5 +1,6 @@
 #include <string.h>
 #include "san.h"
+#include "search.h"
 
 /* TODO: rewrite this dirty code */
 move_t SAN_parse_move(const chess_state_t *state, const char *san)
@@ -150,6 +151,10 @@ move_t SAN_parse_move(const chess_state_t *state, const char *san)
         pos_from = MOVE_GET_POS_FROM(move);
         if(rank >= 0 && pos_from / 8 != rank) continue;
         if(file >= 0 && pos_from % 8 != file) continue;
+
+        chess_state_t tmp = *state;
+        STATE_apply_move(&tmp, move);
+        if(SEARCH_is_check(&tmp, state->player)) continue;
         
         num_candidates++;
         candidate = move;
