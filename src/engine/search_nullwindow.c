@@ -187,15 +187,24 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
     chess_state_t next_state;
     move_t moves[256];
 
-    /* Stand-pat */
-    best_score = EVAL_evaluate_board(state);
-    search_state->num_nodes_searched++;
-    if(best_score >= beta) {
-        return best_score;
+    int is_check = SEARCH_is_check(state, state->player);
+
+    if(is_check) best_score = SEARCH_MIN_RESULT(0);
+    else {
+        /* Stand-pat */
+        best_score = EVAL_evaluate_board(state);
+        search_state->num_nodes_searched++;
+        if(best_score >= beta) {
+            return best_score;
+        }
     }
 
     /* Generate and rate moves (captures and promotions only) */
-    num_moves = STATE_generate_moves_quiescence(state, moves);
+    if(is_check) {
+        num_moves = STATE_generate_moves(state, moves);
+    } else {
+        num_moves = STATE_generate_moves_quiescence(state, moves);
+    }
     MOVEORDER_rate_moves_quiescence(state, moves, num_moves);
 
     for(i = 0; i < num_moves; i++) {
@@ -203,7 +212,7 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
         MOVEORDER_best_move_first(&moves[i], num_moves - i);
 
         /* Prune all captures with SEE < 0 */
-        if(!MOVE_IS_PROMOTION(moves[i])) {
+        if(!MOVE_IS_PROMOTION(moves[i]) && !is_check) {
             if(SSE_capture_less_valuable(moves[i]) && see(state, moves[i]) < 0) {
                 continue;
             }
