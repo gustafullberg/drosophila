@@ -97,11 +97,13 @@ void MOVEORDER_rate_moves_quiescence(const chess_state_t *s, move_t moves[], int
 
 void MOVEORDER_best_move_first(move_t moves[], int num_moves)
 {
-    int best = 0;
-    for(int i = 1; i < num_moves; i++) {
-        if(moves[i] > moves[best]) best = i;
+    move_t *best = moves + 0;
+    move_t *last = moves + num_moves;
+    move_t *p = best;
+    while(++p < last) {
+        if(*p > *best) best = p;
     }
-    move_t tmp = moves[best] & ~MOVE_SCORE_MASK;
-    moves[best] = moves[0];
+    move_t tmp = *best & ~MOVE_SCORE_MASK;
+    *best = moves[0];
     moves[0] = tmp;
 }
