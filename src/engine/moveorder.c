@@ -77,7 +77,7 @@ void MOVEORDER_rate_moves_quiescence(const chess_state_t *s, move_t moves[], int
             /* MVV-LVA */
             int captured_type = MOVE_GET_CAPTURE_TYPE(moves[i]);
             int mvv_lva = 20*piece_value[captured_type] - piece_value[own_type];
-            score = GOOD_CAPTURE + mvv_lva;
+            score = BAD_CAPTURE + mvv_lva;
 
             /* Recapture bonus */
             if(MOVE_IS_CAPTURE(s->last_move)) {
