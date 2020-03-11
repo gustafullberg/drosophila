@@ -10,6 +10,15 @@ Drosophila was earlier named Pawned.
 
 ## Releases
 
+**[Drosophila 1.6](https://github.com/gustafullberg/drosophila/releases/download/v1.6/drosophila-1.6.zip)** - 2020-03-12
+
+* Retuned evaluation
+* Deeper futility pruning
+* Handle check in quiescence search
+* SEE used in move ordering
+* King tropism replaced by king pressure
+* Improved time management
+
 **[Drosophila 1.5.1](https://github.com/gustafullberg/drosophila/releases/download/v1.5.1/drosophila-1.5.1.zip)** - 2018-03-05
 
 * Bugfix: Avoid unnecessary CPU load while waiting for input (Windows only)
@@ -117,7 +126,7 @@ Evaluation:
 * Pawns defending other pawns and minor pieces
 * Pawn structure
 * Rooks on (half-)open files
-* King tropism
+* King pressure
 * Tempo
 
 ## License
