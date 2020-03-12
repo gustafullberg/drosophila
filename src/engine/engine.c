@@ -140,9 +140,9 @@ int ENGINE_search(engine_state_t *state, const int moves_left_in_period, const i
 
     /* Calculate time for this move */
     if(moves_left_in_period) {
-        time_for_move_ms = time_left_ms / moves_left_in_period;
+        time_for_move_ms = time_left_ms / moves_left_in_period * 3 / 2;
     } else {
-        time_for_move_ms = time_left_ms * 2 / 100;
+        time_for_move_ms = time_left_ms * 4 / 100;
     }
 
     /* Add incremental time */
