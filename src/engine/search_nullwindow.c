@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "search_nullwindow.h"
 #include "search.h"
 #include "eval.h"
@@ -24,6 +25,8 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     short ttable_score;
     int cutoff = 0;
     int do_futility_pruning = 0;
+    bitboard_t king_threat;
+    int king_pos;
 
     *move = 0;
 
@@ -45,7 +48,8 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     HASHTABLE_transition_prefetch(search_state->hashtable, state->hash);
 
     /* Is playing side in check? */
-    is_in_check = SEARCH_is_check(state, state->player);
+    king_threat = STATE_opponent_threat_to_king(state);
+    is_in_check = (king_threat & state->bitboard[state->player*NUM_TYPES + KING]) != 0;
 
     /* Check extension */
     if(is_in_check) {

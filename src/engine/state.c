@@ -529,6 +529,52 @@ int STATE_risk_zugzwang(const chess_state_t *s)
     return s->bitboard[player_index+ALL] == (s->bitboard[player_index+PAWN] | s->bitboard[player_index+KING]);
 }
 
+bitboard_t STATE_opponent_threat_to_king(const chess_state_t *s)
+{
+    int type, pos_from;
+    bitboard_t pieces, possible_moves, possible_captures;
+    bitboard_t pawn_push2, pawn_captures_from_left, pawn_captures_from_right;
+    bitboard_t pawn_promotion, pawn_promotion_captures_from_left, pawn_promotion_captures_from_right;
+    const int player = s->player;
+    const int opponent = player ^ 1;
+    const int player_index = NUM_TYPES*player;
+    const int opponent_index = NUM_TYPES*opponent;
+    const bitboard_t player_pieces = s->bitboard[player_index + ALL];
+    const bitboard_t opponent_pieces = s->bitboard[opponent_index + ALL];
+    const bitboard_t occupied = s->bitboard[OCCUPIED] ^ s->bitboard[player_index+KING];
+    bitboard_t threat = 0;
+
+    /* Pawns */
+    type = PAWN;
+    pieces = s->bitboard[opponent_index + type];
+    if(opponent == WHITE) {
+	    threat |= (pieces & ~(BITBOARD_FILE << 7)) << 9;
+	    threat |= (pieces & ~(BITBOARD_FILE << 0)) << 7;
+    } else {
+	    threat |= (pieces & ~(BITBOARD_FILE << 7)) >> 7;
+	    threat |= (pieces & ~(BITBOARD_FILE << 0)) >> 9;
+    }
+
+    for(type = KNIGHT; type < NUM_TYPES - 1; type++) { /* Loop through all types of pieces */
+        pieces = s->bitboard[opponent_index + type];
+
+        while(pieces) { /* Loop through all pieces of the type */
+            /* Get one position from the bitboard */
+            pos_from = BITBOARD_find_bit(pieces);
+
+            /* Get all possible moves for this piece */
+            MOVEGEN_piece(type, pos_from, 0, occupied, &possible_moves, &possible_captures);
+
+            threat |= possible_moves | possible_captures;
+
+            /* Clear position from bitboard */
+            pieces ^= BITBOARD_POSITION(pos_from);
+        }
+    }
+
+    return threat;
+}
+
 void STATE_move_print_debug(const move_t move)
 {
     int pos_from = MOVE_GET_POS_FROM(move);
