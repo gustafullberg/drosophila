@@ -51,7 +51,6 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     if(is_in_check) {
         depth += 1;
     }
-
     /* Quiescence search */
     if(depth == 0) {
         return SEARCH_nullwindow_quiescence(state, search_state, beta);
@@ -119,8 +118,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                 /* Late move reduction */
                 if( num_legal_moves > 4                     && /* Four moves have been searched at full depth   */
                     depth >= 3                              && /* No LMR in the last plies                      */
-                    !MOVE_IS_CAPTURE_OR_PROMOTION(moves[i]) && /* No LMR if capture / promotion                 */
-                    !is_in_check)                              /* No LMR if in check                            */
+                    !MOVE_IS_CAPTURE_OR_PROMOTION(moves[i]))   /* No LMR if capture / promotion                 */
                 {
                     /* Search at reduced depth */
                     unsigned char R_plus_1 = (num_legal_moves > 15 && depth > 3) ? 3 : 2;
