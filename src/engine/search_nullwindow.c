@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include "search_nullwindow.h"
 #include "search.h"
 #include "eval.h"

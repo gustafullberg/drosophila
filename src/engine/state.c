@@ -707,14 +707,14 @@ int STATE_checkers_and_pinners(const chess_state_t *s, bitboard_t *checkers, bit
     *checkers |= bitboard_knight[king_pos] & opponent_bb[KNIGHT];
 
     /* Attacking sliders */
-    bitboard_t attackers = (bitboard_bishop[king_pos] & (opponent_bb[BISHOP] & opponent_bb[QUEEN])) |
-                           (bitboard_rook[king_pos] & (opponent_bb[ROOK] & opponent_bb[QUEEN]));
+    bitboard_t attackers = (bitboard_bishop[king_pos] & (opponent_bb[BISHOP] | opponent_bb[QUEEN])) |
+                           (bitboard_rook[king_pos] & (opponent_bb[ROOK] | opponent_bb[QUEEN]));
     while(attackers) {
         int attack_pos = BITBOARD_find_bit(attackers);
         bitboard_t attacker_bb = BITBOARD_POSITION(attack_pos);
         bitboard_t between = bitboard_between[attack_pos][king_pos];
-        bitboard_t own_between = between & player_bb[OCCUPIED];
-        bitboard_t opponent_between = between & opponent_bb[OCCUPIED];
+        bitboard_t own_between = between & player_bb[ALL];
+        bitboard_t opponent_between = between & opponent_bb[ALL];
 
         if(opponent_between == 0) {
             if(own_between == 0) {
@@ -728,7 +728,7 @@ int STATE_checkers_and_pinners(const chess_state_t *s, bitboard_t *checkers, bit
         attackers ^= attacker_bb;
     }
 
-    return checkers != 0;
+    return *checkers != 0;
 }
 
 void STATE_move_print_debug(const move_t move)
