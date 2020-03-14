@@ -81,8 +81,10 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     }
 
     if(!skip_move_generation) {
+        bitboard_t king_threat = STATE_opponent_threat_to_king(state);
+
         /* Generate and rate moves */
-        num_moves = STATE_generate_moves(state, moves);
+        num_moves = STATE_generate_legal_moves(state, checkers, pinners, pinned, king_threat, moves);
         MOVEORDER_rate_moves(state, moves, num_moves, *move, search_state->killer_move[ply], search_state->history_heuristic[state->player]);
 
         /* Check if node is eligible for futility pruning */
