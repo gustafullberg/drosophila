@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <stdio.h>
 #include "state.h"
 #include "movegen.h"
 #include "eval.h"
@@ -307,7 +309,7 @@ int STATE_generate_legal_moves(const chess_state_t *s, bitboard_t checkers, bitb
         }
     }
     
-    /* KING */
+    /* King */
     type = KING;
 
     /* Get one position from the bitboard */
@@ -325,6 +327,7 @@ int STATE_generate_legal_moves(const chess_state_t *s, bitboard_t checkers, bitb
         possible_captures ^= captures;
     }
 
+    /* Quiet king moves */
     num_moves += STATE_add_moves_to_list(possible_moves, pos_from, type, 0, MOVE_QUIET, moves + num_moves);
 
     /* En passant */
@@ -353,28 +356,24 @@ int STATE_generate_legal_moves(const chess_state_t *s, bitboard_t checkers, bitb
         }
     }
 
-    /* King-side Castling */
-    if(s->castling[player] & STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK) {
-        if((bitboard_king_castle_empty[player] & s->bitboard[OCCUPIED]) == 0) {
-            int king_pos = BITBOARD_find_bit(s->bitboard[player_index + KING]);
-            if(EVAL_position_is_attacked(s, player, king_pos+0) == 0 && 
-               EVAL_position_is_attacked(s, player, king_pos+1) == 0 &&
-               EVAL_position_is_attacked(s, player, king_pos+2) == 0)
-            {
-                num_moves += STATE_add_moves_to_list(s->bitboard[player_index + KING] << 2, king_pos, KING, 0, MOVE_KING_CASTLE, moves + num_moves);
+    if(!num_checkers) {
+        /* King-side Castling */
+        if(s->castling[player] & STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK) {
+            bitboard_t king_bb = s->bitboard[player_index + KING];
+            if((bitboard_king_castle_empty[player] & s->bitboard[OCCUPIED]) == 0 &&
+               (((king_bb << 1) | (king_bb << 2)) & king_threat) == 0) {
+                int king_pos = BITBOARD_find_bit(s->bitboard[player_index + KING]);
+                num_moves += STATE_add_moves_to_list(king_bb << 2, king_pos, KING, 0, MOVE_KING_CASTLE, moves + num_moves);
             }
         }
-    }
     
-    /* Queen-side Castling */
-    if(s->castling[player] & STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK) {
-        if((bitboard_queen_castle_empty[player] & s->bitboard[OCCUPIED]) == 0) {
-            int king_pos = BITBOARD_find_bit(s->bitboard[player_index + KING]);
-            if(EVAL_position_is_attacked(s, player, king_pos-0) == 0 && 
-               EVAL_position_is_attacked(s, player, king_pos-1) == 0 &&
-               EVAL_position_is_attacked(s, player, king_pos-2) == 0)
-            {
-                num_moves += STATE_add_moves_to_list(s->bitboard[player_index + KING] >> 2, king_pos, KING, 0, MOVE_QUEEN_CASTLE, moves + num_moves);
+        /* Queen-side Castling */
+        if(s->castling[player] & STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK) {
+            bitboard_t king_bb = s->bitboard[player_index + KING];
+            if((bitboard_queen_castle_empty[player] & s->bitboard[OCCUPIED]) == 0 &&
+               (((king_bb >> 1) | (king_bb >> 2)) & king_threat) == 0) {
+                int king_pos = BITBOARD_find_bit(s->bitboard[player_index + KING]);
+                num_moves += STATE_add_moves_to_list(king_bb >> 2, king_pos, KING, 0, MOVE_QUEEN_CASTLE, moves + num_moves);
             }
         }
     }
