@@ -90,6 +90,7 @@ int  STATE_apply_move(chess_state_t *s, const move_t move);
 void STATE_compute_hash(chess_state_t *s);
 int  STATE_risk_zugzwang(const chess_state_t *s);
 bitboard_t STATE_opponent_threat_to_king(const chess_state_t *s);
+int STATE_checkers_and_pinners(const chess_state_t *s, bitboard_t *checkers, bitboard_t *pinners, bitboard_t *pinned);
 void STATE_move_print_debug(const move_t move);
 void STATE_board_print_debug(const chess_state_t *s);
 

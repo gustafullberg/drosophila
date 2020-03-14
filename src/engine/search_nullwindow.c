@@ -25,8 +25,9 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     short ttable_score;
     int cutoff = 0;
     int do_futility_pruning = 0;
-    bitboard_t king_threat;
-    int king_pos;
+    bitboard_t checkers;
+    bitboard_t pinners;
+    bitboard_t pinned;
 
     *move = 0;
 
@@ -48,8 +49,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     HASHTABLE_transition_prefetch(search_state->hashtable, state->hash);
 
     /* Is playing side in check? */
-    king_threat = STATE_opponent_threat_to_king(state);
-    is_in_check = (king_threat & state->bitboard[state->player*NUM_TYPES + KING]) != 0;
+    is_in_check = STATE_checkers_and_pinners(state, &checkers, &pinners, &pinned);
 
     /* Check extension */
     if(is_in_check) {
