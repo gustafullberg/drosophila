@@ -261,7 +261,26 @@ int STATE_generate_moves(const chess_state_t *s, move_t *moves)
     return num_moves;
 }
 
-int STATE_generate_legal_moves(const chess_state_t *s, bitboard_t checkers, bitboard_t pinners, bitboard_t pinned, bitboard_t king_threat, move_t *moves)
+static inline bitboard_t STATE_pin_mask(bitboard_t piece, int king_pos, bitboard_t pinners)
+{
+    while(pinners) { /* Loop through all possible pinners */
+        /* Get one position from the bitboard */
+        int pinner_pos = BITBOARD_find_bit(pinners);
+        bitboard_t pinner_bb = BITBOARD_POSITION(pinner_pos);
+
+        bitboard_t between = bitboard_between[pinner_pos][king_pos];
+        if(between & piece) return between | pinner_bb;
+
+        /* Clear position from bitboard */
+        pinners ^= pinner_bb;
+    }
+
+    /* Never reached */
+    exit(1);
+    return 0;
+}
+
+int STATE_generate_legal_moves(const chess_state_t *s, bitboard_t checkers, bitboard_t block_checker, bitboard_t pinners, bitboard_t pinned, bitboard_t king_threat, move_t *moves)
 {
     int type, opponent_type, pos_from;
     bitboard_t pieces, possible_moves, possible_captures;
@@ -275,12 +294,28 @@ int STATE_generate_legal_moves(const chess_state_t *s, bitboard_t checkers, bitb
     const bitboard_t player_pieces = s->bitboard[player_index + ALL];
     const bitboard_t opponent_pieces = s->bitboard[opponent_index + ALL];
     const int num_checkers = BITBOARD_count_bits(checkers);
+    int king_pos = BITBOARD_find_bit(s->bitboard[player_index + KING]);
 
     if(num_checkers < 2) {
+        bitboard_t move_mask = (bitboard_t)0xFFFFFFFFFFFFFFFF;
+        bitboard_t capture_mask = (bitboard_t)0xFFFFFFFFFFFFFFFF;
+
+        if(num_checkers) {
+            move_mask = block_checker;
+            capture_mask = checkers;
+        }
+
         /* Pawns */
         type = PAWN;
         pieces = s->bitboard[player_index + type];
         MOVEGEN_all_pawns(player, pieces, player_pieces, opponent_pieces, &possible_moves, &pawn_push2, &pawn_captures_from_left, &pawn_captures_from_right, &pawn_promotion, &pawn_promotion_captures_from_left, &pawn_promotion_captures_from_right);
+        possible_moves &= move_mask;
+        pawn_push2 &= move_mask;
+        pawn_promotion &= move_mask;
+        pawn_captures_from_left &= capture_mask;
+        pawn_captures_from_right &= capture_mask;
+        pawn_promotion_captures_from_left &= capture_mask;
+        pawn_promotion_captures_from_right &= capture_mask;
         num_moves += STATE_add_pawn_captures_promotions(s, pawn_captures_from_left, pawn_captures_from_right, pawn_promotion, pawn_promotion_captures_from_left, pawn_promotion_captures_from_right, &moves[num_moves]);
         num_moves += STATE_add_pawn_quiet(s, possible_moves, pawn_push2, &moves[num_moves]);
 
@@ -290,9 +325,23 @@ int STATE_generate_legal_moves(const chess_state_t *s, bitboard_t checkers, bitb
             while(pieces) { /* Loop through all pieces of the type */
                 /* Get one position from the bitboard */
                 pos_from = BITBOARD_find_bit(pieces);
+                bitboard_t piece_bb = BITBOARD_POSITION(pos_from);
+
+                bitboard_t pin_mask = (bitboard_t)0xFFFFFFFFFFFFFFFF;
+                if(piece_bb & pinned) {
+                    if(num_checkers) {
+                        /* Pinned piece can't be moved when checked */
+                        pieces ^= piece_bb;
+                        continue;
+                    }
+                    pin_mask = STATE_pin_mask(piece_bb, king_pos, pinners);
+                }
 
                 /* Get all possible moves for this piece */
                 MOVEGEN_piece(type, pos_from, player_pieces, opponent_pieces, &possible_moves, &possible_captures);
+
+                possible_moves &= (move_mask & pin_mask);
+                possible_captures &= (capture_mask & pin_mask);
 
                 /* Extract possible captures */
                 for(opponent_type = 0; possible_captures; opponent_type++) {
@@ -304,7 +353,7 @@ int STATE_generate_legal_moves(const chess_state_t *s, bitboard_t checkers, bitb
                 num_moves += STATE_add_moves_to_list(possible_moves, pos_from, type, 0, MOVE_QUIET, moves + num_moves);
 
                 /* Clear position from bitboard */
-                pieces ^= BITBOARD_POSITION(pos_from);
+                pieces ^= piece_bb;
             }
         }
     }
@@ -362,7 +411,6 @@ int STATE_generate_legal_moves(const chess_state_t *s, bitboard_t checkers, bitb
             bitboard_t king_bb = s->bitboard[player_index + KING];
             if((bitboard_king_castle_empty[player] & s->bitboard[OCCUPIED]) == 0 &&
                (((king_bb << 1) | (king_bb << 2)) & king_threat) == 0) {
-                int king_pos = BITBOARD_find_bit(s->bitboard[player_index + KING]);
                 num_moves += STATE_add_moves_to_list(king_bb << 2, king_pos, KING, 0, MOVE_KING_CASTLE, moves + num_moves);
             }
         }
@@ -372,7 +420,6 @@ int STATE_generate_legal_moves(const chess_state_t *s, bitboard_t checkers, bitb
             bitboard_t king_bb = s->bitboard[player_index + KING];
             if((bitboard_queen_castle_empty[player] & s->bitboard[OCCUPIED]) == 0 &&
                (((king_bb >> 1) | (king_bb >> 2)) & king_threat) == 0) {
-                int king_pos = BITBOARD_find_bit(s->bitboard[player_index + KING]);
                 num_moves += STATE_add_moves_to_list(king_bb >> 2, king_pos, KING, 0, MOVE_QUEEN_CASTLE, moves + num_moves);
             }
         }
@@ -697,7 +744,7 @@ bitboard_t STATE_opponent_threat_to_king(const chess_state_t *s)
     return threat;
 }
 
-int STATE_checkers_and_pinners(const chess_state_t *s, bitboard_t *checkers, bitboard_t *pinners, bitboard_t *pinned)
+int STATE_checkers_and_pinners(const chess_state_t *s, bitboard_t *checkers, bitboard_t *block_checker, bitboard_t *pinners, bitboard_t *pinned)
 {
     const int player = s->player;
     const int opponent = player ^ 1;
@@ -705,6 +752,7 @@ int STATE_checkers_and_pinners(const chess_state_t *s, bitboard_t *checkers, bit
     const bitboard_t * opponent_bb = &s->bitboard[opponent * NUM_TYPES];
     int king_pos = BITBOARD_find_bit(player_bb[KING]);
     *checkers = 0;
+    *block_checker = 0;
     *pinners = 0;
     *pinned = 0;
 
@@ -727,6 +775,7 @@ int STATE_checkers_and_pinners(const chess_state_t *s, bitboard_t *checkers, bit
         if(opponent_between == 0) {
             if(own_between == 0) {
                 *checkers |= attacker_bb;
+                *block_checker |= between;
             } else if(BITBOARD_count_bits(own_between) == 1) {
                 *pinners |= attacker_bb;
                 *pinned |= own_between;

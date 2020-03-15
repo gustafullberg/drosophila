@@ -25,6 +25,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     int cutoff = 0;
     int do_futility_pruning = 0;
     bitboard_t checkers;
+    bitboard_t block_checker;
     bitboard_t pinners;
     bitboard_t pinned;
 
@@ -48,7 +49,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     HASHTABLE_transition_prefetch(search_state->hashtable, state->hash);
 
     /* Is playing side in check? */
-    is_in_check = STATE_checkers_and_pinners(state, &checkers, &pinners, &pinned);
+    is_in_check = STATE_checkers_and_pinners(state, &checkers, &block_checker, &pinners, &pinned);
 
     /* Check extension */
     if(is_in_check) {
@@ -83,7 +84,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         bitboard_t king_threat = STATE_opponent_threat_to_king(state);
 
         /* Generate and rate moves */
-        num_moves = STATE_generate_legal_moves(state, checkers, pinners, pinned, king_threat, moves);
+        num_moves = STATE_generate_legal_moves(state, checkers, block_checker, pinners, pinned, king_threat, moves);
         MOVEORDER_rate_moves(state, moves, num_moves, *move, search_state->killer_move[ply], search_state->history_heuristic[state->player]);
 
         /* Check if node is eligible for futility pruning */
