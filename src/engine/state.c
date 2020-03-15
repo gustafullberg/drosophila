@@ -404,28 +404,51 @@ int STATE_generate_legal_moves(const chess_state_t *s, bitboard_t checkers, bitb
     num_moves += STATE_add_moves_to_list(possible_moves, pos_from, type, 0, MOVE_QUIET, moves + num_moves);
 
     /* En passant */
-    if(s->ep_file != STATE_EN_PASSANT_NONE) {
-        int file;
-        bitboard_t attack_file;
-        
-        /* The file of the possible en passant capture */
-        file = s->ep_file;
-        attack_file = BITBOARD_FILE << file;
-        
-        /* Find pawns that can make the capture */
-        pieces = bitboard_ep_capturers[player][file] & s->bitboard[player_index+PAWN];
-        
-        /* Loop through the found pawns */
-        while(pieces) {
-            /* Get one position from the bitboard */
-            pos_from = BITBOARD_find_bit(pieces);
-            
-            possible_captures = bitboard_pawn_capture[player][pos_from] & attack_file;
-            
-            num_moves += STATE_add_moves_to_list(possible_captures, pos_from, PAWN, PAWN, MOVE_EP_CAPTURE, moves + num_moves);
-            
-            /* Clear position from bitboard */
-            pieces ^= BITBOARD_POSITION(pos_from);
+    if(num_checkers < 2) {
+        bitboard_t move_mask = (bitboard_t)0xFFFFFFFFFFFFFFFF;
+        bitboard_t capture_mask = (bitboard_t)0xFFFFFFFFFFFFFFFF;
+
+        if(num_checkers) {
+            move_mask = block_checker;
+            capture_mask = checkers;
+        }
+
+        if(s->ep_file != STATE_EN_PASSANT_NONE) {
+            int file;
+            bitboard_t attack_file;
+
+            /* The file of the possible en passant capture */
+            file = s->ep_file;
+            attack_file = BITBOARD_FILE << file;
+
+            /* Find pawns that can make the capture */
+            pieces = bitboard_ep_capturers[player][file] & s->bitboard[player_index+PAWN];
+
+            /* Loop through the found pawns */
+            while(pieces) {
+                /* Get one position from the bitboard */
+                pos_from = BITBOARD_find_bit(pieces);
+                bitboard_t piece_bb = BITBOARD_POSITION(pos_from);
+
+                bitboard_t pin_mask = (bitboard_t)0xFFFFFFFFFFFFFFFF;
+                if(piece_bb & pinned) {
+                    if(num_checkers) {
+                        /* Pinned piece can't be moved when checked */
+                        pieces ^= piece_bb;
+                        continue;
+                    }
+                    pin_mask = STATE_pin_mask(piece_bb, king_pos, pinners);
+                }
+
+                possible_captures = bitboard_pawn_capture[player][pos_from] & attack_file;
+
+                if((possible_captures & move_mask & pin_mask) && (capture_mask & bitboard_ep_capture[BITBOARD_find_bit(possible_captures)])) {
+                    num_moves += STATE_add_moves_to_list(possible_captures, pos_from, PAWN, PAWN, MOVE_EP_CAPTURE, moves + num_moves);
+                }
+
+                /* Clear position from bitboard */
+                pieces ^= piece_bb;
+            }
         }
     }
 

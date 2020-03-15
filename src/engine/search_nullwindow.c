@@ -111,9 +111,12 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
             }
 
             /* If not in check, the move is legal */
+#if 0
             if(SEARCH_is_check(&next_state, state->player)) {
+                exit(1);
                 continue;
             }
+#endif
             num_legal_moves++;
 
             HISTORY_push(search_state->history, next_state.hash);
