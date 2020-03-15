@@ -442,7 +442,22 @@ int STATE_generate_legal_moves(const chess_state_t *s, bitboard_t checkers, bitb
 
                 possible_captures = bitboard_pawn_capture[player][pos_from] & attack_file;
 
-                if((possible_captures & move_mask & pin_mask) && (capture_mask & bitboard_ep_capture[BITBOARD_find_bit(possible_captures)])) {
+                int valid_move = (capture_mask & bitboard_ep_capture[BITBOARD_find_bit(possible_captures)] & pin_mask) || (possible_captures & move_mask & pin_mask);
+                if(valid_move && (bitboard_rank[pos_from] & s->bitboard[player_index+KING])) {
+                    /* Super gotcha */
+                    bitboard_t opponent_slider = s->bitboard[opponent_index+ROOK] | s->bitboard[opponent_index+QUEEN];
+                    while(opponent_slider) {
+                        int slider_pos = BITBOARD_find_bit(opponent_slider);
+                        bitboard_t between = bitboard_between[king_pos][slider_pos];
+                        if((BITBOARD_count_bits(between & s->bitboard[OCCUPIED]) == 2) && (between & piece_bb)) {
+                           valid_move = 0; 
+                        }
+                        opponent_slider ^= BITBOARD_POSITION(slider_pos);
+                    }
+                    // Check if own king and opponent rook/queen is on the same rank. Check if two pieces are between those and one is one of the pawns.
+
+                }
+                if(valid_move) {
                     num_moves += STATE_add_moves_to_list(possible_captures, pos_from, PAWN, PAWN, MOVE_EP_CAPTURE, moves + num_moves);
                 }
 

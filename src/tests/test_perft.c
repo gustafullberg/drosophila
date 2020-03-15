@@ -30,10 +30,6 @@ uint64_t perft(chess_state_t *state, int depth)
         while(num_moves) {
             next_state = *state;
             STATE_apply_move(&next_state, moves[--num_moves]);
-            if(SEARCH_is_check(&next_state, state->player)) {
-                continue;
-            }
-            
             result += perft(&next_state, depth-1);
         }
     }
