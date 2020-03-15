@@ -20,7 +20,13 @@ uint64_t perft(chess_state_t *state, int depth)
     if(depth == 0) {
         result = 1;
     } else {
-        num_moves = STATE_generate_moves(state, moves);
+        bitboard_t checkers;
+        bitboard_t block_checker;
+        bitboard_t pinners;
+        bitboard_t pinned;
+        STATE_checkers_and_pinners(state, &checkers, &block_checker, &pinners, &pinned);
+        bitboard_t king_threat = STATE_opponent_threat_to_king(state);
+        num_moves = STATE_generate_legal_moves(state, checkers, block_checker, pinners, pinned, king_threat, moves);
         while(num_moves) {
             next_state = *state;
             STATE_apply_move(&next_state, moves[--num_moves]);
