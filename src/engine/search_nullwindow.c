@@ -110,13 +110,6 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                 }
             }
 
-            /* If not in check, the move is legal */
-#if 0
-            if(SEARCH_is_check(&next_state, state->player)) {
-                exit(1);
-                continue;
-            }
-#endif
             num_legal_moves++;
 
             HISTORY_push(search_state->history, next_state.hash);
@@ -193,8 +186,13 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
     short best_score;
     chess_state_t next_state;
     move_t moves[256];
+    bitboard_t checkers;
+    bitboard_t block_checker;
+    bitboard_t pinners;
+    bitboard_t pinned;
 
-    int is_check = SEARCH_is_check(state, state->player);
+    /* Is playing side in check? */
+    int is_check = STATE_checkers_and_pinners(state, &checkers, &block_checker, &pinners, &pinned);
 
     if(is_check) best_score = SEARCH_MIN_RESULT(0);
     else {
@@ -207,10 +205,11 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
     }
 
     /* Generate and rate moves (captures and promotions only) */
+    bitboard_t king_threat = STATE_opponent_threat_to_king(state);
     if(is_check) {
-        num_moves = STATE_generate_moves(state, moves);
+        num_moves = STATE_generate_legal_moves(state, checkers, block_checker, pinners, pinned, king_threat, moves);
     } else {
-        num_moves = STATE_generate_moves_quiescence(state, moves);
+        num_moves = STATE_generate_legal_moves_quiescence(state, checkers, block_checker, pinners, pinned, king_threat, moves);
     }
     MOVEORDER_rate_moves_quiescence(state, moves, num_moves);
 
@@ -227,9 +226,6 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
 
         next_state = *state;
         STATE_apply_move(&next_state, moves[i]);
-        if(SEARCH_is_check(&next_state, state->player)) {
-            continue;
-        }
 
         score = -SEARCH_nullwindow_quiescence(&next_state, search_state, -beta+1);
         if(score > best_score) {
