@@ -406,6 +406,7 @@ int STATE_generate_legal_moves(const chess_state_t *s, bitboard_t checkers, bitb
                 pos_from = BITBOARD_find_bit(pieces);
                 bitboard_t piece_bb = BITBOARD_POSITION(pos_from);
 
+                /* Take pinning into consideration */
                 bitboard_t pin_mask = (bitboard_t)0xFFFFFFFFFFFFFFFF;
                 if(piece_bb & pinned) {
                     if(num_checkers) {
@@ -419,6 +420,7 @@ int STATE_generate_legal_moves(const chess_state_t *s, bitboard_t checkers, bitb
                 /* Get all possible moves for this piece */
                 MOVEGEN_piece(type, pos_from, player_pieces, opponent_pieces, &possible_moves, &possible_captures);
 
+                /* Limit to moves and captures that don't put own king in check */
                 possible_moves &= (move_mask & pin_mask);
                 possible_captures &= (capture_mask & pin_mask);
 
@@ -441,6 +443,8 @@ int STATE_generate_legal_moves(const chess_state_t *s, bitboard_t checkers, bitb
     {
         /* Get all possible moves for this piece */
         MOVEGEN_piece(KING, king_pos, player_pieces, opponent_pieces, &possible_moves, &possible_captures);
+
+        /* Only allow safe squares */
         possible_moves &= ~king_threat;
         possible_captures &= ~king_threat;
 
