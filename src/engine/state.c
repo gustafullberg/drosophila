@@ -327,7 +327,7 @@ int STATE_generate_legal_moves(const chess_state_t *s, bitboard_t checkers, bitb
                     bitboard_t piece_bb = BITBOARD_POSITION(pos_from);
                     bitboard_t pin_mask = STATE_pin_mask(piece_bb, king_pos, pinners);
 
-                    MOVEGEN_all_pawns(player, pieces, player_pieces, opponent_pieces, &possible_moves, &pawn_push2, &pawn_captures_from_left, &pawn_captures_from_right, &pawn_promotion, &pawn_promotion_captures_from_left, &pawn_promotion_captures_from_right);
+                    MOVEGEN_all_pawns(player, piece_bb, player_pieces, opponent_pieces, &possible_moves, &pawn_push2, &pawn_captures_from_left, &pawn_captures_from_right, &pawn_promotion, &pawn_promotion_captures_from_left, &pawn_promotion_captures_from_right);
                     possible_moves &= (move_mask & pin_mask);
                     pawn_push2 &= (move_mask & pin_mask);
                     pawn_promotion &= (move_mask & pin_mask);
@@ -528,7 +528,7 @@ int STATE_generate_legal_moves_quiescence(const chess_state_t *s, bitboard_t che
                     bitboard_t piece_bb = BITBOARD_POSITION(pos_from);
                     bitboard_t pin_mask = STATE_pin_mask(piece_bb, king_pos, pinners);
 
-                    MOVEGEN_all_pawns(player, pieces, player_pieces, opponent_pieces, &possible_moves, &pawn_push2, &pawn_captures_from_left, &pawn_captures_from_right, &pawn_promotion, &pawn_promotion_captures_from_left, &pawn_promotion_captures_from_right);
+                    MOVEGEN_all_pawns(player, piece_bb, player_pieces, opponent_pieces, &possible_moves, &pawn_push2, &pawn_captures_from_left, &pawn_captures_from_right, &pawn_promotion, &pawn_promotion_captures_from_left, &pawn_promotion_captures_from_right);
                     pawn_promotion &= (move_mask & pin_mask);
                     pawn_captures_from_left &= (capture_mask & pin_mask);
                     pawn_captures_from_right &= (capture_mask & pin_mask);
