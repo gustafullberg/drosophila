@@ -380,7 +380,6 @@ int STATE_generate_legal_moves(const chess_state_t *s, int num_checkers, bitboar
             pawn_captures_from_right &= check_mask;
             pawn_promotion_captures_from_left &= check_mask;
             pawn_promotion_captures_from_right &= check_mask;
-            //BITBOARD_print_debug(pawn_captures_from_right);
 
             int attack_from_left, attack_from_right, step;
 
@@ -434,6 +433,7 @@ int STATE_generate_legal_moves(const chess_state_t *s, int num_checkers, bitboar
                 STATE_add_move_to_list(pos_to, pos_to + step, PAWN, 0, MOVE_QUIET, moves + num_moves++);
                 possible_moves ^= BITBOARD_POSITION(pos_to);
             }
+
             /* Double push */
             while(pawn_push2) {
                 int pos_to = BITBOARD_find_bit(pawn_push2);
