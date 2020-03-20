@@ -71,6 +71,246 @@ static bitboard_t STATE_pin_mask(bitboard_t piece, int king_pos, bitboard_t pinn
     return 0;
 }
 
+int STATE_generate_legal_moves_quiescence(const chess_state_t *s, int num_checkers, bitboard_t block_check, bitboard_t pinners, bitboard_t pinned, move_t *moves)
+{
+    int num_moves = 0;
+    const int player = s->player;
+    const int opponent = player ^ 1;
+    const int player_index = NUM_TYPES*player;
+    const int opponent_index = NUM_TYPES*opponent;
+    const bitboard_t player_pieces = s->bitboard[player_index + ALL];
+    const bitboard_t opponent_pieces = s->bitboard[opponent_index + ALL];
+    int capture_type[64];
+
+    /* Lookup table for opponent type */
+    for(int opponent_type = PAWN; opponent_type < KING; opponent_type++) {
+        bitboard_t pieces = s->bitboard[opponent_index + opponent_type];
+        while(pieces) {
+            int pos = BITBOARD_find_bit(pieces);
+            capture_type[pos] = opponent_type;
+            pieces ^= BITBOARD_POSITION(pos);
+        }
+    }
+
+    /* Only the king can move during double check */
+    if(num_checkers < 2) {
+        bitboard_t check_mask = (num_checkers) ? block_check : (bitboard_t)0xFFFFFFFFFFFFFFFF;
+        int king_pos = BITBOARD_find_bit(s->bitboard[player_index + KING]);
+
+        /* Pawns */
+        {
+            bitboard_t pieces;
+            bitboard_t possible_moves, possible_captures;
+            bitboard_t pawn_push2, pawn_captures_from_left, pawn_captures_from_right;
+            bitboard_t pawn_promotion, pawn_promotion_captures_from_left, pawn_promotion_captures_from_right;
+
+            /* Non-pinned pawns */
+            pieces = s->bitboard[player_index + PAWN] & ~pinned;
+            MOVEGEN_all_pawns(player, pieces, player_pieces, opponent_pieces, &possible_moves, &pawn_push2, &pawn_captures_from_left, &pawn_captures_from_right, &pawn_promotion, &pawn_promotion_captures_from_left, &pawn_promotion_captures_from_right);
+
+            /* Pinned pawns */
+            if(!num_checkers) {
+                pieces = s->bitboard[player_index + PAWN] & pinned;
+                while(pieces) {
+                    int pos_from = BITBOARD_find_bit(pieces);
+                    bitboard_t pos_from_bb = BITBOARD_POSITION(pos_from);
+                    bitboard_t pin_mask = STATE_pin_mask(pos_from_bb, king_pos, pinners);
+
+                    bitboard_t possible_moves_piece, pawn_push2_piece, pawn_captures_from_left_piece, pawn_captures_from_right_piece;
+                    bitboard_t pawn_promotion_piece, pawn_promotion_captures_from_left_piece, pawn_promotion_captures_from_right_piece;
+
+                    MOVEGEN_all_pawns(player, pos_from_bb, player_pieces, opponent_pieces, &possible_moves_piece, &pawn_push2_piece, &pawn_captures_from_left_piece, &pawn_captures_from_right_piece, &pawn_promotion_piece, &pawn_promotion_captures_from_left_piece, &pawn_promotion_captures_from_right_piece);
+
+                    possible_moves |= possible_moves_piece & pin_mask;
+                    pawn_push2 |= pawn_push2_piece & pin_mask;
+                    pawn_promotion |= pawn_promotion_piece & pin_mask;
+                    pawn_captures_from_left |= pawn_captures_from_left_piece & pin_mask;
+                    pawn_captures_from_right |= pawn_captures_from_right_piece & pin_mask;
+                    pawn_promotion_captures_from_left |= pawn_promotion_captures_from_left_piece & pin_mask;
+                    pawn_promotion_captures_from_right |= pawn_promotion_captures_from_right_piece & pin_mask;
+
+                    pieces ^= pos_from_bb;
+                }
+            }
+
+            possible_moves &= check_mask;
+            pawn_push2 &= check_mask;
+            pawn_promotion &= check_mask;
+            pawn_captures_from_left &= check_mask;
+            pawn_captures_from_right &= check_mask;
+            pawn_promotion_captures_from_left &= check_mask;
+            pawn_promotion_captures_from_right &= check_mask;
+            //BITBOARD_print_debug(pawn_captures_from_right);
+
+            int attack_from_left, attack_from_right, step;
+
+            if(player == WHITE) {
+                attack_from_left = -9;
+                attack_from_right = -7;
+                step = -8;
+            } else {
+                attack_from_left = 7;
+                attack_from_right = 9;
+                step = 8;
+            }
+
+            /* Captures */
+            while(pawn_captures_from_left) {
+                int pos_to = BITBOARD_find_bit(pawn_captures_from_left);
+                STATE_add_move_to_list(pos_to, pos_to + attack_from_left, PAWN, capture_type[pos_to], MOVE_CAPTURE, moves + num_moves++);
+                pawn_captures_from_left ^= BITBOARD_POSITION(pos_to);
+            }
+
+            while(pawn_captures_from_right) {
+                int pos_to = BITBOARD_find_bit(pawn_captures_from_right);
+                STATE_add_move_to_list(pos_to, pos_to + attack_from_right, PAWN, capture_type[pos_to], MOVE_CAPTURE, moves + num_moves++);
+                pawn_captures_from_right ^= BITBOARD_POSITION(pos_to);
+            }
+
+            /* Promotion with capture */
+            while(pawn_promotion_captures_from_left) {
+                int pos_to = BITBOARD_find_bit(pawn_promotion_captures_from_left);
+                num_moves += STATE_add_move_to_list_promotion_capture(pos_to, pos_to + attack_from_left, capture_type[pos_to], moves + num_moves);
+                pawn_promotion_captures_from_left ^= BITBOARD_POSITION(pos_to);
+            }
+
+            while(pawn_promotion_captures_from_right) {
+                int pos_to = BITBOARD_find_bit(pawn_promotion_captures_from_right);
+                num_moves += STATE_add_move_to_list_promotion_capture(pos_to, pos_to + attack_from_right, capture_type[pos_to], moves + num_moves);
+                pawn_promotion_captures_from_right ^= BITBOARD_POSITION(pos_to);
+            }
+
+            /* Promotion */
+            while(pawn_promotion) {
+                int pos_to = BITBOARD_find_bit(pawn_promotion);
+                int pos_from = pos_to + step;
+                num_moves += STATE_add_move_to_list_promotion(pos_to, pos_from, moves + num_moves);
+                pawn_promotion ^= BITBOARD_POSITION(pos_to);
+            }
+
+            /* En passant */
+            if(s->ep_file != STATE_EN_PASSANT_NONE) {
+                int file;
+                bitboard_t attack_file;
+
+                /* The file of the possible en passant capture */
+                file = s->ep_file;
+                attack_file = BITBOARD_FILE << file;
+
+                /* Find pawns that can make the capture */
+                bitboard_t pieces = bitboard_ep_capturers[player][file] & s->bitboard[player_index+PAWN];
+
+                /* Loop through the found pawns */
+                while(pieces) {
+                    /* Get one position from the bitboard */
+                    int pos_from = BITBOARD_find_bit(pieces);
+                    bitboard_t piece_bb = BITBOARD_POSITION(pos_from);
+
+                    bitboard_t pin_mask = (bitboard_t)0xFFFFFFFFFFFFFFFF;
+                    if(piece_bb & pinned) {
+                        if(num_checkers) {
+                            /* Pinned piece can't be moved when checked */
+                            pieces ^= piece_bb;
+                            continue;
+                        }
+                        pin_mask = STATE_pin_mask(piece_bb, king_pos, pinners);
+                    }
+
+                    bitboard_t pos_to_bb = bitboard_pawn_capture[player][pos_from] & attack_file;
+                    int pos_to = BITBOARD_find_bit(pos_to_bb);
+
+                    int valid_move = (check_mask & bitboard_ep_capture[pos_to] & pin_mask) || (pos_to_bb & check_mask & pin_mask);
+                    if(valid_move && (bitboard_rank[pos_from] & s->bitboard[player_index+KING])) {
+                        /* Super gotcha */
+                        bitboard_t opponent_slider = s->bitboard[opponent_index+ROOK] | s->bitboard[opponent_index+QUEEN];
+                        while(opponent_slider) {
+                            int slider_pos = BITBOARD_find_bit(opponent_slider);
+                            bitboard_t between = bitboard_between[king_pos][slider_pos];
+                            if((BITBOARD_count_bits(between & s->bitboard[OCCUPIED]) == 2) && (between & piece_bb)) {
+                                valid_move = 0; 
+                            }
+                            opponent_slider ^= BITBOARD_POSITION(slider_pos);
+                        }
+                        // Check if own king and opponent rook/queen is on the same rank. Check if two pieces are between those and one is one of the pawns.
+
+                    }
+                    if(valid_move) {
+                        STATE_add_move_to_list(pos_to, pos_from, PAWN, PAWN, MOVE_EP_CAPTURE, moves + num_moves++);
+                    }
+
+                    /* Clear position from bitboard */
+                    pieces ^= piece_bb;
+                }
+            }
+        }
+
+        /* Knights, bishops, rooks and queens */
+        for(int type = KNIGHT; type <= QUEEN; type++) {
+            bitboard_t pieces = s->bitboard[player_index + type];
+
+            while(pieces) { /* Loop through all pieces of the type */
+                /* Get one position from the bitboard */
+                int pos_from = BITBOARD_find_bit(pieces);
+                bitboard_t pos_from_bb = BITBOARD_POSITION(pos_from);
+
+                /* Limit piece movement due to check and pinning */
+                bitboard_t move_mask = check_mask;
+                if(pos_from_bb & pinned) {
+                    if(num_checkers) {
+                        /* Pinned pieces can not move during check */
+                        pieces ^= pos_from_bb;
+                        continue;
+                    }
+                    move_mask &= STATE_pin_mask(pos_from_bb, king_pos, pinners);
+                }
+
+                /* Get all possible moves for this piece */
+                bitboard_t possible_moves, possible_captures;
+                MOVEGEN_piece(type, pos_from, player_pieces, opponent_pieces, &possible_moves, &possible_captures);
+                possible_moves &= move_mask;
+                possible_captures &= move_mask;
+
+                while(possible_captures) {
+                    int pos_to = BITBOARD_find_bit(possible_captures);
+                    STATE_add_move_to_list(pos_to, pos_from, type, capture_type[pos_to], MOVE_CAPTURE, moves + num_moves);
+                    num_moves++;
+                    possible_captures ^= BITBOARD_POSITION(pos_to);
+                }
+
+                /* Clear position from bitboard */
+                pieces ^= pos_from_bb;
+            }
+        }
+    }
+
+    /* King */
+    {
+        int king_pos = BITBOARD_find_bit(s->bitboard[player_index + KING]);
+
+        bitboard_t possible_moves, possible_captures;
+        MOVEGEN_piece(KING, king_pos, player_pieces, opponent_pieces, &possible_moves, &possible_captures);
+
+        /* Remove moves that would result in check */
+        bitboard_t tmp = possible_captures;
+        bitboard_t mask = 0;
+        while(tmp) {
+            int pos = BITBOARD_find_bit(tmp);
+            bitboard_t bb = BITBOARD_POSITION(pos);
+            if(EVAL_position_is_attacked(s, player, pos)) mask |= bb;
+            tmp ^= bb;
+        }
+        possible_captures &= ~mask;
+
+        while(possible_captures) {
+            int pos_to = BITBOARD_find_bit(possible_captures);
+            STATE_add_move_to_list(pos_to, king_pos, KING, capture_type[pos_to], MOVE_CAPTURE, moves + num_moves++);
+            possible_captures ^= BITBOARD_POSITION(pos_to);
+        }
+    }
+
+    return num_moves;
+}
+
 int STATE_generate_legal_moves(const chess_state_t *s, int num_checkers, bitboard_t block_check, bitboard_t pinners, bitboard_t pinned, move_t *moves)
 {
     int num_moves = 0;

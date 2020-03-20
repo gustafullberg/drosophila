@@ -104,15 +104,6 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                 }
             }
 
-            /* If not in check, the move is legal */
-            if(SEARCH_is_check(&next_state, state->player)) {
-                if(MOVE_GET_TYPE(moves[i]) > PAWN) {
-                    STATE_board_print_debug(state);
-                    STATE_move_print_debug(moves[i]);
-                    exit(1); // DEBUG CODE
-                }
-                continue;
-            }
             num_legal_moves++;
 
             HISTORY_push(search_state->history, next_state.hash);
@@ -190,9 +181,11 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
     chess_state_t next_state;
     move_t moves[256];
 
-    int is_check = SEARCH_is_check(state, state->player);
+    /* Is playing side in check? */
+    bitboard_t block_check, pinners, pinned;
+    int num_checkers = STATE_checkers_and_pinners(state, &block_check, &pinners, &pinned);
 
-    if(is_check) best_score = SEARCH_MIN_RESULT(0);
+    if(num_checkers) best_score = SEARCH_MIN_RESULT(0);
     else {
         /* Stand-pat */
         best_score = EVAL_evaluate_board(state);
@@ -203,10 +196,10 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
     }
 
     /* Generate and rate moves (captures and promotions only) */
-    if(is_check) {
-        num_moves = STATE_generate_moves(state, moves);
+    if(num_checkers) {
+        num_moves = STATE_generate_legal_moves(state, num_checkers, block_check, pinners, pinned, moves);
     } else {
-        num_moves = STATE_generate_moves_quiescence(state, moves);
+        num_moves = STATE_generate_legal_moves_quiescence(state, num_checkers, block_check, pinners, pinned, moves);
     }
     MOVEORDER_rate_moves_quiescence(state, moves, num_moves);
 
@@ -215,7 +208,7 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
         MOVEORDER_best_move_first(&moves[i], num_moves - i);
 
         /* Prune all captures with SEE < 0 */
-        if(!MOVE_IS_PROMOTION(moves[i]) && !is_check) {
+        if(!MOVE_IS_PROMOTION(moves[i]) && !num_checkers) {
             if(SSE_capture_less_valuable(moves[i]) && see(state, moves[i]) < 0) {
                 continue;
             }
@@ -223,9 +216,6 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
 
         next_state = *state;
         STATE_apply_move(&next_state, moves[i]);
-        if(SEARCH_is_check(&next_state, state->player)) {
-            continue;
-        }
 
         score = -SEARCH_nullwindow_quiescence(&next_state, search_state, -beta+1);
         if(score > best_score) {
