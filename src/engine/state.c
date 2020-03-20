@@ -506,6 +506,53 @@ int STATE_apply_move(chess_state_t *s, const move_t move)
     return 0;
 }
 
+int STATE_checkers_and_pinners(const chess_state_t *s, bitboard_t *block_check, bitboard_t *pinners, bitboard_t *pinned)
+{
+    const int player = s->player;
+    const int opponent = player ^ 1;
+    const bitboard_t * player_bb = &s->bitboard[player * NUM_TYPES];
+    const bitboard_t * opponent_bb = &s->bitboard[opponent * NUM_TYPES];
+    int king_pos = BITBOARD_find_bit(player_bb[KING]);
+    bitboard_t checkers = 0;
+    *block_check = 0;
+    *pinners = 0;
+    *pinned = 0;
+
+    /* Attacking pawns */
+    checkers |= bitboard_pawn_capture[player][king_pos] & opponent_bb[PAWN];
+
+    /* Attacking knights */
+    checkers |= bitboard_knight[king_pos] & opponent_bb[KNIGHT];
+
+    /* Attacking sliders */
+    bitboard_t attackers = (bitboard_bishop[king_pos] & (opponent_bb[BISHOP] | opponent_bb[QUEEN])) |
+                           (bitboard_rook[king_pos] & (opponent_bb[ROOK] | opponent_bb[QUEEN]));
+    while(attackers) {
+        int attack_pos = BITBOARD_find_bit(attackers);
+        bitboard_t attacker_bb = BITBOARD_POSITION(attack_pos);
+        bitboard_t between = bitboard_between[attack_pos][king_pos];
+        bitboard_t own_between = between & player_bb[ALL];
+        bitboard_t opponent_between = between & opponent_bb[ALL];
+
+        if(opponent_between == 0) {
+            if(own_between == 0) {
+                /* Slider is checking */
+                checkers |= attacker_bb;
+                *block_check |= attacker_bb | between;
+            } else if(BITBOARD_count_bits(own_between) == 1) {
+                /* Slider is pinning */
+                *pinners |= attacker_bb;
+                *pinned |= own_between;
+            }
+        }
+
+        attackers ^= attacker_bb;
+    }
+
+    /* Return number of checkers */
+    return BITBOARD_count_bits(checkers);
+}
+
 void STATE_compute_hash(chess_state_t *s)
 {
     int color;
