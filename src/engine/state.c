@@ -580,20 +580,11 @@ int STATE_generate_legal_moves_quiescence(const chess_state_t *s, int num_checke
         MOVEGEN_piece(KING, king_pos, player_pieces, opponent_pieces, &possible_moves, &possible_captures);
 
         /* Remove moves that would result in check */
-        bitboard_t tmp = possible_moves | possible_captures;
-        bitboard_t mask = 0;
-        while(tmp) {
-            int pos = BITBOARD_find_bit(tmp);
-            bitboard_t bb = BITBOARD_POSITION(pos);
-            if(EVAL_position_is_attacked(s, player, pos)) mask |= bb;
-            tmp ^= bb;
-        }
-        possible_moves &= ~mask;
-        possible_captures &= ~mask;
-
         while(possible_captures) {
             int pos_to = BITBOARD_find_bit(possible_captures);
-            STATE_add_move_to_list(pos_to, king_pos, KING, capture_type[pos_to], MOVE_CAPTURE, moves + num_moves++);
+            if(!EVAL_position_is_attacked(s, player, pos_to)) {
+                STATE_add_move_to_list(pos_to, king_pos, KING, capture_type[pos_to], MOVE_CAPTURE, moves + num_moves++);
+            }
             possible_captures ^= BITBOARD_POSITION(pos_to);
         }
     }
