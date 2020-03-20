@@ -12,7 +12,6 @@ static inline void SEARCH_transpositiontable_store(hashtable_t *hashtable, const
 short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state, unsigned char depth, unsigned char ply, move_t *move, short beta)
 {
     int num_moves;
-    int num_legal_moves = 0;
     int i;
     short score;
     short best_score = SEARCH_MIN_RESULT(depth);
@@ -99,12 +98,10 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
 
             /* Futility pruning */
             if(do_futility_pruning) {
-                if(num_legal_moves > 1 && !MOVE_IS_CAPTURE_OR_PROMOTION(moves[i]) && !SEARCH_is_check(&next_state, next_state.player)) {
+                if(i > 1 && !MOVE_IS_CAPTURE_OR_PROMOTION(moves[i]) && !SEARCH_is_check(&next_state, next_state.player)) {
                     continue;
                 }
             }
-
-            num_legal_moves++;
 
             HISTORY_push(search_state->history, next_state.hash);
             if(HISTORY_is_repetition(search_state->history, next_state.halfmove_clock) || EVAL_insufficient_material(&next_state)) {
@@ -112,12 +109,12 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                 score = 0;
             } else {
                 /* Late move reduction */
-                if( num_legal_moves > 4                     && /* Four moves have been searched at full depth   */
+                if( i >= 4                                  && /* Four moves have been searched at full depth   */
                     depth >= 3                              && /* No LMR in the last plies                      */
                     !MOVE_IS_CAPTURE_OR_PROMOTION(moves[i]))   /* No LMR if capture / promotion                 */
                 {
                     /* Search at reduced depth */
-                    unsigned char R_plus_1 = (num_legal_moves > 15 && depth > 3) ? 3 : 2;
+                    unsigned char R_plus_1 = (i >= 15 && depth > 3) ? 3 : 2;
                     score = -SEARCH_nullwindow(&next_state, search_state, depth-R_plus_1, ply+1, &next_move, -beta+1);
                     if(score >= beta) {
                         /* If reduced yields interesting results, do a full search */
@@ -152,7 +149,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         }
 
         /* Detect checkmate and stalemate */
-        if(num_legal_moves == 0) {
+        if(num_moves == 0) {
             if(num_checkers) {
                 /* Checkmate (worst case) */
             } else {
