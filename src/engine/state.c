@@ -111,10 +111,12 @@ int STATE_generate_legal_moves(const chess_state_t *s, int num_checkers, bitboar
             /* Pinned pawns */
             if(!num_checkers) {
                 pieces = s->bitboard[player_index + PAWN] & pinned;
+                printf("pinned pawns\n");
                 while(pieces) {
                     int pos_from = BITBOARD_find_bit(pieces);
                     bitboard_t pos_from_bb = BITBOARD_POSITION(pos_from);
                     bitboard_t pin_mask = STATE_pin_mask(pos_from_bb, king_pos, pinners);
+                    if(pos_from == C3) BITBOARD_print_debug(pin_mask);
 
                     bitboard_t possible_moves_piece, pawn_push2_piece, pawn_captures_from_left_piece, pawn_captures_from_right_piece;
                     bitboard_t pawn_promotion_piece, pawn_promotion_captures_from_left_piece, pawn_promotion_captures_from_right_piece;
@@ -125,7 +127,8 @@ int STATE_generate_legal_moves(const chess_state_t *s, int num_checkers, bitboar
                     pawn_push2 |= pawn_push2_piece & pin_mask;
                     pawn_promotion |= pawn_promotion & pin_mask;
                     pawn_captures_from_left |= pawn_captures_from_left_piece & pin_mask;
-                    pawn_captures_from_right |= pawn_captures_from_right & pin_mask;
+                    if(pos_from == C3) BITBOARD_print_debug(pawn_captures_from_right_piece);
+                    pawn_captures_from_right |= pawn_captures_from_right_piece & pin_mask;
                     pawn_promotion_captures_from_left |= pawn_promotion_captures_from_left_piece & pin_mask;
                     pawn_promotion_captures_from_right |= pawn_promotion_captures_from_right & pin_mask;
 
@@ -140,6 +143,7 @@ int STATE_generate_legal_moves(const chess_state_t *s, int num_checkers, bitboar
             pawn_captures_from_right &= check_mask;
             pawn_promotion_captures_from_left &= check_mask;
             pawn_promotion_captures_from_right &= check_mask;
+            //BITBOARD_print_debug(pawn_captures_from_right);
 
             int attack_from_left, attack_from_right, step;
 
