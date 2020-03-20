@@ -457,42 +457,43 @@ int STATE_generate_legal_moves(const chess_state_t *s, int num_checkers, bitboar
                 while(pieces) {
                     /* Get one position from the bitboard */
                     int pos_from = BITBOARD_find_bit(pieces);
-                    bitboard_t piece_bb = BITBOARD_POSITION(pos_from);
+                    bitboard_t pos_from_bb = BITBOARD_POSITION(pos_from);
 
                     bitboard_t pin_mask = (bitboard_t)0xFFFFFFFFFFFFFFFF;
-                    if(piece_bb & pinned) {
+                    if(pos_from_bb & pinned) {
                         if(num_checkers) {
                             /* Pinned piece can't be moved when checked */
-                            pieces ^= piece_bb;
+                            pieces ^= pos_from_bb;
                             continue;
                         }
-                        pin_mask = STATE_pin_mask(piece_bb, king_pos, pinners);
+                        pin_mask = STATE_pin_mask(pos_from_bb, king_pos, pinners);
                     }
 
                     bitboard_t pos_to_bb = bitboard_pawn_capture[player][pos_from] & attack_file;
                     int pos_to = BITBOARD_find_bit(pos_to_bb);
 
                     int valid_move = (check_mask & bitboard_ep_capture[pos_to] & pin_mask) || (pos_to_bb & check_mask & pin_mask);
+
+                    /* Removing two pieces from the same rank can expose the king to a rook or queen on that rank. This is not handled
+                     * by the pinning code and gets special treatment below. */
                     if(valid_move && (bitboard_rank[pos_from] & s->bitboard[player_index+KING])) {
-                        /* Super gotcha */
                         bitboard_t opponent_slider = s->bitboard[opponent_index+ROOK] | s->bitboard[opponent_index+QUEEN];
                         while(opponent_slider) {
                             int slider_pos = BITBOARD_find_bit(opponent_slider);
                             bitboard_t between = bitboard_between[king_pos][slider_pos];
-                            if((BITBOARD_count_bits(between & s->bitboard[OCCUPIED]) == 2) && (between & piece_bb)) {
+                            if((BITBOARD_count_bits(between & s->bitboard[OCCUPIED]) == 2) && (between & pos_from_bb)) {
                                 valid_move = 0; 
                             }
                             opponent_slider ^= BITBOARD_POSITION(slider_pos);
                         }
-                        // Check if own king and opponent rook/queen is on the same rank. Check if two pieces are between those and one is one of the pawns.
-
                     }
+
                     if(valid_move) {
                         STATE_add_move_to_list(pos_to, pos_from, PAWN, PAWN, MOVE_EP_CAPTURE, moves + num_moves++);
                     }
 
                     /* Clear position from bitboard */
-                    pieces ^= piece_bb;
+                    pieces ^= pos_from_bb;
                 }
             }
         }
@@ -525,15 +526,13 @@ int STATE_generate_legal_moves(const chess_state_t *s, int num_checkers, bitboar
 
                 while(possible_captures) {
                     int pos_to = BITBOARD_find_bit(possible_captures);
-                    STATE_add_move_to_list(pos_to, pos_from, type, capture_type[pos_to], MOVE_CAPTURE, moves + num_moves);
-                    num_moves++;
+                    STATE_add_move_to_list(pos_to, pos_from, type, capture_type[pos_to], MOVE_CAPTURE, moves + num_moves++);
                     possible_captures ^= BITBOARD_POSITION(pos_to);
                 }
 
                 while(possible_moves) {
                     int pos_to = BITBOARD_find_bit(possible_moves);
-                    STATE_add_move_to_list(pos_to, pos_from, type, 0, MOVE_QUIET, moves + num_moves);
-                    num_moves++;
+                    STATE_add_move_to_list(pos_to, pos_from, type, 0, MOVE_QUIET, moves + num_moves++);
                     possible_moves ^= BITBOARD_POSITION(pos_to);
                 }
 
@@ -581,8 +580,7 @@ int STATE_generate_legal_moves(const chess_state_t *s, int num_checkers, bitboar
                     if(EVAL_position_is_attacked(s, player, king_pos+1) == 0 &&
                        EVAL_position_is_attacked(s, player, king_pos+2) == 0)
                     {
-                        STATE_add_move_to_list(king_pos+2, king_pos, KING, 0, MOVE_KING_CASTLE, moves + num_moves);
-                        num_moves++;
+                        STATE_add_move_to_list(king_pos+2, king_pos, KING, 0, MOVE_KING_CASTLE, moves + num_moves++);
                     }
                 }
             }
@@ -593,8 +591,7 @@ int STATE_generate_legal_moves(const chess_state_t *s, int num_checkers, bitboar
                     if(EVAL_position_is_attacked(s, player, king_pos-1) == 0 &&
                        EVAL_position_is_attacked(s, player, king_pos-2) == 0)
                     {
-                        STATE_add_move_to_list(king_pos-2, king_pos, KING, 0, MOVE_QUEEN_CASTLE, moves + num_moves);
-                        num_moves++;
+                        STATE_add_move_to_list(king_pos-2, king_pos, KING, 0, MOVE_QUEEN_CASTLE, moves + num_moves++);
                     }
                 }
             }

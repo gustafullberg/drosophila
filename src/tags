@@ -1,0 +1,524 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_FILESEP	slash	/slash or backslash/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	0.0.0	/a3c87ab5/
+A1	engine/defines.h	/^#define A1 /;"	d
+A2	engine/defines.h	/^#define A2 /;"	d
+A3	engine/defines.h	/^#define A3 /;"	d
+A4	engine/defines.h	/^#define A4 /;"	d
+A5	engine/defines.h	/^#define A5 /;"	d
+A6	engine/defines.h	/^#define A6 /;"	d
+A7	engine/defines.h	/^#define A7 /;"	d
+A8	engine/defines.h	/^#define A8 /;"	d
+ALL	engine/defines.h	/^#define ALL /;"	d
+B1	engine/defines.h	/^#define B1 /;"	d
+B2	engine/defines.h	/^#define B2 /;"	d
+B3	engine/defines.h	/^#define B3 /;"	d
+B4	engine/defines.h	/^#define B4 /;"	d
+B5	engine/defines.h	/^#define B5 /;"	d
+B6	engine/defines.h	/^#define B6 /;"	d
+B7	engine/defines.h	/^#define B7 /;"	d
+B8	engine/defines.h	/^#define B8 /;"	d
+BISHOP	engine/defines.h	/^#define BISHOP /;"	d
+BISHOP_PAIR	engine/eval.h	/^#define BISHOP_PAIR /;"	d
+BISHOP_VALUE	engine/eval.h	/^#define BISHOP_VALUE /;"	d
+BITBOARD_BLACK_SQ	engine/bitboard.h	/^#define BITBOARD_BLACK_SQ /;"	d
+BITBOARD_CLEAR	engine/bitboard.h	/^#define BITBOARD_CLEAR(/;"	d
+BITBOARD_FILE	engine/bitboard.h	/^#define BITBOARD_FILE /;"	d
+BITBOARD_GET_FILE	engine/bitboard.h	/^#define BITBOARD_GET_FILE(/;"	d
+BITBOARD_GET_RANK	engine/bitboard.h	/^#define BITBOARD_GET_RANK(/;"	d
+BITBOARD_H	engine/bitboard.h	/^#define BITBOARD_H$/;"	d
+BITBOARD_POSITION	engine/bitboard.h	/^#define BITBOARD_POSITION(/;"	d
+BITBOARD_POS_VALID	engine/bitboard.h	/^#define BITBOARD_POS_VALID(/;"	d
+BITBOARD_PROMOTION	engine/bitboard.h	/^#define BITBOARD_PROMOTION /;"	d
+BITBOARD_RANK	engine/bitboard.h	/^#define BITBOARD_RANK /;"	d
+BITBOARD_RANK_FILE	engine/bitboard.h	/^#define BITBOARD_RANK_FILE(/;"	d
+BITBOARD_SET	engine/bitboard.h	/^#define BITBOARD_SET(/;"	d
+BITBOARD_WHITE_SQ	engine/bitboard.h	/^#define BITBOARD_WHITE_SQ /;"	d
+BITBOARD_count_bits	engine/bitboard.h	/^static inline int BITBOARD_count_bits(bitboard_t bitboard)$/;"	f	typeref:typename:int
+BITBOARD_fill_north	engine/bitboard.h	/^static inline bitboard_t BITBOARD_fill_north(bitboard_t b)$/;"	f	typeref:typename:bitboard_t
+BITBOARD_fill_south	engine/bitboard.h	/^static inline bitboard_t BITBOARD_fill_south(bitboard_t b)$/;"	f	typeref:typename:bitboard_t
+BITBOARD_find_bit	engine/bitboard.h	/^static inline int BITBOARD_find_bit(const bitboard_t bitboard)$/;"	f	typeref:typename:int
+BITBOARD_find_bit_reversed	engine/bitboard.h	/^static inline int BITBOARD_find_bit_reversed(const bitboard_t bitboard)$/;"	f	typeref:typename:int
+BITBOARD_init	engine/bitboard.c	/^void BITBOARD_init()$/;"	f	typeref:typename:void
+BITBOARD_print_debug	engine/bitboard.c	/^void BITBOARD_print_debug(const bitboard_t bitboard)$/;"	f	typeref:typename:void
+BLACK	engine/defines.h	/^#define BLACK /;"	d
+BLACK_PIECES	engine/state.h	/^#define BLACK_PIECES /;"	d
+C1	engine/defines.h	/^#define C1 /;"	d
+C2	engine/defines.h	/^#define C2 /;"	d
+C3	engine/defines.h	/^#define C3 /;"	d
+C4	engine/defines.h	/^#define C4 /;"	d
+C5	engine/defines.h	/^#define C5 /;"	d
+C6	engine/defines.h	/^#define C6 /;"	d
+C7	engine/defines.h	/^#define C7 /;"	d
+C8	engine/defines.h	/^#define C8 /;"	d
+CECP_FEATURES_H	interface/cecp_features.h	/^#define CECP_FEATURES_H$/;"	d
+CLOCK_H	engine/clock.h	/^#define CLOCK_H$/;"	d
+CLOCK_now	engine/clock.c	/^int64_t CLOCK_now()$/;"	f	typeref:typename:int64_t
+CLOCK_random_seed	engine/clock.c	/^unsigned int CLOCK_random_seed()$/;"	f	typeref:typename:unsigned int
+CLOCK_time_passed	engine/clock.c	/^int64_t CLOCK_time_passed(const int64_t start_time_ms)$/;"	f	typeref:typename:int64_t
+COMMAND_BUFFER_SIZE	interface/cecp.c	/^#define COMMAND_BUFFER_SIZE /;"	d	file:
+D1	engine/defines.h	/^#define D1 /;"	d
+D2	engine/defines.h	/^#define D2 /;"	d
+D3	engine/defines.h	/^#define D3 /;"	d
+D4	engine/defines.h	/^#define D4 /;"	d
+D5	engine/defines.h	/^#define D5 /;"	d
+D6	engine/defines.h	/^#define D6 /;"	d
+D7	engine/defines.h	/^#define D7 /;"	d
+D8	engine/defines.h	/^#define D8 /;"	d
+DEFINES_H	engine/defines.h	/^#define DEFINES_H$/;"	d
+DEPTH	tests/test_performance.c	/^#define DEPTH /;"	d	file:
+E1	engine/defines.h	/^#define E1 /;"	d
+E2	engine/defines.h	/^#define E2 /;"	d
+E3	engine/defines.h	/^#define E3 /;"	d
+E4	engine/defines.h	/^#define E4 /;"	d
+E5	engine/defines.h	/^#define E5 /;"	d
+E6	engine/defines.h	/^#define E6 /;"	d
+E7	engine/defines.h	/^#define E7 /;"	d
+E8	engine/defines.h	/^#define E8 /;"	d
+ENGINE_H	engine/engine.h	/^#define ENGINE_H$/;"	d
+ENGINE_PROMOTION_BISHOP	engine/engine.h	/^#define ENGINE_PROMOTION_BISHOP /;"	d
+ENGINE_PROMOTION_KNIGHT	engine/engine.h	/^#define ENGINE_PROMOTION_KNIGHT /;"	d
+ENGINE_PROMOTION_NONE	engine/engine.h	/^#define ENGINE_PROMOTION_NONE /;"	d
+ENGINE_PROMOTION_QUEEN	engine/engine.h	/^#define ENGINE_PROMOTION_QUEEN /;"	d
+ENGINE_PROMOTION_ROOK	engine/engine.h	/^#define ENGINE_PROMOTION_ROOK /;"	d
+ENGINE_RESULT_BLACK_MATES	engine/engine.h	/^#define ENGINE_RESULT_BLACK_MATES /;"	d
+ENGINE_RESULT_DRAW_FIFTY_MOVE	engine/engine.h	/^#define ENGINE_RESULT_DRAW_FIFTY_MOVE /;"	d
+ENGINE_RESULT_DRAW_INSUFFICIENT_MATERIAL	engine/engine.h	/^#define ENGINE_RESULT_DRAW_INSUFFICIENT_MATERIAL /;"	d
+ENGINE_RESULT_DRAW_REPETITION	engine/engine.h	/^#define ENGINE_RESULT_DRAW_REPETITION /;"	d
+ENGINE_RESULT_DRAW_STALE_MATE	engine/engine.h	/^#define ENGINE_RESULT_DRAW_STALE_MATE /;"	d
+ENGINE_RESULT_ILLEGAL_MOVE	engine/engine.h	/^#define ENGINE_RESULT_ILLEGAL_MOVE /;"	d
+ENGINE_RESULT_NONE	engine/engine.h	/^#define ENGINE_RESULT_NONE /;"	d
+ENGINE_RESULT_WHITE_MATES	engine/engine.h	/^#define ENGINE_RESULT_WHITE_MATES /;"	d
+ENGINE_SEARCH_COMPLETED	engine/engine.h	/^#define ENGINE_SEARCH_COMPLETED /;"	d
+ENGINE_SEARCH_NONE	engine/engine.h	/^#define ENGINE_SEARCH_NONE /;"	d
+ENGINE_SEARCH_RUNNING	engine/engine.h	/^#define ENGINE_SEARCH_RUNNING /;"	d
+ENGINE_apply_move	engine/engine.c	/^int ENGINE_apply_move(engine_state_t *state, const int pos_from, const int pos_to, const int pro/;"	f	typeref:typename:int
+ENGINE_apply_move_san	engine/engine.c	/^int ENGINE_apply_move_san(engine_state_t *state, const char *san)$/;"	f	typeref:typename:int
+ENGINE_create	engine/engine.c	/^void ENGINE_create(engine_state_t **state)$/;"	f	typeref:typename:void
+ENGINE_destroy	engine/engine.c	/^void ENGINE_destroy(engine_state_t *state)$/;"	f	typeref:typename:void
+ENGINE_init	engine/engine.c	/^static void ENGINE_init()$/;"	f	typeref:typename:void	file:
+ENGINE_register_search_output_cb	engine/engine.c	/^void ENGINE_register_search_output_cb(engine_state_t *state, thinking_output_cb think_cb)$/;"	f	typeref:typename:void
+ENGINE_reset	engine/engine.c	/^void ENGINE_reset(engine_state_t *state)$/;"	f	typeref:typename:void
+ENGINE_resize_hashtable	engine/engine.c	/^void ENGINE_resize_hashtable(engine_state_t *state, const int size_mb)$/;"	f	typeref:typename:void
+ENGINE_result	engine/engine.c	/^static int ENGINE_result(const engine_state_t *state)$/;"	f	typeref:typename:int	file:
+ENGINE_search	engine/engine.c	/^int ENGINE_search(engine_state_t *state, const int moves_left_in_period, const int time_left_ms,/;"	f	typeref:typename:int
+ENGINE_search_stop	engine/engine.c	/^void ENGINE_search_stop(engine_state_t *state)$/;"	f	typeref:typename:void
+ENGINE_set_board	engine/engine.c	/^int ENGINE_set_board(engine_state_t *state, const char *fen)$/;"	f	typeref:typename:int
+EVAL_H	engine/eval.h	/^#define EVAL_H$/;"	d
+EVAL_evaluate_board	engine/eval.c	/^short EVAL_evaluate_board(const chess_state_t *s)$/;"	f	typeref:typename:short
+EVAL_fifty_move_rule	engine/eval.c	/^int EVAL_fifty_move_rule(const chess_state_t *s)$/;"	f	typeref:typename:int
+EVAL_game_progress	engine/eval.c	/^static int EVAL_game_progress(short material[2])$/;"	f	typeref:typename:int	file:
+EVAL_insufficient_material	engine/eval.c	/^int EVAL_insufficient_material(const chess_state_t *s)$/;"	f	typeref:typename:int
+EVAL_pawn_shield	engine/eval.c	/^static short EVAL_pawn_shield(const chess_state_t *s)$/;"	f	typeref:typename:short	file:
+EVAL_pawn_types	engine/eval.c	/^void EVAL_pawn_types(const chess_state_t *s, bitboard_t attack[NUM_COLORS], bitboard_t *passedPa/;"	f	typeref:typename:void
+EVAL_position_is_attacked	engine/eval.c	/^int EVAL_position_is_attacked(const chess_state_t *s, const int color, const int pos)$/;"	f	typeref:typename:int
+F1	engine/defines.h	/^#define F1 /;"	d
+F2	engine/defines.h	/^#define F2 /;"	d
+F3	engine/defines.h	/^#define F3 /;"	d
+F4	engine/defines.h	/^#define F4 /;"	d
+F5	engine/defines.h	/^#define F5 /;"	d
+F6	engine/defines.h	/^#define F6 /;"	d
+F7	engine/defines.h	/^#define F7 /;"	d
+F8	engine/defines.h	/^#define F8 /;"	d
+FEN_H	engine/fen.h	/^#define FEN_H$/;"	d
+FEN_read	engine/fen.c	/^int FEN_read(chess_state_t *state, const char *fen)$/;"	f	typeref:typename:int
+G1	engine/defines.h	/^#define G1 /;"	d
+G2	engine/defines.h	/^#define G2 /;"	d
+G3	engine/defines.h	/^#define G3 /;"	d
+G4	engine/defines.h	/^#define G4 /;"	d
+G5	engine/defines.h	/^#define G5 /;"	d
+G6	engine/defines.h	/^#define G6 /;"	d
+G7	engine/defines.h	/^#define G7 /;"	d
+G8	engine/defines.h	/^#define G8 /;"	d
+H1	engine/defines.h	/^#define H1 /;"	d
+H2	engine/defines.h	/^#define H2 /;"	d
+H3	engine/defines.h	/^#define H3 /;"	d
+H4	engine/defines.h	/^#define H4 /;"	d
+H5	engine/defines.h	/^#define H5 /;"	d
+H6	engine/defines.h	/^#define H6 /;"	d
+H7	engine/defines.h	/^#define H7 /;"	d
+H8	engine/defines.h	/^#define H8 /;"	d
+HASHTABLE_H	engine/hashtable.h	/^#define HASHTABLE_H$/;"	d
+HASHTABLE_create	engine/hashtable.c	/^hashtable_t *HASHTABLE_create(const int size_mb)$/;"	f	typeref:typename:hashtable_t *
+HASHTABLE_destroy	engine/hashtable.c	/^void HASHTABLE_destroy(hashtable_t *h)$/;"	f	typeref:typename:void
+HASHTABLE_transition_prefetch	engine/hashtable.h	/^static inline void HASHTABLE_transition_prefetch(const hashtable_t *h, const bitboard_t hash)$/;"	f	typeref:typename:void
+HASHTABLE_transition_retrieve	engine/hashtable.c	/^transposition_entry_t *HASHTABLE_transition_retrieve(const hashtable_t *h, const bitboard_t hash/;"	f	typeref:typename:transposition_entry_t *
+HASHTABLE_transition_store	engine/hashtable.c	/^void HASHTABLE_transition_store(hashtable_t *h, const bitboard_t hash, const unsigned char depth/;"	f	typeref:typename:void
+HISTORY_H	engine/history.h	/^#define HISTORY_H$/;"	d
+HISTORY_create	engine/history.c	/^history_t *HISTORY_create()$/;"	f	typeref:typename:history_t *
+HISTORY_destroy	engine/history.c	/^void HISTORY_destroy(history_t *h)$/;"	f	typeref:typename:void
+HISTORY_is_repetition	engine/history.c	/^int HISTORY_is_repetition(const history_t *h, const int halfmove_clock)$/;"	f	typeref:typename:int
+HISTORY_is_threefold_repetition	engine/history.c	/^int HISTORY_is_threefold_repetition(const history_t *h, const int halfmove_clock)$/;"	f	typeref:typename:int
+HISTORY_pop	engine/history.c	/^void HISTORY_pop(history_t *h)$/;"	f	typeref:typename:void
+HISTORY_push	engine/history.c	/^void HISTORY_push(history_t *h, const bitboard_t hash)$/;"	f	typeref:typename:void
+HISTORY_reset	engine/history.c	/^void HISTORY_reset(history_t *h)$/;"	f	typeref:typename:void
+HISTORY_reset_after_load	engine/history.c	/^void HISTORY_reset_after_load(history_t *h, const chess_state_t *s)$/;"	f	typeref:typename:void
+KING	engine/defines.h	/^#define KING /;"	d
+KNIGHT	engine/defines.h	/^#define KNIGHT /;"	d
+KNIGHT_VALUE	engine/eval.h	/^#define KNIGHT_VALUE /;"	d
+MAX_SEARCH_DEPTH	engine/defines.h	/^#define MAX_SEARCH_DEPTH /;"	d
+MOVEGEN_all_pawns	engine/movegen.c	/^void MOVEGEN_all_pawns(const int color, const bitboard_t pawns, const bitboard_t own, const bitb/;"	f	typeref:typename:void
+MOVEGEN_bishop	engine/movegen.c	/^void MOVEGEN_bishop(const int position, const bitboard_t own, const bitboard_t opponent, bitboar/;"	f	typeref:typename:void
+MOVEGEN_king	engine/movegen.c	/^void MOVEGEN_king(const int position, const bitboard_t own, const bitboard_t opponent, bitboard_/;"	f	typeref:typename:void
+MOVEGEN_knight	engine/movegen.c	/^void MOVEGEN_knight(const int position, const bitboard_t own, const bitboard_t opponent, bitboar/;"	f	typeref:typename:void
+MOVEGEN_piece	engine/movegen.c	/^void MOVEGEN_piece(const int type, const int position, const bitboard_t own, const bitboard_t op/;"	f	typeref:typename:void
+MOVEGEN_queen	engine/movegen.c	/^void MOVEGEN_queen(const int position, const bitboard_t own, const bitboard_t opponent, bitboard/;"	f	typeref:typename:void
+MOVEGEN_rook	engine/movegen.c	/^void MOVEGEN_rook(const int position, const bitboard_t own, const bitboard_t opponent, bitboard_/;"	f	typeref:typename:void
+MOVEORDER_H	engine/moveorder.h	/^#define MOVEORDER_H$/;"	d
+MOVEORDER_best_move_first	engine/moveorder.c	/^void MOVEORDER_best_move_first(move_t moves[], int num_moves)$/;"	f	typeref:typename:void
+MOVEORDER_rate_moves	engine/moveorder.c	/^void MOVEORDER_rate_moves(const chess_state_t *s, move_t moves[], int num_moves, const move_t ha/;"	f	typeref:typename:void
+MOVEORDER_rate_moves_quiescence	engine/moveorder.c	/^void MOVEORDER_rate_moves_quiescence(const chess_state_t *s, move_t moves[], int num_moves)$/;"	f	typeref:typename:void
+MOVE_BISHOP_PROMOTION	engine/state.h	/^#define MOVE_BISHOP_PROMOTION /;"	d
+MOVE_BISHOP_PROMOTION_CAPTURE	engine/state.h	/^#define MOVE_BISHOP_PROMOTION_CAPTURE /;"	d
+MOVE_CAPTURE	engine/state.h	/^#define MOVE_CAPTURE /;"	d
+MOVE_CAPTURE_TYPE_MASK	engine/state.h	/^#define MOVE_CAPTURE_TYPE_MASK /;"	d
+MOVE_CAPTURE_TYPE_SHIFT	engine/state.h	/^#define MOVE_CAPTURE_TYPE_SHIFT /;"	d
+MOVE_DOUBLE_PAWN_PUSH	engine/state.h	/^#define MOVE_DOUBLE_PAWN_PUSH /;"	d
+MOVE_EP_CAPTURE	engine/state.h	/^#define MOVE_EP_CAPTURE /;"	d
+MOVE_GET_CAPTURE_TYPE	engine/state.h	/^#define MOVE_GET_CAPTURE_TYPE(/;"	d
+MOVE_GET_POS_FROM	engine/state.h	/^#define MOVE_GET_POS_FROM(/;"	d
+MOVE_GET_POS_TO	engine/state.h	/^#define MOVE_GET_POS_TO(/;"	d
+MOVE_GET_SPECIAL_FLAGS	engine/state.h	/^#define MOVE_GET_SPECIAL_FLAGS(/;"	d
+MOVE_GET_TYPE	engine/state.h	/^#define MOVE_GET_TYPE(/;"	d
+MOVE_H	engine/movegen.h	/^#define MOVE_H$/;"	d
+MOVE_IS_CAPTURE	engine/state.h	/^#define MOVE_IS_CAPTURE(/;"	d
+MOVE_IS_CAPTURE_OR_PROMOTION	engine/state.h	/^#define MOVE_IS_CAPTURE_OR_PROMOTION(/;"	d
+MOVE_IS_PROMOTION	engine/state.h	/^#define MOVE_IS_PROMOTION(/;"	d
+MOVE_KING_CASTLE	engine/state.h	/^#define MOVE_KING_CASTLE /;"	d
+MOVE_KNIGHT_PROMOTION	engine/state.h	/^#define MOVE_KNIGHT_PROMOTION /;"	d
+MOVE_KNIGHT_PROMOTION_CAPTURE	engine/state.h	/^#define MOVE_KNIGHT_PROMOTION_CAPTURE /;"	d
+MOVE_POS_FROM_MASK	engine/state.h	/^#define MOVE_POS_FROM_MASK /;"	d
+MOVE_POS_FROM_SHIFT	engine/state.h	/^#define MOVE_POS_FROM_SHIFT /;"	d
+MOVE_POS_TO_MASK	engine/state.h	/^#define MOVE_POS_TO_MASK /;"	d
+MOVE_POS_TO_SHIFT	engine/state.h	/^#define MOVE_POS_TO_SHIFT /;"	d
+MOVE_PROMOTION_TYPE	engine/state.h	/^#define MOVE_PROMOTION_TYPE(/;"	d
+MOVE_QUEEN_CASTLE	engine/state.h	/^#define MOVE_QUEEN_CASTLE /;"	d
+MOVE_QUEEN_PROMOTION	engine/state.h	/^#define MOVE_QUEEN_PROMOTION /;"	d
+MOVE_QUEEN_PROMOTION_CAPTURE	engine/state.h	/^#define MOVE_QUEEN_PROMOTION_CAPTURE /;"	d
+MOVE_QUIET	engine/state.h	/^#define MOVE_QUIET /;"	d
+MOVE_ROOK_PROMOTION	engine/state.h	/^#define MOVE_ROOK_PROMOTION /;"	d
+MOVE_ROOK_PROMOTION_CAPTURE	engine/state.h	/^#define MOVE_ROOK_PROMOTION_CAPTURE /;"	d
+MOVE_SCORE_MASK	engine/state.h	/^#define MOVE_SCORE_MASK /;"	d
+MOVE_SCORE_SHIFT	engine/state.h	/^#define MOVE_SCORE_SHIFT /;"	d
+MOVE_SPECIAL_FLAGS_MASK	engine/state.h	/^#define MOVE_SPECIAL_FLAGS_MASK /;"	d
+MOVE_SPECIAL_FLAGS_SHIFT	engine/state.h	/^#define MOVE_SPECIAL_FLAGS_SHIFT /;"	d
+MOVE_TYPE_MASK	engine/state.h	/^#define MOVE_TYPE_MASK /;"	d
+MOVE_TYPE_SHIFT	engine/state.h	/^#define MOVE_TYPE_SHIFT /;"	d
+MUTEX_cond_create	engine/thread.c	/^void MUTEX_cond_create(cond_t *cv)$/;"	f	typeref:typename:void
+MUTEX_cond_destroy	engine/thread.c	/^void MUTEX_cond_destroy(cond_t *cv)$/;"	f	typeref:typename:void
+MUTEX_cond_signal	engine/thread.c	/^void MUTEX_cond_signal(cond_t *cv)$/;"	f	typeref:typename:void
+MUTEX_cond_wait	engine/thread.c	/^void MUTEX_cond_wait(mutex_t *mutex, cond_t *cv)$/;"	f	typeref:typename:void
+MUTEX_create	engine/thread.c	/^void MUTEX_create(mutex_t *mutex)$/;"	f	typeref:typename:void
+MUTEX_destroy	engine/thread.c	/^void MUTEX_destroy(mutex_t *mutex)$/;"	f	typeref:typename:void
+MUTEX_lock	engine/thread.c	/^void MUTEX_lock(mutex_t *mutex)$/;"	f	typeref:typename:void
+MUTEX_unlock	engine/thread.c	/^void MUTEX_unlock(mutex_t *mutex)$/;"	f	typeref:typename:void
+NUM_COLORS	engine/defines.h	/^#define NUM_COLORS /;"	d
+NUM_FILES	engine/defines.h	/^#define NUM_FILES /;"	d
+NUM_POSITIONS	engine/defines.h	/^#define NUM_POSITIONS /;"	d
+NUM_RANKS	engine/defines.h	/^#define NUM_RANKS /;"	d
+NUM_THREADS	tuning/tuner.c	/^#define NUM_THREADS /;"	d	file:
+NUM_TYPES	engine/defines.h	/^#define NUM_TYPES /;"	d
+OCCUPIED	engine/state.h	/^#define OCCUPIED /;"	d
+OPENINGBOOK_H	engine/openingbook.h	/^#define OPENINGBOOK_H$/;"	d
+OPENINGBOOK_create	engine/openingbook.c	/^openingbook_t *OPENINGBOOK_create(const char *filename)$/;"	f	typeref:typename:openingbook_t *
+OPENINGBOOK_destroy	engine/openingbook.c	/^void OPENINGBOOK_destroy(openingbook_t *o)$/;"	f	typeref:typename:void
+OPENINGBOOK_find_node	engine/openingbook.c	/^static int OPENINGBOOK_find_node(const openingbook_t *o, uint64_t hash, int *first_node_index)$/;"	f	typeref:typename:int	file:
+OPENINGBOOK_get_move	engine/openingbook.c	/^move_t OPENINGBOOK_get_move(const openingbook_t *o, const chess_state_t *s)$/;"	f	typeref:typename:move_t
+OPENINGBOOK_read_node	engine/openingbook.c	/^static void OPENINGBOOK_read_node(FILE *f, openingbook_node_t *node)$/;"	f	typeref:typename:void	file:
+OPENINGBOOK_translate_move	engine/openingbook.c	/^static move_t OPENINGBOOK_translate_move(const chess_state_t *s, uint16_t m)$/;"	f	typeref:typename:move_t	file:
+PAWN	engine/defines.h	/^#define PAWN /;"	d
+PAWN_VALUE	engine/eval.h	/^#define PAWN_VALUE /;"	d
+PROGRAM_NAME	interface/CMakeLists.txt	/^set(PROGRAM_NAME ${PROGRAM_NAME}-${TARGET_SUFFIX})$/;"	v
+QUEEN	engine/defines.h	/^#define QUEEN /;"	d
+QUEEN_VALUE	engine/eval.h	/^#define QUEEN_VALUE /;"	d
+ROOK	engine/defines.h	/^#define ROOK /;"	d
+ROOK_VALUE	engine/eval.h	/^#define ROOK_VALUE /;"	d
+SAN_H	engine/san.h	/^#define SAN_H$/;"	d
+SAN_parse_move	engine/san.c	/^move_t SAN_parse_move(const chess_state_t *state, const char *san)$/;"	f	typeref:typename:move_t
+SEARCH_H	engine/search.h	/^#define SEARCH_H$/;"	d
+SEARCH_ITERATIONS_BETWEEN_CLOCK_CHECK	engine/search.h	/^#define SEARCH_ITERATIONS_BETWEEN_CLOCK_CHECK /;"	d
+SEARCH_MAX_RESULT	engine/search.h	/^#define SEARCH_MAX_RESULT(/;"	d
+SEARCH_MIN_RESULT	engine/search.h	/^#define SEARCH_MIN_RESULT(/;"	d
+SEARCH_MTDF_H	engine/search_mtdf.h	/^#define SEARCH_MTDF_H$/;"	d
+SEARCH_NULLWINDOW_H	engine/search_nullwindow.h	/^#define SEARCH_NULLWINDOW_H$/;"	d
+SEARCH_find_pv	engine/search.c	/^int SEARCH_find_pv(const chess_state_t *state, hashtable_t *hashtable, int depth, int *pos_from,/;"	f	typeref:typename:int
+SEARCH_is_check	engine/search.c	/^int SEARCH_is_check(const chess_state_t *s, const int color)$/;"	f	typeref:typename:int
+SEARCH_is_mate	engine/search.c	/^int SEARCH_is_mate(const chess_state_t *state)$/;"	f	typeref:typename:int
+SEARCH_mtdf	engine/search_mtdf.c	/^short SEARCH_mtdf(const chess_state_t *s, search_state_t *search_state, const unsigned char dept/;"	f	typeref:typename:short
+SEARCH_mtdf_iterative	engine/search_mtdf.c	/^short SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state, move_t *move)$/;"	f	typeref:typename:short
+SEARCH_nullwindow	engine/search_nullwindow.c	/^short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state, unsigned char /;"	f	typeref:typename:short
+SEARCH_nullwindow_quiescence	engine/search_nullwindow.c	/^short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *search_state, sho/;"	f	typeref:typename:short
+SEARCH_perform_search	engine/search.c	/^move_t SEARCH_perform_search(const chess_state_t *s, search_state_t *search_state, short *score)$/;"	f	typeref:typename:move_t
+SEARCH_transpositiontable_retrieve	engine/search_nullwindow.c	/^static inline short SEARCH_transpositiontable_retrieve(const hashtable_t *hashtable, const bitbo/;"	f	typeref:typename:short	file:
+SEARCH_transpositiontable_store	engine/search_nullwindow.c	/^static inline void SEARCH_transpositiontable_store(hashtable_t *hashtable, const bitboard_t hash/;"	f	typeref:typename:void	file:
+SEE_H	engine/see.h	/^#define SEE_H$/;"	d
+SEE_find_all_attackers	engine/see.c	/^static bitboard_t SEE_find_all_attackers(const chess_state_t *s, const bitboard_t occupied, cons/;"	f	typeref:typename:bitboard_t	file:
+SEE_find_least_attacker	engine/see.c	/^static int SEE_find_least_attacker(const chess_state_t *s, bitboard_t *occupied, bitboard_t *att/;"	f	typeref:typename:int	file:
+SSE_capture_less_valuable	engine/see.c	/^int SSE_capture_less_valuable(const move_t move)$/;"	f	typeref:typename:int
+STATE_EN_PASSANT_NONE	engine/state.h	/^#define STATE_EN_PASSANT_NONE /;"	d
+STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK	engine/state.h	/^#define STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK /;"	d
+STATE_FLAGS_KING_CASTLE_POSSIBLE_SHIFT	engine/state.h	/^#define STATE_FLAGS_KING_CASTLE_POSSIBLE_SHIFT /;"	d
+STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK	engine/state.h	/^#define STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK /;"	d
+STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_SHIFT	engine/state.h	/^#define STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_SHIFT /;"	d
+STATE_H	engine/state.h	/^#define STATE_H$/;"	d
+STATE_add_move_to_list	engine/state.c	/^static void STATE_add_move_to_list(int pos_to, int pos_from, int type, int captured_type, int sp/;"	f	typeref:typename:void	file:
+STATE_add_move_to_list_promotion	engine/state.c	/^static int STATE_add_move_to_list_promotion(int pos_to, int pos_from, move_t *moves)$/;"	f	typeref:typename:int	file:
+STATE_add_move_to_list_promotion_capture	engine/state.c	/^static int STATE_add_move_to_list_promotion_capture(int pos_to, int pos_from, int captured_type,/;"	f	typeref:typename:int	file:
+STATE_add_moves_to_list	engine/state.c	/^static int STATE_add_moves_to_list(bitboard_t bitboard_to, int pos_from, int type, int captured_/;"	f	typeref:typename:int	file:
+STATE_add_pawn_captures_promotions	engine/state.c	/^static int STATE_add_pawn_captures_promotions(const chess_state_t *s, bitboard_t pawn_captures_f/;"	f	typeref:typename:int	file:
+STATE_add_pawn_quiet	engine/state.c	/^static int STATE_add_pawn_quiet(const chess_state_t *s, bitboard_t possible_moves, bitboard_t pa/;"	f	typeref:typename:int	file:
+STATE_apply_move	engine/state.c	/^int STATE_apply_move(chess_state_t *s, const move_t move)$/;"	f	typeref:typename:int
+STATE_board_print_debug	engine/state.c	/^void STATE_board_print_debug(const chess_state_t *s)$/;"	f	typeref:typename:void
+STATE_compute_hash	engine/state.c	/^void STATE_compute_hash(chess_state_t *s)$/;"	f	typeref:typename:void
+STATE_generate_moves	engine/state.c	/^int STATE_generate_moves(const chess_state_t *s, move_t *moves)$/;"	f	typeref:typename:int
+STATE_generate_moves_quiescence	engine/state.c	/^int STATE_generate_moves_quiescence(const chess_state_t *s, move_t *moves)$/;"	f	typeref:typename:int
+STATE_move_print_debug	engine/state.c	/^void STATE_move_print_debug(const move_t move)$/;"	f	typeref:typename:void
+STATE_reset	engine/state.c	/^void STATE_reset(chess_state_t *s)$/;"	f	typeref:typename:void
+STATE_risk_zugzwang	engine/state.c	/^int STATE_risk_zugzwang(const chess_state_t *s)$/;"	f	typeref:typename:int
+THREAD_H	engine/thread.h	/^#define THREAD_H$/;"	d
+THREAD_create	engine/thread.c	/^void THREAD_create(thread_t *thread, void *(*thread_function)(void*), void *arg)$/;"	f	typeref:typename:void
+THREAD_join	engine/thread.c	/^void THREAD_join(thread_t thread)$/;"	f	typeref:typename:void
+TTABLE_TYPE_LOWER_BOUND	engine/hashtable.h	/^#define TTABLE_TYPE_LOWER_BOUND /;"	d
+TTABLE_TYPE_UPPER_BOUND	engine/hashtable.h	/^#define TTABLE_TYPE_UPPER_BOUND /;"	d
+WHITE	engine/defines.h	/^#define WHITE /;"	d
+WHITE_PIECES	engine/state.h	/^#define WHITE_PIECES /;"	d
+__anon30ac37760108	engine/search.h	/^typedef struct {$/;"	s
+__anon7038b0880108	engine/eval.h	/^typedef struct {$/;"	s
+__anon7038b0880208	engine/eval.h	/^    struct {$/;"	s	struct:__anon7038b0880108
+__anon7038b0880308	engine/eval.h	/^    struct {$/;"	s	struct:__anon7038b0880108
+__anon7038b0880408	engine/eval.h	/^    struct {$/;"	s	struct:__anon7038b0880108
+__anon7038b0880508	engine/eval.h	/^    struct {$/;"	s	struct:__anon7038b0880108
+__anonda97eacc0108	engine/hashtable.h	/^typedef struct {$/;"	s
+__anonda97eacc0208	engine/hashtable.h	/^typedef struct {$/;"	s
+__anondb873db10108	interface/cecp.c	/^typedef struct {$/;"	s	file:
+__anondc88bce80108	tuning/tuner.c	/^typedef struct {$/;"	s	file:
+_history_t	engine/history.c	/^struct _history_t$/;"	s	file:
+_openingbook_node_t	engine/openingbook.c	/^typedef struct _openingbook_node_t {$/;"	s	file:
+_openingbook_t	engine/openingbook.c	/^struct _openingbook_t {$/;"	s	file:
+abort_search	engine/search.h	/^    int                 abort_search;$/;"	m	struct:__anon30ac37760108	typeref:typename:int
+abs	engine/search_mtdf.c	/^#define abs(/;"	d	file:
+best_move	engine/hashtable.h	/^    move_t          best_move;$/;"	m	struct:__anonda97eacc0108	typeref:typename:move_t
+bishop	engine/eval.h	/^        int bishop[14];$/;"	m	struct:__anon7038b0880108::__anon7038b0880308	typeref:typename:int[14]
+bishop	engine/eval.h	/^        int bishop[64];$/;"	m	struct:__anon7038b0880108::__anon7038b0880208	typeref:typename:int[64]
+bishop	engine/eval.h	/^        int bishop[8];$/;"	m	struct:__anon7038b0880108::__anon7038b0880408	typeref:typename:int[8]
+bitboard	engine/state.h	/^    bitboard_t    bitboard[NUM_COLORS*NUM_TYPES+1];$/;"	m	struct:chess_state_t	typeref:typename:bitboard_t[]
+bitboard_between	engine/bitboard.c	/^bitboard_t bitboard_between[NUM_POSITIONS][NUM_POSITIONS];$/;"	v	typeref:typename:bitboard_t[][]
+bitboard_bishop	engine/bitboard.c	/^bitboard_t bitboard_bishop[NUM_POSITIONS];$/;"	v	typeref:typename:bitboard_t[]
+bitboard_down	engine/bitboard.c	/^bitboard_t bitboard_down[NUM_POSITIONS];$/;"	v	typeref:typename:bitboard_t[]
+bitboard_down_left	engine/bitboard.c	/^bitboard_t bitboard_down_left[NUM_POSITIONS];$/;"	v	typeref:typename:bitboard_t[]
+bitboard_down_right	engine/bitboard.c	/^bitboard_t bitboard_down_right[NUM_POSITIONS];$/;"	v	typeref:typename:bitboard_t[]
+bitboard_ep_capture	engine/bitboard.c	/^bitboard_t bitboard_ep_capture[NUM_POSITIONS];$/;"	v	typeref:typename:bitboard_t[]
+bitboard_ep_capturers	engine/bitboard.c	/^bitboard_t bitboard_ep_capturers[NUM_COLORS][NUM_FILES];$/;"	v	typeref:typename:bitboard_t[][]
+bitboard_file	engine/bitboard.c	/^bitboard_t bitboard_file[NUM_POSITIONS];$/;"	v	typeref:typename:bitboard_t[]
+bitboard_king	engine/bitboard.c	/^bitboard_t bitboard_king[NUM_POSITIONS];$/;"	v	typeref:typename:bitboard_t[]
+bitboard_king_castle_empty	engine/bitboard.c	/^bitboard_t bitboard_king_castle_empty[NUM_COLORS];$/;"	v	typeref:typename:bitboard_t[]
+bitboard_knight	engine/bitboard.c	/^bitboard_t bitboard_knight[NUM_POSITIONS];$/;"	v	typeref:typename:bitboard_t[]
+bitboard_left	engine/bitboard.c	/^bitboard_t bitboard_left[NUM_POSITIONS];$/;"	v	typeref:typename:bitboard_t[]
+bitboard_pawn_capture	engine/bitboard.c	/^bitboard_t bitboard_pawn_capture[NUM_COLORS][NUM_POSITIONS];$/;"	v	typeref:typename:bitboard_t[][]
+bitboard_pawn_move	engine/bitboard.c	/^bitboard_t bitboard_pawn_move[NUM_COLORS][NUM_POSITIONS];$/;"	v	typeref:typename:bitboard_t[][]
+bitboard_queen_castle_empty	engine/bitboard.c	/^bitboard_t bitboard_queen_castle_empty[NUM_COLORS];$/;"	v	typeref:typename:bitboard_t[]
+bitboard_rank	engine/bitboard.c	/^bitboard_t bitboard_rank[NUM_POSITIONS];$/;"	v	typeref:typename:bitboard_t[]
+bitboard_right	engine/bitboard.c	/^bitboard_t bitboard_right[NUM_POSITIONS];$/;"	v	typeref:typename:bitboard_t[]
+bitboard_rook	engine/bitboard.c	/^bitboard_t bitboard_rook[NUM_POSITIONS];$/;"	v	typeref:typename:bitboard_t[]
+bitboard_start_position	engine/bitboard.c	/^bitboard_t bitboard_start_position[NUM_COLORS][NUM_TYPES-1];$/;"	v	typeref:typename:bitboard_t[][]
+bitboard_t	engine/bitboard.h	/^typedef uint64_t bitboard_t;$/;"	t	typeref:typename:uint64_t
+bitboard_up	engine/bitboard.c	/^bitboard_t bitboard_up[NUM_POSITIONS];$/;"	v	typeref:typename:bitboard_t[]
+bitboard_up_left	engine/bitboard.c	/^bitboard_t bitboard_up_left[NUM_POSITIONS];$/;"	v	typeref:typename:bitboard_t[]
+bitboard_up_right	engine/bitboard.c	/^bitboard_t bitboard_up_right[NUM_POSITIONS];$/;"	v	typeref:typename:bitboard_t[]
+bitboard_zobrist	engine/bitboard_zobrist.c	/^const bitboard_t bitboard_zobrist[NUM_COLORS][NUM_TYPES-1][NUM_POSITIONS] = {$/;"	v	typeref:typename:const bitboard_t[][][]
+bitboard_zobrist_castling	engine/bitboard_zobrist.c	/^const bitboard_t bitboard_zobrist_castling[NUM_COLORS][4] = {$/;"	v	typeref:typename:const bitboard_t[][4]
+bitboard_zobrist_color	engine/bitboard_zobrist.c	/^const bitboard_t bitboard_zobrist_color = 0xF8D626AAAF278509;$/;"	v	typeref:typename:const bitboard_t
+bitboard_zobrist_ep	engine/bitboard_zobrist.c	/^const bitboard_t bitboard_zobrist_ep[NUM_FILES+1] = {$/;"	v	typeref:typename:const bitboard_t[]
+buf	tuning/tuner.c	/^    const char *buf;$/;"	m	struct:__anondc88bce80108	typeref:typename:const char *	file:
+castling	engine/state.h	/^    char          castling[2];$/;"	m	struct:chess_state_t	typeref:typename:char[2]
+cecp_features	interface/cecp_features.h	/^const char *cecp_features[] =$/;"	v	typeref:typename:const char * []
+chess_state	engine/engine.c	/^    chess_state_t       *chess_state;$/;"	m	struct:engine_state	typeref:typename:chess_state_t *	file:
+chess_state_t	engine/state.h	/^typedef struct chess_state_t {$/;"	s
+chess_state_t	engine/state.h	/^} chess_state_t;$/;"	t	typeref:struct:chess_state_t
+cmd_usermove	interface/cecp.c	/^void cmd_usermove(state_t *state, const char *move_str, int respond_to_move)$/;"	f	typeref:typename:void
+cond_t	engine/thread.h	/^typedef CONDITION_VARIABLE cond_t;$/;"	t	typeref:typename:CONDITION_VARIABLE
+cond_t	engine/thread.h	/^typedef pthread_cond_t cond_t;$/;"	t	typeref:typename:pthread_cond_t
+cv	interface/cecp.c	/^    cond_t cv;$/;"	m	struct:__anondb873db10108	typeref:typename:cond_t	file:
+depth	engine/hashtable.h	/^    unsigned char   depth;$/;"	m	struct:__anonda97eacc0108	typeref:typename:unsigned char
+distance	engine/bitboard.c	/^char       distance[NUM_POSITIONS][NUM_POSITIONS];$/;"	v	typeref:typename:char[][]
+engine	interface/cecp.c	/^    engine_state_t *engine;$/;"	m	struct:__anondb873db10108	typeref:typename:engine_state_t *	file:
+engine_state	engine/engine.c	/^struct engine_state {$/;"	s	file:
+engine_state_t	engine/engine.h	/^typedef struct engine_state engine_state_t;$/;"	t	typeref:struct:engine_state
+entries	engine/hashtable.h	/^    transposition_entry_t   *entries;$/;"	m	struct:__anonda97eacc0208	typeref:typename:transposition_entry_t *
+ep_file	engine/state.h	/^    unsigned char ep_file;$/;"	m	struct:chess_state_t	typeref:typename:unsigned char
+error	tuning/tuner.c	/^    float error;$/;"	m	struct:__anondc88bce80108	typeref:typename:float	file:
+error	tuning/tuner.c	/^float error(float result, float score)$/;"	f	typeref:typename:float
+eval_param_t	engine/eval.h	/^} eval_param_t;$/;"	t	typeref:struct:__anon7038b0880108
+files	engine/CMakeLists.txt	/^set(files$/;"	v
+files	interface/CMakeLists.txt	/^set(files$/;"	v
+flag_forced	interface/cecp.c	/^    int flag_forced;$/;"	m	struct:__anondb873db10108	typeref:typename:int	file:
+flag_pondering	interface/cecp.c	/^    int flag_pondering;             \/* Ponder between moves                             *\/$/;"	m	struct:__anondb873db10108	typeref:typename:int	file:
+flag_quit	interface/cecp.c	/^    int flag_quit;$/;"	m	struct:__anondb873db10108	typeref:typename:int	file:
+flag_searching	interface/cecp.c	/^    int flag_searching;             \/* Is currently searching for a move                *\/$/;"	m	struct:__anondb873db10108	typeref:typename:int	file:
+get_move	tests/test_see.c	/^move_t get_move(const chess_state_t *s, int pos_from, int pos_to)$/;"	f	typeref:typename:move_t
+halfmove_clock	engine/state.h	/^    char          halfmove_clock;$/;"	m	struct:chess_state_t	typeref:typename:char
+hash	engine/hashtable.h	/^    bitboard_t      hash;$/;"	m	struct:__anonda97eacc0108	typeref:typename:bitboard_t
+hash	engine/history.c	/^    bitboard_t hash[1024];$/;"	m	struct:_history_t	typeref:typename:bitboard_t[1024]	file:
+hash	engine/openingbook.c	/^    uint64_t    hash;$/;"	m	struct:_openingbook_node_t	typeref:typename:uint64_t	file:
+hash	engine/state.h	/^    bitboard_t    hash;$/;"	m	struct:chess_state_t	typeref:typename:bitboard_t
+hash_test	tests/test_polyglot.c	/^void hash_test(const char *fen, uint64_t hash)$/;"	f	typeref:typename:void
+hashtable	engine/engine.c	/^    hashtable_t         *hashtable;$/;"	m	struct:engine_state	typeref:typename:hashtable_t *	file:
+hashtable	engine/search.h	/^    hashtable_t         *hashtable;$/;"	m	struct:__anon30ac37760108	typeref:typename:hashtable_t *
+hashtable_t	engine/hashtable.h	/^} hashtable_t;$/;"	t	typeref:struct:__anonda97eacc0208
+history	engine/engine.c	/^    history_t           *history;$/;"	m	struct:engine_state	typeref:typename:history_t *	file:
+history	engine/search.h	/^    history_t           *history;$/;"	m	struct:__anon30ac37760108	typeref:typename:history_t *
+history_heuristic	engine/search.h	/^    int                 history_heuristic[2][64][64];$/;"	m	struct:__anon30ac37760108	typeref:typename:int[2][64][64]
+history_t	engine/history.h	/^typedef struct _history_t history_t;$/;"	t	typeref:struct:_history_t
+idx	engine/history.c	/^    int idx;$/;"	m	struct:_history_t	typeref:typename:int	file:
+index	tuning/tuner.c	/^    int index;$/;"	m	struct:__anondc88bce80108	typeref:typename:int	file:
+key_mask	engine/hashtable.h	/^    bitboard_t              key_mask;$/;"	m	struct:__anonda97eacc0208	typeref:typename:bitboard_t
+killer_move	engine/search.h	/^    move_t              killer_move[MAX_SEARCH_DEPTH+1][2];$/;"	m	struct:__anon30ac37760108	typeref:typename:move_t[][2]
+king_endgame	engine/eval.h	/^        int king_endgame[64];$/;"	m	struct:__anon7038b0880108::__anon7038b0880208	typeref:typename:int[64]
+king_midgame	engine/eval.h	/^        int king_midgame[64];$/;"	m	struct:__anon7038b0880108::__anon7038b0880208	typeref:typename:int[64]
+knight	engine/eval.h	/^        int knight[64];$/;"	m	struct:__anon7038b0880108::__anon7038b0880208	typeref:typename:int[64]
+knight	engine/eval.h	/^        int knight[8];$/;"	m	struct:__anon7038b0880108::__anon7038b0880408	typeref:typename:int[8]
+knight	engine/eval.h	/^        int knight[9];$/;"	m	struct:__anon7038b0880108::__anon7038b0880308	typeref:typename:int[9]
+knight_reduction	engine/eval.h	/^        int knight_reduction;$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int
+last_move	engine/state.h	/^    move_t        last_move;$/;"	m	struct:chess_state_t	typeref:typename:move_t
+log2i	engine/hashtable.c	/^static int log2i(int n)$/;"	f	typeref:typename:int	file:
+main	interface/cecp.c	/^int main(int argc, char **argv)$/;"	f	typeref:typename:int
+main	tests/test_bitboard.c	/^int main()$/;"	f	typeref:typename:int
+main	tests/test_eval.c	/^int main()$/;"	f	typeref:typename:int
+main	tests/test_moves.c	/^int main()$/;"	f	typeref:typename:int
+main	tests/test_performance.c	/^int main()$/;"	f	typeref:typename:int
+main	tests/test_perft.c	/^int main()$/;"	f	typeref:typename:int
+main	tests/test_polyglot.c	/^int main()$/;"	f	typeref:typename:int
+main	tests/test_see.c	/^int main()$/;"	f	typeref:typename:int
+main	tests/test_state.c	/^int main()$/;"	f	typeref:typename:int
+main	tuning/tuner.c	/^int main(int argc, char **argv)$/;"	f	typeref:typename:int
+max_depth	engine/search.h	/^    unsigned char       max_depth;$/;"	m	struct:__anon30ac37760108	typeref:typename:unsigned char
+mobility	engine/eval.h	/^    } mobility;$/;"	m	struct:__anon7038b0880108	typeref:struct:__anon7038b0880108::__anon7038b0880308
+move	engine/openingbook.c	/^    uint16_t    move;$/;"	m	struct:_openingbook_node_t	typeref:typename:uint16_t	file:
+move	tests/test_performance.c	/^void move(engine_state_t *engine, const char *move_white, const char *move_black)$/;"	f	typeref:typename:void
+move_t	engine/state.h	/^typedef uint32_t move_t;$/;"	t	typeref:typename:uint32_t
+mtx_engine	interface/cecp.c	/^    mutex_t mtx_engine;$/;"	m	struct:__anondb873db10108	typeref:typename:mutex_t	file:
+mutex_t	engine/thread.h	/^typedef CRITICAL_SECTION mutex_t;$/;"	t	typeref:typename:CRITICAL_SECTION
+mutex_t	engine/thread.h	/^typedef pthread_mutex_t mutex_t;$/;"	t	typeref:typename:pthread_mutex_t
+next_clock_check	engine/search.h	/^    int                 next_clock_check;$/;"	m	struct:__anon30ac37760108	typeref:typename:int
+nodes	engine/openingbook.c	/^    openingbook_node_t  *nodes;$/;"	m	struct:_openingbook_t	typeref:typename:openingbook_node_t *	file:
+num_half_moves	interface/cecp.c	/^    int num_half_moves;             \/* Number of half moves                             *\/$/;"	m	struct:__anondb873db10108	typeref:typename:int	file:
+num_nodes	engine/openingbook.c	/^    int                 num_nodes;$/;"	m	struct:_openingbook_t	typeref:typename:int	file:
+num_nodes_searched	engine/search.h	/^    unsigned int        num_nodes_searched;$/;"	m	struct:__anon30ac37760108	typeref:typename:unsigned int
+num_positions	tuning/tuner.c	/^    int num_positions;$/;"	m	struct:__anondc88bce80108	typeref:typename:int	file:
+obook	engine/engine.c	/^    openingbook_t       *obook;$/;"	m	struct:engine_state	typeref:typename:openingbook_t *	file:
+openingbook_node_t	engine/openingbook.c	/^} openingbook_node_t;$/;"	t	typeref:struct:_openingbook_node_t	file:
+openingbook_t	engine/openingbook.h	/^typedef struct _openingbook_t openingbook_t;$/;"	t	typeref:struct:_openingbook_t
+optimize	tuning/tuner.c	/^float optimize(const char *buf, int *x, int idx, float mse_start, int min, int max)$/;"	f	typeref:typename:float
+param	engine/eval.c	/^eval_param_t param =$/;"	v	typeref:typename:eval_param_t
+parse_move	interface/cecp.c	/^void parse_move(const char *move_str, int *pos_from, int *pos_to, int *promotion_type)$/;"	f	typeref:typename:void
+parse_time_control	interface/cecp.c	/^void parse_time_control(state_t *state, const char *level)$/;"	f	typeref:typename:void
+pawn	engine/eval.h	/^        int pawn[64];$/;"	m	struct:__anon7038b0880108::__anon7038b0880208	typeref:typename:int[64]
+pawn_guards_minor	engine/eval.h	/^        int pawn_guards_minor;$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int
+pawn_guards_pawn	engine/eval.h	/^        int pawn_guards_pawn;$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int
+pawn_isolated_e	engine/eval.h	/^        int pawn_isolated_e;$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int
+pawn_isolated_o	engine/eval.h	/^        int pawn_isolated_o;$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int
+pawn_passed_dist_kings_diff_e	engine/eval.h	/^        int pawn_passed_dist_kings_diff_e;$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int
+pawn_passed_dist_own_king_e	engine/eval.h	/^        int pawn_passed_dist_own_king_e;$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int
+pawn_passed_e	engine/eval.h	/^        int pawn_passed_e;$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int
+pawn_passed_o	engine/eval.h	/^        int pawn_passed_o;$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int
+pawn_passed_scaling	engine/eval.h	/^        int pawn_passed_scaling[8];$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int[8]
+pawn_passed_unblocked	engine/eval.h	/^        int pawn_passed_unblocked;$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int
+pawn_passed_unreachable_e	engine/eval.h	/^        int pawn_passed_unreachable_e;$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int
+pawn_shield_1	engine/eval.h	/^        int pawn_shield_1;$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int
+pawn_shield_2	engine/eval.h	/^        int pawn_shield_2;$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int
+perft	tests/test_perft.c	/^uint64_t perft(chess_state_t *state, int depth)$/;"	f	typeref:typename:uint64_t
+piece_value	engine/moveorder.c	/^static const int piece_value[6] = { 1, 3, 3, 5, 9, 20 };$/;"	v	typeref:typename:const int[6]	file:
+piece_value	engine/see.c	/^static short piece_value[] = { 1, 3, 3, 5, 9, 20 };$/;"	v	typeref:typename:short[]	file:
+player	engine/state.h	/^    unsigned char player;$/;"	m	struct:chess_state_t	typeref:typename:unsigned char
+positional	engine/eval.h	/^    } positional;$/;"	m	struct:__anon7038b0880108	typeref:struct:__anon7038b0880108::__anon7038b0880508
+pressure	engine/eval.h	/^    } pressure;$/;"	m	struct:__anon7038b0880108	typeref:struct:__anon7038b0880108::__anon7038b0880408
+print_mob	tuning/tuner.c	/^void print_mob(char *name, int *mob, int size)$/;"	f	typeref:typename:void
+print_params	tuning/tuner.c	/^void print_params()$/;"	f	typeref:typename:void
+print_psq	tuning/tuner.c	/^void print_psq(char *name, int psq[64])$/;"	f	typeref:typename:void
+print_value	tuning/tuner.c	/^void print_value(int val)$/;"	f	typeref:typename:void
+process_command	interface/cecp.c	/^static void process_command(char *command, state_t *state)$/;"	f	typeref:typename:void	file:
+psq	engine/eval.h	/^    } psq;$/;"	m	struct:__anon7038b0880108	typeref:struct:__anon7038b0880108::__anon7038b0880208
+queen	engine/eval.h	/^        int queen[64];$/;"	m	struct:__anon7038b0880108::__anon7038b0880208	typeref:typename:int[64]
+queen	engine/eval.h	/^        int queen[8];$/;"	m	struct:__anon7038b0880108::__anon7038b0880408	typeref:typename:int[8]
+queen_e	engine/eval.h	/^        int queen_e[28];$/;"	m	struct:__anon7038b0880108::__anon7038b0880308	typeref:typename:int[28]
+queen_o	engine/eval.h	/^        int queen_o[28];$/;"	m	struct:__anon7038b0880108::__anon7038b0880308	typeref:typename:int[28]
+rook	engine/eval.h	/^        int rook[64];$/;"	m	struct:__anon7038b0880108::__anon7038b0880208	typeref:typename:int[64]
+rook	engine/eval.h	/^        int rook[8];$/;"	m	struct:__anon7038b0880108::__anon7038b0880408	typeref:typename:int[8]
+rook_e	engine/eval.h	/^        int rook_e[15];$/;"	m	struct:__anon7038b0880108::__anon7038b0880308	typeref:typename:int[15]
+rook_halfopen_file_e	engine/eval.h	/^        int rook_halfopen_file_e;$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int
+rook_halfopen_file_o	engine/eval.h	/^        int rook_halfopen_file_o;$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int
+rook_o	engine/eval.h	/^        int rook_o[15];$/;"	m	struct:__anon7038b0880108::__anon7038b0880308	typeref:typename:int[15]
+rook_open_file_e	engine/eval.h	/^        int rook_open_file_e;$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int
+rook_open_file_o	engine/eval.h	/^        int rook_open_file_o;$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int
+rook_rearmost_pawn_e	engine/eval.h	/^        int rook_rearmost_pawn_e;$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int
+rook_rearmost_pawn_o	engine/eval.h	/^        int rook_rearmost_pawn_o;$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int
+run_test	tuning/tuner.c	/^float run_test(const char *buf)$/;"	f	typeref:typename:float
+scaling_endgame	engine/eval.h	/^        int scaling_endgame[5];$/;"	m	struct:__anon7038b0880108::__anon7038b0880408	typeref:typename:int[5]
+scaling_midgame	engine/eval.h	/^        int scaling_midgame[5];$/;"	m	struct:__anon7038b0880108::__anon7038b0880408	typeref:typename:int[5]
+score	engine/hashtable.h	/^    short           score;$/;"	m	struct:__anonda97eacc0108	typeref:typename:short
+search	interface/cecp.c	/^void search(state_t *state)$/;"	f	typeref:typename:void
+search_ponder	interface/cecp.c	/^void search_ponder(state_t *state)$/;"	f	typeref:typename:void
+search_start	interface/cecp.c	/^void search_start(state_t *state)$/;"	f	typeref:typename:void
+search_state	engine/engine.c	/^    search_state_t      search_state;$/;"	m	struct:engine_state	typeref:typename:search_state_t	file:
+search_state_t	engine/search.h	/^} search_state_t;$/;"	t	typeref:struct:__anon30ac37760108
+search_stop	interface/cecp.c	/^void search_stop(state_t *state)$/;"	f	typeref:typename:void
+search_thread	interface/cecp.c	/^void *search_thread(void *arg)$/;"	f	typeref:typename:void *
+see	engine/see.c	/^short see(const chess_state_t *s, const move_t move)$/;"	f	typeref:typename:short
+send_features	interface/cecp.c	/^void send_features()$/;"	f	typeref:typename:void
+send_move	interface/cecp.c	/^void send_move(int pos_from, int pos_to, int promotion_type)$/;"	f	typeref:typename:void
+send_result	interface/cecp.c	/^void send_result(int result)$/;"	f	typeref:typename:void
+send_search_output	interface/cecp.c	/^void send_search_output(int ply, int score, int time_ms, unsigned int nodes, int pv_length, int /;"	f	typeref:typename:void
+send_search_output	tests/test_performance.c	/^void send_search_output(int ply, int score, int time_ms, unsigned int nodes, int pv_length, int /;"	f	typeref:typename:void
+sigmoid	tuning/tuner.c	/^float sigmoid(float x)$/;"	f	typeref:typename:float
+sign	engine/eval.c	/^static const short sign[2] = { 1, -1 };$/;"	v	typeref:typename:const short[2]	file:
+start_time_ms	engine/search.h	/^    int64_t             start_time_ms;$/;"	m	struct:__anon30ac37760108	typeref:typename:int64_t
+state_clear	interface/cecp.c	/^void state_clear(state_t *state)$/;"	f	typeref:typename:void
+state_clear_time	interface/cecp.c	/^void state_clear_time(state_t *state)$/;"	f	typeref:typename:void
+state_t	interface/cecp.c	/^} state_t;$/;"	t	typeref:struct:__anondb873db10108	file:
+str_remove_newline	interface/cecp.c	/^void str_remove_newline(char *p)$/;"	f	typeref:typename:void
+tempo	engine/eval.h	/^        int tempo;$/;"	m	struct:__anon7038b0880108::__anon7038b0880508	typeref:typename:int
+test_BITBOARD_count_bits	tests/test_bitboard.c	/^void test_BITBOARD_count_bits()$/;"	f	typeref:typename:void
+test_BITBOARD_find_bit	tests/test_bitboard.c	/^void test_BITBOARD_find_bit()$/;"	f	typeref:typename:void
+test_bitboard	tests/CMakeLists.txt	/^    test_bitboard$/;"	t
+test_bitboard_size	tests/test_bitboard.c	/^void test_bitboard_size()$/;"	f	typeref:typename:void
+test_bitboard_unsigned	tests/test_bitboard.c	/^void test_bitboard_unsigned()$/;"	f	typeref:typename:void
+test_eval	tests/CMakeLists.txt	/^    test_eval$/;"	t
+test_illegal_move1	tests/test_moves.c	/^void test_illegal_move1()$/;"	f	typeref:typename:void
+test_illegal_move2	tests/test_moves.c	/^void test_illegal_move2()$/;"	f	typeref:typename:void
+test_moves	tests/CMakeLists.txt	/^    test_moves$/;"	t
+test_performance	tests/CMakeLists.txt	/^    test_performance$/;"	t
+test_perft	tests/CMakeLists.txt	/^    test_perft$/;"	t
+test_perft	tests/test_perft.c	/^void test_perft(chess_state_t *s, int depth, uint64_t *expected_results)$/;"	f	typeref:typename:void
+test_perft1	tests/test_perft.c	/^void test_perft1()$/;"	f	typeref:typename:void
+test_perft2	tests/test_perft.c	/^void test_perft2()$/;"	f	typeref:typename:void
+test_perft3	tests/test_perft.c	/^void test_perft3()$/;"	f	typeref:typename:void
+test_perft4	tests/test_perft.c	/^void test_perft4()$/;"	f	typeref:typename:void
+test_perft5	tests/test_perft.c	/^void test_perft5()$/;"	f	typeref:typename:void
+test_perft6	tests/test_perft.c	/^void test_perft6()$/;"	f	typeref:typename:void
+test_polyglot	tests/CMakeLists.txt	/^    test_polyglot$/;"	t
+test_position_is_attacked	tests/test_state.c	/^void test_position_is_attacked()$/;"	f	typeref:typename:void
+test_see	tests/CMakeLists.txt	/^    test_see$/;"	t
+test_see	tests/test_see.c	/^void test_see(const char *fen, int pos_from, int pos_to, short expected_result)$/;"	f	typeref:typename:void
+test_state	tests/CMakeLists.txt	/^    test_state$/;"	t
+think_cb	engine/engine.c	/^    thinking_output_cb  think_cb;$/;"	m	struct:engine_state	typeref:typename:thinking_output_cb	file:
+think_cb	engine/search.h	/^    thinking_output_cb  think_cb;$/;"	m	struct:__anon30ac37760108	typeref:typename:thinking_output_cb
+thinking_output_cb	engine/engine.h	/^typedef void (*thinking_output_cb)(int ply, int score, int time_ms, unsigned int nodes, int pv_l/;"	t	typeref:typename:void (*)(int ply,int score,int time_ms,unsigned int nodes,int pv_length,int * pos_from,int * pos_to,int * promotion_type)
+thread_arg_t	tuning/tuner.c	/^} thread_arg_t;$/;"	t	typeref:struct:__anondc88bce80108	file:
+thread_t	engine/thread.h	/^typedef HANDLE thread_t;$/;"	t	typeref:typename:HANDLE
+thread_t	engine/thread.h	/^typedef pthread_t thread_t;$/;"	t	typeref:typename:pthread_t
+time_for_move_ms	engine/search.h	/^    int64_t             time_for_move_ms;$/;"	m	struct:__anon30ac37760108	typeref:typename:int64_t
+time_incremental_seconds	interface/cecp.c	/^    int time_incremental_seconds;   \/* Seconds added per turn                           *\/$/;"	m	struct:__anondb873db10108	typeref:typename:int	file:
+time_left_centiseconds	interface/cecp.c	/^    int time_left_centiseconds;     \/* Time left in current control period (10^-2 sec)  *\/$/;"	m	struct:__anondb873db10108	typeref:typename:int	file:
+time_period	interface/cecp.c	/^    int time_period;                \/* Time control period (number of turns)            *\/$/;"	m	struct:__anondb873db10108	typeref:typename:int	file:
+time_seconds	interface/cecp.c	/^    int time_seconds;               \/* Seconds per control period                       *\/$/;"	m	struct:__anondb873db10108	typeref:typename:int	file:
+total_nodes	tests/test_performance.c	/^int total_nodes = 0;$/;"	v	typeref:typename:int
+transposition_entry_t	engine/hashtable.h	/^} transposition_entry_t;$/;"	t	typeref:struct:__anonda97eacc0108
+tune_array	tuning/tuner.c	/^float tune_array(const char *buf, int *x, int len, float mse, int min, int max)$/;"	f	typeref:typename:float
+tuner	tuning/CMakeLists.txt	/^    tuner$/;"	t
+type	engine/hashtable.h	/^    unsigned char   type;$/;"	m	struct:__anonda97eacc0108	typeref:typename:unsigned char
+worker_thread	tuning/tuner.c	/^void* worker_thread(void *_arg)$/;"	f	typeref:typename:void *
