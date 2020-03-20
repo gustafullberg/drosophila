@@ -453,11 +453,12 @@ int EVAL_position_is_attacked(const chess_state_t *s, const int color, const int
     }
 
     /* Is attacked by sliders (bishop, rook, queen)? */
+    bitboard_t occupied = s->bitboard[OCCUPIED] ^ s->bitboard[own_index + KING];
     attackers = (bitboard_bishop[pos] & (s->bitboard[opponent_index + BISHOP] | s->bitboard[opponent_index + QUEEN])) |
                 (bitboard_rook[pos]   & (s->bitboard[opponent_index + ROOK]   | s->bitboard[opponent_index + QUEEN]));
     while(attackers) {
         int attack_pos = BITBOARD_find_bit(attackers);
-        if((bitboard_between[attack_pos][pos] & s->bitboard[OCCUPIED]) == 0) {
+        if((bitboard_between[attack_pos][pos] & occupied) == 0) {
             return 1;
         }
         attackers ^= BITBOARD_POSITION(attack_pos);

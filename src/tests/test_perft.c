@@ -20,11 +20,20 @@ uint64_t perft(chess_state_t *state, int depth)
     if(depth == 0) {
         result = 1;
     } else {
-        num_moves = STATE_generate_moves(state, moves);
+        bitboard_t block_check, pinners, pinned;
+        int num_checkers = STATE_checkers_and_pinners(state, &block_check, &pinners, &pinned);
+        num_moves = STATE_generate_legal_moves(state, num_checkers, block_check, pinners, pinned, moves);
         while(num_moves) {
             next_state = *state;
             STATE_apply_move(&next_state, moves[--num_moves]);
             if(SEARCH_is_check(&next_state, state->player)) {
+                /*
+                if(MOVE_GET_TYPE(moves[num_moves]) > PAWN) {
+                    STATE_board_print_debug(state);
+                    STATE_move_print_debug(moves[num_moves]);
+                    exit(1); // DEBUG CODE
+                }
+                */
                 continue;
             }
             
@@ -113,12 +122,12 @@ int main()
 {
     BITBOARD_init();
     
-    test_perft1();
-    test_perft2();
+    //test_perft1();
+    //test_perft2();
     test_perft3();
-    test_perft4();
-    test_perft5();
-    test_perft6();
+    //test_perft4();
+    //test_perft5();
+    //test_perft6();
     
     return 0;
 }

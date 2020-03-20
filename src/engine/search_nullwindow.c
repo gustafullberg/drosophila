@@ -20,7 +20,6 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     move_t next_move;
     chess_state_t next_state;
     move_t moves[256];
-    int is_in_check;
     short ttable_score;
     int cutoff = 0;
     int do_futility_pruning = 0;
@@ -45,10 +44,11 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     HASHTABLE_transition_prefetch(search_state->hashtable, state->hash);
 
     /* Is playing side in check? */
-    is_in_check = SEARCH_is_check(state, state->player);
+    bitboard_t block_check, pinners, pinned;
+    int num_checkers = STATE_checkers_and_pinners(state, &block_check, &pinners, &pinned);
 
     /* Check extension */
-    if(is_in_check) {
+    if(num_checkers) {
         depth += 1;
     }
     /* Quiescence search */
@@ -65,7 +65,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     }
 
     /* Null move pruning */
-    if(depth > 4 && state->last_move && !is_in_check && !STATE_risk_zugzwang(state)) {
+    if(depth > 4 && state->last_move && !num_checkers && !STATE_risk_zugzwang(state)) {
         unsigned char R_plus_1 = ((depth > 5) ? 4 : 3);
         next_state = *state;
         STATE_apply_move(&next_state, 0);
@@ -78,11 +78,11 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
 
     if(!skip_move_generation) {
         /* Generate and rate moves */
-        num_moves = STATE_generate_moves(state, moves);
+        num_moves = STATE_generate_legal_moves(state, num_checkers, block_check, pinners, pinned, moves);
         MOVEORDER_rate_moves(state, moves, num_moves, *move, search_state->killer_move[ply], search_state->history_heuristic[state->player]);
 
         /* Check if node is eligible for futility pruning */
-        if(depth <= 3 && !is_in_check) {
+        if(depth <= 3 && !num_checkers) {
             if(beta > EVAL_evaluate_board(state) + 25) {
                 do_futility_pruning = 1;
             }
@@ -106,6 +106,11 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
 
             /* If not in check, the move is legal */
             if(SEARCH_is_check(&next_state, state->player)) {
+                if(MOVE_GET_TYPE(moves[i]) > PAWN) {
+                    STATE_board_print_debug(state);
+                    STATE_move_print_debug(moves[i]);
+                    exit(1); // DEBUG CODE
+                }
                 continue;
             }
             num_legal_moves++;
@@ -157,7 +162,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
 
         /* Detect checkmate and stalemate */
         if(num_legal_moves == 0) {
-            if(is_in_check) {
+            if(num_checkers) {
                 /* Checkmate (worst case) */
             } else {
                 /* Stalemate */
