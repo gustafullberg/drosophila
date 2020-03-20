@@ -99,11 +99,47 @@ int STATE_generate_legal_moves(const chess_state_t *s, int num_checkers, bitboar
 
         /* Pawns */
         {
-            bitboard_t pieces = s->bitboard[player_index + PAWN];
+            bitboard_t pieces;
             bitboard_t possible_moves, possible_captures;
             bitboard_t pawn_push2, pawn_captures_from_left, pawn_captures_from_right;
             bitboard_t pawn_promotion, pawn_promotion_captures_from_left, pawn_promotion_captures_from_right;
+
+            /* Non-pinned pawns */
+            pieces = s->bitboard[player_index + PAWN] & ~pinned;
             MOVEGEN_all_pawns(player, pieces, player_pieces, opponent_pieces, &possible_moves, &pawn_push2, &pawn_captures_from_left, &pawn_captures_from_right, &pawn_promotion, &pawn_promotion_captures_from_left, &pawn_promotion_captures_from_right);
+
+            /* Pinned pawns */
+            if(!num_checkers) {
+                pieces = s->bitboard[player_index + PAWN] & pinned;
+                while(pieces) {
+                    int pos_from = BITBOARD_find_bit(pieces);
+                    bitboard_t pos_from_bb = BITBOARD_POSITION(pos_from);
+                    bitboard_t pin_mask = STATE_pin_mask(pos_from_bb, king_pos, pinners);
+
+                    bitboard_t possible_moves_piece, pawn_push2_piece, pawn_captures_from_left_piece, pawn_captures_from_right_piece;
+                    bitboard_t pawn_promotion_piece, pawn_promotion_captures_from_left_piece, pawn_promotion_captures_from_right_piece;
+
+                    MOVEGEN_all_pawns(player, pos_from_bb, player_pieces, opponent_pieces, &possible_moves_piece, &pawn_push2_piece, &pawn_captures_from_left_piece, &pawn_captures_from_right_piece, &pawn_promotion_piece, &pawn_promotion_captures_from_left_piece, &pawn_promotion_captures_from_right_piece);
+
+                    possible_moves |= possible_moves_piece & pin_mask;
+                    pawn_push2 |= pawn_push2_piece & pin_mask;
+                    pawn_promotion |= pawn_promotion & pin_mask;
+                    pawn_captures_from_left |= pawn_captures_from_left_piece & pin_mask;
+                    pawn_captures_from_right |= pawn_captures_from_right & pin_mask;
+                    pawn_promotion_captures_from_left |= pawn_promotion_captures_from_left_piece & pin_mask;
+                    pawn_promotion_captures_from_right |= pawn_promotion_captures_from_right & pin_mask;
+
+                    pieces ^= pos_from_bb;
+                }
+            }
+
+            possible_moves &= check_mask;
+            pawn_push2 &= check_mask;
+            pawn_promotion &= check_mask;
+            pawn_captures_from_left &= check_mask;
+            pawn_captures_from_right &= check_mask;
+            pawn_promotion_captures_from_left &= check_mask;
+            pawn_promotion_captures_from_right &= check_mask;
 
             int attack_from_left, attack_from_right, step;
 
@@ -178,11 +214,44 @@ int STATE_generate_legal_moves(const chess_state_t *s, int num_checkers, bitboar
 
                 /* Loop through the found pawns */
                 while(pieces) {
+                    /* Get one position from the bitboard */
                     int pos_from = BITBOARD_find_bit(pieces);
-                    int pos_to = BITBOARD_find_bit(bitboard_pawn_capture[player][pos_from] & attack_file);
-                    STATE_add_move_to_list(pos_to, pos_from, PAWN, PAWN, MOVE_EP_CAPTURE, moves + num_moves);
-                    num_moves++;
-                    pieces ^= BITBOARD_POSITION(pos_from);
+                    bitboard_t piece_bb = BITBOARD_POSITION(pos_from);
+
+                    bitboard_t pin_mask = (bitboard_t)0xFFFFFFFFFFFFFFFF;
+                    if(piece_bb & pinned) {
+                        if(num_checkers) {
+                            /* Pinned piece can't be moved when checked */
+                            pieces ^= piece_bb;
+                            continue;
+                        }
+                        pin_mask = STATE_pin_mask(piece_bb, king_pos, pinners);
+                    }
+
+                    bitboard_t pos_to_bb = bitboard_pawn_capture[player][pos_from] & attack_file;
+                    int pos_to = BITBOARD_find_bit(pos_to_bb);
+
+                    int valid_move = (check_mask & bitboard_ep_capture[pos_to] & pin_mask) || (pos_to_bb & check_mask & pin_mask);
+                    if(valid_move && (bitboard_rank[pos_from] & s->bitboard[player_index+KING])) {
+                        /* Super gotcha */
+                        bitboard_t opponent_slider = s->bitboard[opponent_index+ROOK] | s->bitboard[opponent_index+QUEEN];
+                        while(opponent_slider) {
+                            int slider_pos = BITBOARD_find_bit(opponent_slider);
+                            bitboard_t between = bitboard_between[king_pos][slider_pos];
+                            if((BITBOARD_count_bits(between & s->bitboard[OCCUPIED]) == 2) && (between & piece_bb)) {
+                                valid_move = 0; 
+                            }
+                            opponent_slider ^= BITBOARD_POSITION(slider_pos);
+                        }
+                        // Check if own king and opponent rook/queen is on the same rank. Check if two pieces are between those and one is one of the pawns.
+
+                    }
+                    if(valid_move) {
+                        STATE_add_move_to_list(pos_to, pos_from, PAWN, PAWN, MOVE_EP_CAPTURE, moves + num_moves++);
+                    }
+
+                    /* Clear position from bitboard */
+                    pieces ^= piece_bb;
                 }
             }
         }
@@ -264,28 +333,28 @@ int STATE_generate_legal_moves(const chess_state_t *s, int num_checkers, bitboar
             possible_moves ^= BITBOARD_POSITION(pos_to);
         }
 
-        /* King-side Castling */
-        if(s->castling[player] & STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK) {
-            if((bitboard_king_castle_empty[player] & s->bitboard[OCCUPIED]) == 0) {
-                if(EVAL_position_is_attacked(s, player, king_pos+0) == 0 && 
-                        EVAL_position_is_attacked(s, player, king_pos+1) == 0 &&
-                        EVAL_position_is_attacked(s, player, king_pos+2) == 0)
-                {
-                    STATE_add_move_to_list(king_pos+2, king_pos, KING, 0, MOVE_KING_CASTLE, moves + num_moves);
-                    num_moves++;
+        if(!num_checkers) {
+            /* King-side Castling */
+            if(s->castling[player] & STATE_FLAGS_KING_CASTLE_POSSIBLE_MASK) {
+                if((bitboard_king_castle_empty[player] & s->bitboard[OCCUPIED]) == 0) {
+                    if(EVAL_position_is_attacked(s, player, king_pos+1) == 0 &&
+                       EVAL_position_is_attacked(s, player, king_pos+2) == 0)
+                    {
+                        STATE_add_move_to_list(king_pos+2, king_pos, KING, 0, MOVE_KING_CASTLE, moves + num_moves);
+                        num_moves++;
+                    }
                 }
             }
-        }
 
-        /* Queen-side Castling */
-        if(s->castling[player] & STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK) {
-            if((bitboard_queen_castle_empty[player] & s->bitboard[OCCUPIED]) == 0) {
-                if(EVAL_position_is_attacked(s, player, king_pos-0) == 0 && 
-                        EVAL_position_is_attacked(s, player, king_pos-1) == 0 &&
-                        EVAL_position_is_attacked(s, player, king_pos-2) == 0)
-                {
-                    STATE_add_move_to_list(king_pos-2, king_pos, KING, 0, MOVE_QUEEN_CASTLE, moves + num_moves);
-                    num_moves++;
+            /* Queen-side Castling */
+            if(s->castling[player] & STATE_FLAGS_QUEEN_CASTLE_POSSIBLE_MASK) {
+                if((bitboard_queen_castle_empty[player] & s->bitboard[OCCUPIED]) == 0) {
+                    if(EVAL_position_is_attacked(s, player, king_pos-1) == 0 &&
+                       EVAL_position_is_attacked(s, player, king_pos-2) == 0)
+                    {
+                        STATE_add_move_to_list(king_pos-2, king_pos, KING, 0, MOVE_QUEEN_CASTLE, moves + num_moves);
+                        num_moves++;
+                    }
                 }
             }
         }
