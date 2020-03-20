@@ -20,23 +20,16 @@ int SEARCH_is_check(const chess_state_t *s, const int color)
 
 int SEARCH_is_mate(const chess_state_t *state)
 {
-    int num_moves;
+    int num_moves, num_checkers;
     int i;
     chess_state_t s2;
     move_t moves[256];
+    bitboard_t block_check, pinners, pinned;
 
-    num_moves = STATE_generate_moves(state, moves);
-    for(i = 0; i < num_moves; i++) {
-        s2 = *state;
-        STATE_apply_move(&s2, moves[i]);
-        if(!SEARCH_is_check(&s2, state->player)) {
-            /* A legal move is found => not in mate */
-            return 0;
-        }
-    }
-    
-    /* No legal moves => mate */
-    return 1;
+    num_checkers = STATE_checkers_and_pinners(state, &block_check, &pinners, &pinned);
+    num_moves = STATE_generate_legal_moves(state, num_checkers, block_check, pinners, pinned, moves);
+
+    return num_moves == 0;
 }
 
 int SEARCH_find_pv(const chess_state_t *state, hashtable_t *hashtable, int depth, int *pos_from, int *pos_to, int *promotion_type)
