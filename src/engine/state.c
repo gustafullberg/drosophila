@@ -125,12 +125,12 @@ int STATE_generate_legal_moves(const chess_state_t *s, int num_checkers, bitboar
 
                     possible_moves |= possible_moves_piece & pin_mask;
                     pawn_push2 |= pawn_push2_piece & pin_mask;
-                    pawn_promotion |= pawn_promotion & pin_mask;
+                    pawn_promotion |= pawn_promotion_piece & pin_mask;
                     pawn_captures_from_left |= pawn_captures_from_left_piece & pin_mask;
                     if(pos_from == C3) BITBOARD_print_debug(pawn_captures_from_right_piece);
                     pawn_captures_from_right |= pawn_captures_from_right_piece & pin_mask;
                     pawn_promotion_captures_from_left |= pawn_promotion_captures_from_left_piece & pin_mask;
-                    pawn_promotion_captures_from_right |= pawn_promotion_captures_from_right & pin_mask;
+                    pawn_promotion_captures_from_right |= pawn_promotion_captures_from_right_piece & pin_mask;
 
                     pieces ^= pos_from_bb;
                 }
