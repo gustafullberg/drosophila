@@ -17,9 +17,6 @@ uint64_t perft(chess_state_t *state, int depth)
     int num_moves;
     uint64_t result = 0;
     
-    move_t moves_ref[512];
-    move_t moves_ref_valid[512];
-
     if(depth == 0) {
         result = 1;
     } else {
@@ -27,45 +24,9 @@ uint64_t perft(chess_state_t *state, int depth)
         int num_checkers = STATE_checkers_and_pinners(state, &block_check, &pinners, &pinned);
         num_moves = STATE_generate_legal_moves(state, num_checkers, block_check, pinners, pinned, moves);
 
-        
-        int num_moves_ref = STATE_generate_moves(state, moves_ref);
-        int num_moves_ref_valid = 0;
-        for(int i = 0; i < num_moves_ref; i++) {
-            next_state = *state;
-            STATE_apply_move(&next_state, moves_ref[i]);
-            if(!SEARCH_is_check(&next_state, state->player)) {
-                moves_ref_valid[num_moves_ref_valid++] = moves_ref[i];
-            }
-        }
-
-        if(num_moves != num_moves_ref_valid) {
-            printf("\n");
-            printf("side to play %d\n", state->player);
-            printf("num_moves %d, num_moves_ref_valid %d\n", num_moves, num_moves_ref_valid);
-            printf("num_checkers %d\n", num_checkers);
-            STATE_board_print_debug(state);
-            printf("\n");
-            BITBOARD_print_debug(block_check);
-            printf("\n");
-            BITBOARD_print_debug(pinned);
-            printf("\n");
-
-            printf("REFERENCE MOVES:\n");
-            for(int i = 0; i < num_moves_ref_valid; i++) STATE_move_print_debug(moves_ref_valid[i]);
-            printf("\nACTUAL MOVES:\n");
-            for(int i = 0; i < num_moves; i++) STATE_move_print_debug(moves[i]);
-            exit(2);
-        }
-
         while(num_moves) {
             next_state = *state;
             STATE_apply_move(&next_state, moves[--num_moves]);
-            if(SEARCH_is_check(&next_state, state->player)) {
-                STATE_board_print_debug(state);
-                STATE_move_print_debug(moves[num_moves]);
-                exit(1);
-            }
-            
             result += perft(&next_state, depth-1);
         }
     }

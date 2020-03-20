@@ -157,7 +157,9 @@ static move_t OPENINGBOOK_translate_move(const chess_state_t *s, uint16_t m)
     int promotion_type = (m >> 12) & 7;
 
     /* Generate all possible moves */
-    num_moves = STATE_generate_moves(s, moves);
+    bitboard_t block_check, pinners, pinned;
+    int num_checkers = STATE_checkers_and_pinners(s, &block_check, &pinners, &pinned);
+    num_moves = STATE_generate_legal_moves(s, num_checkers, block_check, pinners, pinned, moves);
 
     /* Loop through all generated moves to find the right one */
     for(i = 0; i < num_moves; i++) {
