@@ -21,9 +21,7 @@ move_t SAN_parse_move(const chess_state_t *state, const char *san)
     len = (int)strlen(san);
     
     /* Generate all possible moves */
-    bitboard_t block_check, pinners, pinned;
-    int num_checkers = STATE_checkers_and_pinners(state, &block_check, &pinners, &pinned);
-    num_moves = STATE_generate_legal_moves(state, num_checkers, block_check, pinners, pinned, moves);
+    num_moves = STATE_generate_moves_simple(state, moves);
     
     /* What type of piece is moving? */
     switch(san[0]) {

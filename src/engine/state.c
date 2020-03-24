@@ -71,7 +71,7 @@ static bitboard_t STATE_pin_mask(bitboard_t piece, int king_pos, bitboard_t pinn
     return 0;
 }
 
-int STATE_generate_legal_moves(const chess_state_t *s, int num_checkers, bitboard_t block_check, bitboard_t pinners, bitboard_t pinned, move_t *moves)
+int STATE_generate_moves(const chess_state_t *s, int num_checkers, bitboard_t block_check, bitboard_t pinners, bitboard_t pinned, move_t *moves)
 {
     int num_moves = 0;
     const int player = s->player;
@@ -361,7 +361,7 @@ int STATE_generate_legal_moves(const chess_state_t *s, int num_checkers, bitboar
     return num_moves;
 }
 
-int STATE_generate_legal_moves_quiescence(const chess_state_t *s, int num_checkers, bitboard_t block_check, bitboard_t pinners, bitboard_t pinned, move_t *moves)
+int STATE_generate_moves_quiescence(const chess_state_t *s, int num_checkers, bitboard_t block_check, bitboard_t pinners, bitboard_t pinned, move_t *moves)
 {
     int num_moves = 0;
     const int player = s->player;
@@ -591,6 +591,13 @@ int STATE_generate_legal_moves_quiescence(const chess_state_t *s, int num_checke
 
     return num_moves;
 }
+
+int STATE_generate_moves_simple(const chess_state_t *s, move_t *moves)
+{
+    bitboard_t block_check, pinners, pinned;
+    int num_checkers = STATE_checkers_and_pinners(s, &block_check, &pinners, &pinned);
+    return STATE_generate_moves(s, num_checkers, block_check, pinners, pinned, moves);
+};
 
 int STATE_apply_move(chess_state_t *s, const move_t move)
 {

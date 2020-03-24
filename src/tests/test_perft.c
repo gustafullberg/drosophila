@@ -20,9 +20,7 @@ uint64_t perft(chess_state_t *state, int depth)
     if(depth == 0) {
         result = 1;
     } else {
-        bitboard_t block_check, pinners, pinned;
-        int num_checkers = STATE_checkers_and_pinners(state, &block_check, &pinners, &pinned);
-        num_moves = STATE_generate_legal_moves(state, num_checkers, block_check, pinners, pinned, moves);
+        num_moves = STATE_generate_moves_simple(state, moves);
 
         while(num_moves) {
             next_state = *state;

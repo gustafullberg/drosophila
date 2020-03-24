@@ -20,14 +20,12 @@ int SEARCH_is_check(const chess_state_t *s, const int color)
 
 int SEARCH_is_mate(const chess_state_t *state)
 {
-    int num_moves, num_checkers;
+    int num_moves;
     int i;
     chess_state_t s2;
     move_t moves[256];
-    bitboard_t block_check, pinners, pinned;
 
-    num_checkers = STATE_checkers_and_pinners(state, &block_check, &pinners, &pinned);
-    num_moves = STATE_generate_legal_moves(state, num_checkers, block_check, pinners, pinned, moves);
+    num_moves = STATE_generate_moves_simple(state, moves);
 
     return num_moves == 0;
 }

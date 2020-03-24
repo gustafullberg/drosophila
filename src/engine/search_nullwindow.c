@@ -78,7 +78,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
 
     if(!skip_move_generation) {
         /* Generate and rate moves */
-        num_moves = STATE_generate_legal_moves(state, num_checkers, block_check, pinners, pinned, moves);
+        num_moves = STATE_generate_moves(state, num_checkers, block_check, pinners, pinned, moves);
         MOVEORDER_rate_moves(state, moves, num_moves, *move, search_state->killer_move[ply], search_state->history_heuristic[state->player]);
 
         /* Check if node is eligible for futility pruning */
@@ -88,7 +88,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
             }
         }
 
-        /* Iterate over all pseudo legal moves */
+        /* Iterate over all moves */
         for(i = 0; i < num_moves; i++) {
             /* Pick move with the highest score */
             MOVEORDER_best_move_first(&moves[i], num_moves - i);
@@ -197,9 +197,9 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
 
     /* Generate and rate moves (captures and promotions only) */
     if(num_checkers) {
-        num_moves = STATE_generate_legal_moves(state, num_checkers, block_check, pinners, pinned, moves);
+        num_moves = STATE_generate_moves(state, num_checkers, block_check, pinners, pinned, moves);
     } else {
-        num_moves = STATE_generate_legal_moves_quiescence(state, num_checkers, block_check, pinners, pinned, moves);
+        num_moves = STATE_generate_moves_quiescence(state, num_checkers, block_check, pinners, pinned, moves);
     }
     MOVEORDER_rate_moves_quiescence(state, moves, num_moves);
 

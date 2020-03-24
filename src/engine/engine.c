@@ -89,9 +89,7 @@ int ENGINE_apply_move(engine_state_t *state, const int pos_from, const int pos_t
     move_t moves[256];
     
     /* Generate all possible moves */
-    bitboard_t block_check, pinners, pinned;
-    int num_checkers = STATE_checkers_and_pinners(state->chess_state, &block_check, &pinners, &pinned);
-    num_moves = STATE_generate_legal_moves(state->chess_state, num_checkers, block_check, pinners, pinned, moves);
+    num_moves = STATE_generate_moves_simple(state->chess_state, moves);
     
     /* Loop through all generated moves to find the right one */
     for(i = 0; i < num_moves; i++) {

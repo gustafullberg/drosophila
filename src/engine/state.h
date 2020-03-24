@@ -84,8 +84,9 @@ typedef struct chess_state_t {
 
 
 void STATE_reset(chess_state_t *s);
-int  STATE_generate_legal_moves(const chess_state_t *s, int num_checkers, bitboard_t block_check, bitboard_t pinners, bitboard_t pinned, move_t *moves);
-int  STATE_generate_legal_moves_quiescence(const chess_state_t *s, int num_checkers, bitboard_t block_check, bitboard_t pinners, bitboard_t pinned, move_t *moves);
+int  STATE_generate_moves(const chess_state_t *s, int num_checkers, bitboard_t block_check, bitboard_t pinners, bitboard_t pinned, move_t *moves);
+int  STATE_generate_moves_quiescence(const chess_state_t *s, int num_checkers, bitboard_t block_check, bitboard_t pinners, bitboard_t pinned, move_t *moves);
+int  STATE_generate_moves_simple(const chess_state_t *s, move_t *moves);
 int  STATE_apply_move(chess_state_t *s, const move_t move);
 int  STATE_checkers_and_pinners(const chess_state_t *s, bitboard_t *block_check, bitboard_t *pinners, bitboard_t *pinned);
 void STATE_compute_hash(chess_state_t *s);
