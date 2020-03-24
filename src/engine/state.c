@@ -100,7 +100,7 @@ int STATE_generate_moves(const chess_state_t *s, int num_checkers, bitboard_t bl
         /* Pawns */
         {
             bitboard_t pieces;
-            bitboard_t possible_moves, possible_captures;
+            bitboard_t possible_moves;
             bitboard_t pawn_push2, pawn_captures_from_left, pawn_captures_from_right;
             bitboard_t pawn_promotion, pawn_promotion_captures_from_left, pawn_promotion_captures_from_right;
 
@@ -390,7 +390,7 @@ int STATE_generate_moves_quiescence(const chess_state_t *s, int num_checkers, bi
         /* Pawns */
         {
             bitboard_t pieces;
-            bitboard_t possible_moves, possible_captures;
+            bitboard_t possible_moves;
             bitboard_t pawn_push2, pawn_captures_from_left, pawn_captures_from_right;
             bitboard_t pawn_promotion, pawn_promotion_captures_from_left, pawn_promotion_captures_from_right;
 

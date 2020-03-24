@@ -15,7 +15,6 @@ void MOVEORDER_rate_moves(const chess_state_t *s, move_t moves[], int num_moves,
         } else {
             const int pos_from = MOVE_GET_POS_FROM(moves[i]);
             const int pos_to   = MOVE_GET_POS_TO(moves[i]);
-            const int own_type = MOVE_GET_TYPE(moves[i]);
 
             if(MOVE_IS_CAPTURE_OR_PROMOTION(moves[i])) {
                 /* Captures */

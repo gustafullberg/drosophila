@@ -21,8 +21,6 @@ int SEARCH_is_check(const chess_state_t *s, const int color)
 int SEARCH_is_mate(const chess_state_t *state)
 {
     int num_moves;
-    int i;
-    chess_state_t s2;
     move_t moves[256];
 
     num_moves = STATE_generate_moves_simple(state, moves);
