@@ -160,7 +160,7 @@ short see(const chess_state_t *s, const move_t move)
     return swap_list[0];
 }
 
-int SSE_capture_less_valuable(const move_t move)
+int SEE_capture_less_valuable(const move_t move)
 {
     return piece_value[MOVE_GET_CAPTURE_TYPE(move)] < piece_value[MOVE_GET_TYPE(move)];
 }

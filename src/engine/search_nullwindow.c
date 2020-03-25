@@ -51,6 +51,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     if(num_checkers) {
         depth += 1;
     }
+
     /* Quiescence search */
     if(depth == 0) {
         return SEARCH_nullwindow_quiescence(state, search_state, beta);
@@ -209,7 +210,7 @@ short SEARCH_nullwindow_quiescence(const chess_state_t *state, search_state_t *s
 
         /* Prune all captures with SEE < 0 */
         if(!MOVE_IS_PROMOTION(moves[i]) && !num_checkers) {
-            if(SSE_capture_less_valuable(moves[i]) && see(state, moves[i]) < 0) {
+            if(SEE_capture_less_valuable(moves[i]) && see(state, moves[i]) < 0) {
                 continue;
             }
         }
