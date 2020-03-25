@@ -183,10 +183,10 @@ void parse_time_control(state_t *state, const char *level)
         ret = sscanf(level, "%d %d %d\n", &period, &minutes, &inc_seconds);
         if(ret != 3) {
             /* Try fixed number of seconds per move */
-            period = 0;
+            period = 1;
             minutes = 0;
-            seconds = 0;
-            ret = sscanf(level, "%d\n", &inc_seconds);
+            inc_seconds = 0;
+            ret = sscanf(level, "%d\n", &seconds);
             if(ret != 1) {
                 /* Failed to parse */
                 return;
