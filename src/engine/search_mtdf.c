@@ -34,6 +34,8 @@ short SEARCH_mtdf(const chess_state_t *s, search_state_t *search_state, const un
         } else {
             bounds[0] = guess;
             *move = movetemp;
+            search_state->pv.size = search_state->pv_table[0].size;
+            memcpy(search_state->pv.moves, search_state->pv_table[0].moves, search_state->pv.size * sizeof(move_t));
         }
         
         if(search_state->abort_search) {
@@ -58,6 +60,8 @@ short SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state
     
     /* Limit maximum search depth */
     if(search_state->max_depth > MAX_SEARCH_DEPTH) search_state->max_depth = MAX_SEARCH_DEPTH;
+
+    search_state->pv.size = 0;
     
     results[0] = SEARCH_mtdf(s, search_state, 0, &m, 0);
     *move = m;
@@ -85,10 +89,16 @@ short SEARCH_mtdf_iterative(const chess_state_t *s, search_state_t *search_state
         
         time_passed_ms = CLOCK_time_passed(search_state->start_time_ms);
         if(search_state->think_cb) {
-            int pos_from[100];
-            int pos_to[100];
-            int promotion_type[100];
-            int pv_length = SEARCH_find_pv(s, search_state->hashtable, depth, pos_from, pos_to, promotion_type);
+            int pos_from[MAX_SEARCH_DEPTH];
+            int pos_to[MAX_SEARCH_DEPTH];
+            int promotion_type[MAX_SEARCH_DEPTH];
+            int pv_length = search_state->pv.size;
+            for(int i = 0; i < pv_length; i++) {
+                move_t pv_move = search_state->pv.moves[i];
+                pos_from[i] = MOVE_GET_POS_FROM(pv_move);
+                pos_to[i] = MOVE_GET_POS_TO(pv_move);
+                promotion_type[i] = MOVE_PROMOTION_TYPE(pv_move);
+            }
             (*search_state->think_cb)(depth, 5 * (int)results[depth], (int)time_passed_ms, search_state->num_nodes_searched, pv_length, pos_from, pos_to, promotion_type);
         }
 

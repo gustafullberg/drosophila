@@ -1,3 +1,4 @@
+#include <string.h>
 #include "search_nullwindow.h"
 #include "search.h"
 #include "eval.h"
@@ -25,6 +26,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     int do_futility_pruning = 0;
 
     *move = 0;
+    search_state->pv_table[ply].size = 0;
 
     /* Check if time is up */
     search_state->next_clock_check--;
@@ -136,8 +138,13 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                 best_score = score;
                 *move = moves[i];
 
+                search_state->pv_table[ply].moves[0] = *move;
+                memcpy(&search_state->pv_table[ply].moves[1], search_state->pv_table[ply+1].moves, search_state->pv_table[ply+1].size * sizeof(move_t));
+                search_state->pv_table[ply].size = 1 + search_state->pv_table[ply+1].size;
+
                 /* Beta-cuttoff */
                 if(best_score >= beta) {
+
                     if(!MOVE_IS_CAPTURE_OR_PROMOTION(*move)) {
                         /* Killer move */
                         if(*move != search_state->killer_move[ply][0]) {

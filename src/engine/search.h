@@ -13,6 +13,11 @@
 #define SEARCH_ITERATIONS_BETWEEN_CLOCK_CHECK 10000
 
 typedef struct {
+    move_t              moves[MAX_SEARCH_DEPTH];
+    int                 size;
+} pv_line_t;
+
+typedef struct {
     hashtable_t         *hashtable;
     history_t           *history;
     int                 abort_search;
@@ -24,12 +29,13 @@ typedef struct {
     thinking_output_cb  think_cb;
     move_t              killer_move[MAX_SEARCH_DEPTH+1][2];
     int                 history_heuristic[2][64][64];
+    pv_line_t           pv;
+    pv_line_t           pv_table[MAX_SEARCH_DEPTH];
 } search_state_t;
 
 move_t SEARCH_perform_search(const chess_state_t *s, search_state_t *search_state, short *score);
 int SEARCH_is_check(const chess_state_t *s, const int color);
 int SEARCH_is_mate(const chess_state_t *state);
-int SEARCH_find_pv(const chess_state_t *state, hashtable_t *hashtable, int depth, int *pos_from, int *pos_to, int *promotion_type);
 
 #endif
 
