@@ -278,6 +278,11 @@ static void process_command(char *command, state_t *state)
         search_start(state);
     }
     
+    /* exit */
+    else if(strcmp(command, "exit\n") == 0) {
+        search_stop(state);
+    }
+
     /*  quit */
     else if(strcmp(command, "quit\n") == 0) {
         state->flag_quit = 1;
