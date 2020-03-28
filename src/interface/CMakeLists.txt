@@ -3,8 +3,7 @@ set(PROGRAM_NAME ${PROGRAM_NAME}-${TARGET_SUFFIX})
 endif()
 
 set(files
-    cecp.c
-    cecp_features.h
+    uci.c
 )
 
 add_executable(

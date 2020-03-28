@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#include "cecp_features.h"
 #include "engine.h"
 #include "thread.h"
 
@@ -10,8 +9,7 @@ typedef struct {
     engine_state_t *engine;
     mutex_t mtx_engine;
     cond_t cv;
-    int flag_forced;
-    int flag_quit;
+    int flag_quit;                  /* Quit as soon as possible                         */
     int flag_searching;             /* Is currently searching for a move                */
     int flag_pondering;             /* Ponder between moves                             */
     int time_period;                /* Time control period (number of turns)            */
@@ -25,7 +23,6 @@ typedef struct {
 void state_clear(state_t *state)
 {
     state->engine = NULL;
-    state->flag_forced = 0;
     state->flag_quit = 0;
     state->flag_searching = 0;
     state->flag_pondering = 0;
@@ -61,18 +58,6 @@ void search_stop(state_t *state)
     MUTEX_lock(&state->mtx_engine);
     MUTEX_cond_signal(&state->cv);
     MUTEX_unlock(&state->mtx_engine);
-}
-
-/* Send all the supported features of the CECP to GUI */
-void send_features()
-{
-    const char **feature;
-    
-    /* Loop over all features */
-    for(feature = cecp_features; *feature != 0; feature++) {
-        /* Send feature */
-        fprintf(stdout, "feature %s\n", *feature);
-    }
 }
 
 /* Send a move to GUI */
@@ -242,13 +227,56 @@ void cmd_usermove(state_t *state, const char *move_str, int respond_to_move)
 /* Process command from GUI */
 static void process_command(char *command, state_t *state)
 {
-    /* Commands that do reqire action from the engine */
-    
-    /* protover */
-    if(strncmp(command, "protover ", 9) == 0) {
-        send_features();
+    /* uci */
+    if(strcmp(command, "uci\n") == 0) {
+        fprintf(stdout, "id name Drosophila " _VERSION "\n");
+        fprintf(stdout, "id author Gustaf Ullberg\n");
+        fprintf(stdout, "uciok\n");
     }
     
+    /* debug */
+    else if(strncmp(command, "debug ", 6) == 0) {
+    }
+
+    /* isready */
+    else if(strcmp(command, "isready\n") == 0) {
+        fprintf(stdout, "readyok\n");
+    }
+    
+    /* setoption */
+    else if(strncmp(command, "setoption name ", 15) == 0) {
+    }
+
+    /* register */
+    else if(strncmp(command, "register ", 9) == 0) {
+    }
+
+    /* ucinewgame */
+    else if(strcmp(command, "ucinewgame\n") == 0) {
+    }
+
+    /* position */
+    else if(strncmp(command, "position ", 9) == 0) {
+    }
+
+    /* go */
+    else if(strncmp(command, "go ", 3) == 0 || strcmp(command, "go\n") == 0) {
+    }
+
+    /* stop */
+    else if(strcmp(command, "stop\n") == 0) {
+    }
+    
+    /* ponderhit */
+    else if(strcmp(command, "ponderhit\n") == 0) {
+    }
+    
+    /* quit */
+    else if(strcmp(command, "quit\n") == 0) {
+        state->flag_quit = 1;
+        search_stop(state);
+    }
+#if 0 
     /* new */
     else if(strcmp(command, "new\n") == 0) {
         search_stop(state);
@@ -349,42 +377,7 @@ static void process_command(char *command, state_t *state)
         /* Abort the search and send the move now */
         search_stop(state);
     }
-
-    /* Commands that do not reqire action from the engine (or not implemented) */
-    
-    /* xboard */
-    else if(strcmp(command, "xboard\n") == 0) {}
-    
-    /* accepted */
-    else if(strncmp(command, "accepted ", 9) == 0) {}
-    
-    /* random */
-    else if(strcmp(command, "random\n") == 0) {}
-    
-    /* post */
-    else if(strcmp(command, "post\n") == 0) {}
-    
-    /* cores */
-    else if(strncmp(command, "cores ", 6) == 0) {}
-    
-    /* computer */
-    else if(strcmp(command, "computer\n") == 0) {}
-
-    /* otim */
-    else if(strncmp(command, "otim ", 5) == 0) {}
-	    
-    /* Errors */
-    
-    /* rejected */
-    else if(strncmp(command, "rejected ", 9) == 0) {
-        str_remove_newline(command);
-        fprintf(stdout, "# Feature rejected \"%s\"\n", command+9);
-    }
-    
-    /* unknown command */
-    else {
-        fprintf(stdout, "Error (unknown command): %s", command);
-    }
+#endif 
 }
 
 void search(state_t *state)
@@ -446,6 +439,8 @@ void *search_thread(void *arg)
 
 int main(int argc, char **argv)
 {
+    FILE *f = fopen("/tmp/debug.txt", "w"); // DEBUG CODE!
+
     char command_buffer[COMMAND_BUFFER_SIZE];
     int len = 0;
     thread_t thread_search;
@@ -466,11 +461,6 @@ int main(int argc, char **argv)
     /* Create search thread */
     THREAD_create(&thread_search, search_thread, &state);
 
-    /* Welcome */
-    fprintf(stdout, "# Welcome to Drosophila " _VERSION "\n");
-    fprintf(stdout, "# This program supports the Chess Engine Communication Protocol\n");
-    fprintf(stdout, "# and should be run from XBoard or similar\n");
-    
     /* Main loop */
     while(1) {
         int c = getchar();
@@ -479,6 +469,8 @@ int main(int argc, char **argv)
         /* Full command received. Take proper action */
         if(c == '\n') {
             command_buffer[len] = '\0';
+            fprintf(f, "%s", command_buffer); // DEBUG CODE!
+            fflush(f); // DEBUG CODE!
             process_command(command_buffer, &state);
             len = 0;
         }
