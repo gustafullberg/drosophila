@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include "engine.h"
@@ -31,14 +32,6 @@ void state_clear(state_t *state)
     state->time_left_ms = 0;
 }
 
-/* Reset only the time control of the state */
-void state_clear_time(state_t *state)
-{
-    state->moves_left_in_period = 0;
-    state->time_incremental_ms = 0;
-    state->time_left_ms = 0;
-}
-
 void search_start(state_t *state)
 {
     MUTEX_lock(&state->mtx_engine);
@@ -66,46 +59,21 @@ void send_move(int pos_from, int pos_to, int promotion_type)
         else if(promotion_type == 3) pt = 'r';
         else if(promotion_type == 4) pt = 'q';
         fprintf(stdout, "bestmove %c%c%c%c%c\n", (pos_from%8)+'a', (pos_from/8)+'1', (pos_to%8)+'a', (pos_to/8)+'1', pt);
-        fprintf(f, "bestmove %c%c%c%c%c\n", (pos_from%8)+'a', (pos_from/8)+'1', (pos_to%8)+'a', (pos_to/8)+'1', pt);
     } else {
         fprintf(stdout, "bestmove %c%c%c%c\n", (pos_from%8)+'a', (pos_from/8)+'1', (pos_to%8)+'a', (pos_to/8)+'1');
-        fprintf(f, "bestmove %c%c%c%c\n", (pos_from%8)+'a', (pos_from/8)+'1', (pos_to%8)+'a', (pos_to/8)+'1');
-    }
-}
-
-/* Send a result to GUI if game has ended */
-void send_result(int result)
-{
-    switch(result) {
-    case ENGINE_RESULT_WHITE_MATES:
-        fprintf(stdout, "1-0 {White mates}\n");
-        break;
-    case ENGINE_RESULT_BLACK_MATES:
-        fprintf(stdout, "0-1 {Black mates}\n");
-        break;
-    case ENGINE_RESULT_DRAW_STALE_MATE:
-        fprintf(stdout, "1/2-1/2 {Stalemate}\n");
-        break;
-    case ENGINE_RESULT_DRAW_INSUFFICIENT_MATERIAL:
-        fprintf(stdout, "1/2-1/2 {Draw by insufficient material}\n");
-        break;
-    case ENGINE_RESULT_DRAW_FIFTY_MOVE:
-        fprintf(stdout, "1/2-1/2 {Draw by fifty-move rule}\n");
-        break;
-    case ENGINE_RESULT_DRAW_REPETITION:
-        fprintf(stdout, "1/2-1/2 {Draw by repetition}\n");
-        break;
-    default:
-        break;
     }
 }
 
 /* Send stats and PV to GUI while searching for move */
 void send_search_output(int ply, int score, int time_ms, unsigned int nodes, int pv_length, int *pos_from, int *pos_to, int *promotion_type)
 {
-    return;
     int i;
-    fprintf(stdout, "%d %d %d %d", ply, score, time_ms / 10, nodes);
+
+    uint64_t nps = nodes;
+    if(time_ms) nps = 1000 * nps / time_ms;
+
+    fprintf(stdout, "info depth %d score cp %d time %d nodes %d nps %d pv", ply, score, time_ms, nodes, nps);
+    fprintf(f, "info depth %d score %d time %d nodes %d nps %d pv", ply, score, time_ms, nodes, nps);
     for(i = 0; i < pv_length; i++) {
         int from = pos_from[i];
         int to = pos_to[i];
@@ -118,11 +86,14 @@ void send_search_output(int ply, int score, int time_ms, unsigned int nodes, int
             else if(promotion == 3) pt = 'r';
             else if(promotion == 4) pt = 'q';
             fprintf(stdout, " %c%c%c%c%c", (from%8)+'a', (from/8)+'1', (to%8)+'a', (to/8)+'1', pt);
+            fprintf(f, " %c%c%c%c%c", (from%8)+'a', (from/8)+'1', (to%8)+'a', (to/8)+'1', pt);
         } else {
             fprintf(stdout, " %c%c%c%c", (from%8)+'a', (from/8)+'1', (to%8)+'a', (to/8)+'1');
+            fprintf(f, " %c%c%c%c", (from%8)+'a', (from/8)+'1', (to%8)+'a', (to/8)+'1');
         }
     }
     fprintf(stdout, "\n");
+    fprintf(f, "\n");
 }
 
 /* Parse a move of the form e7e8q */
@@ -159,48 +130,8 @@ int parse_int(const char *s)
         v += (*(s++)) - '0';
     }
 
-    if(*s != ' ' && *s != '\n') {
-        fprintf(f, "PARSE ERROR: %d\n", *s);
-        exit(2);
-    }
-
     return v;
 }
-
-#if 0
-/* Parse time control "40 4:00 0", "40 4 0" or "10" */
-void parse_time_control(state_t *state, const char *level)
-{
-    int period = 0;
-    int minutes = 0;
-    int seconds = 0;
-    int inc_seconds = 0;
-    int ret = 0;
-
-    /* Try to parse "period minutes:seconds inc" */
-    ret = sscanf(level, "%d %d:%d %d\n", &period, &minutes, &seconds, &inc_seconds);
-    if(ret != 4) {
-        /* Try to parse "period minutes inc" */
-        seconds = 0;
-        ret = sscanf(level, "%d %d %d\n", &period, &minutes, &inc_seconds);
-        if(ret != 3) {
-            /* Try fixed number of seconds per move */
-            period = 1;
-            minutes = 0;
-            inc_seconds = 0;
-            ret = sscanf(level, "%d\n", &seconds);
-            if(ret != 1) {
-                /* Failed to parse */
-                return;
-            }
-        }
-    }
-
-    state->time_period = period;
-    state->time_left_centiseconds = 100 * (60 * minutes + seconds);
-    state->time_incremental_seconds = inc_seconds;
-}
-#endif
 
 /* Parse and set board position */
 void parse_position(state_t *state, const char *position)
@@ -209,9 +140,9 @@ void parse_position(state_t *state, const char *position)
     if(strncmp(position, "startpos", 8) == 0) {
         /* Reset to initial position */
         ENGINE_reset(state->engine);
-    } else {
+    } else if(strncmp(position, "fen ", 4) == 0) {
         /* FEN position */
-        int result = ENGINE_set_board(state->engine, position);
+        int result = ENGINE_set_board(state->engine, position+4);
         fprintf(f, "FEN result %d\n", result);
     }
 
@@ -285,8 +216,8 @@ void parse_go(state_t *state, const char *parameters)
             state->time_left_ms = parse_int(parameters);
             state->time_incremental_ms = 0;
         }
-        else if(strncmp(parameters, "infinite ", 9) == 0) {
-            parameters += 9;
+        else if(strncmp(parameters, "infinite", 8) == 0) {
+            parameters += 8;
             state->moves_left_in_period = 1;
             state->time_left_ms = 2000000000;
             state->time_incremental_ms = 0;
@@ -295,36 +226,6 @@ void parse_go(state_t *state, const char *parameters)
 
     search_start(state);
 }
-
-#if 0
-/* Handle a "usermove" command */
-void cmd_usermove(state_t *state, const char *move_str, int respond_to_move)
-{
-    int result;
-    int pos_from, pos_to, promotion_type;
-
-    /* Stop ongoing pondering */
-    search_stop(state);
-
-    /* Parse the user move */
-    parse_move(move_str, &pos_from, &pos_to, &promotion_type);
-
-    /* Move piece */
-    result = ENGINE_apply_move(state->engine, pos_from, pos_to, promotion_type);
-    if(result == ENGINE_RESULT_NONE) {
-        state->num_half_moves++;
-        if(respond_to_move) {
-            search_start(state);
-        }
-    } else if(result == ENGINE_RESULT_ILLEGAL_MOVE) {
-        /* Illegal move */
-        fprintf(stdout, "Illegal move: %s", move_str);
-        
-    } else {
-        send_result(result);
-    }
-}
-#endif
 
 /* Process command from GUI */
 static void process_command(char *command, state_t *state)
@@ -338,6 +239,7 @@ static void process_command(char *command, state_t *state)
     
     /* debug */
     else if(strncmp(command, "debug ", 6) == 0) {
+        /* TODO */
     }
 
     /* isready */
@@ -347,10 +249,12 @@ static void process_command(char *command, state_t *state)
     
     /* setoption */
     else if(strncmp(command, "setoption name ", 15) == 0) {
+        /* TODO */
     }
 
     /* register */
     else if(strncmp(command, "register ", 9) == 0) {
+        /* NOP */
     }
 
     /* ucinewgame */
@@ -370,10 +274,12 @@ static void process_command(char *command, state_t *state)
 
     /* stop */
     else if(strcmp(command, "stop\n") == 0) {
+        search_stop(state);
     }
     
     /* ponderhit */
     else if(strcmp(command, "ponderhit\n") == 0) {
+        /* TODO */
     }
     
     /* quit */
