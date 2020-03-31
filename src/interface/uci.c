@@ -113,6 +113,7 @@ void parse_move(const char *move_str, int *pos_from, int *pos_to, int *promotion
     }
 }
 
+/* Parse decimal integer */
 int parse_int(const char *s)
 {
     int v = 0;
@@ -214,6 +215,18 @@ void parse_go(state_t *state, const char *parameters)
     search_start(state);
 }
 
+/* Parse options set by GUI */
+void parse_option(state_t *state, const char *parameters)
+{
+    if(strncmp(parameters, "Hash value ", 11) == 0) {
+        parameters += 11;
+        int size_mb = parse_int(parameters);
+        if(size_mb < 1) size_mb = 1;
+        else if(size_mb > 1024) size_mb = 1024;
+        ENGINE_resize_hashtable(state->engine, size_mb);
+    }
+}
+
 /* Process command from GUI */
 static void process_command(char *command, state_t *state)
 {
@@ -221,6 +234,7 @@ static void process_command(char *command, state_t *state)
     if(strcmp(command, "uci\n") == 0) {
         fprintf(stdout, "id name Drosophila " _VERSION "\n");
         fprintf(stdout, "id author Gustaf Ullberg\n");
+        fprintf(stdout, "option name Hash type spin default 64 min 1 max 1024\n");
         fprintf(stdout, "uciok\n");
     }
     
@@ -236,7 +250,7 @@ static void process_command(char *command, state_t *state)
     
     /* setoption */
     else if(strncmp(command, "setoption name ", 15) == 0) {
-        /* TODO */
+        parse_option(state, command + 15);
     }
 
     /* register */
