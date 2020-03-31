@@ -231,3 +231,8 @@ int ENGINE_set_board(engine_state_t *state, const char *fen)
     }
     return 1;
 }
+
+int ENGINE_playing_side(engine_state_t *state)
+{
+    return state->chess_state->player;
+}
