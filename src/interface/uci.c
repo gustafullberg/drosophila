@@ -3,7 +3,7 @@
 #include "engine.h"
 #include "thread.h"
 
-#define COMMAND_BUFFER_SIZE 512
+#define COMMAND_BUFFER_SIZE 10240
 
 FILE *f; // DEBUG CODE!
 
@@ -66,8 +66,10 @@ void send_move(int pos_from, int pos_to, int promotion_type)
         else if(promotion_type == 3) pt = 'r';
         else if(promotion_type == 4) pt = 'q';
         fprintf(stdout, "bestmove %c%c%c%c%c\n", (pos_from%8)+'a', (pos_from/8)+'1', (pos_to%8)+'a', (pos_to/8)+'1', pt);
+        fprintf(f, "bestmove %c%c%c%c%c\n", (pos_from%8)+'a', (pos_from/8)+'1', (pos_to%8)+'a', (pos_to/8)+'1', pt);
     } else {
         fprintf(stdout, "bestmove %c%c%c%c\n", (pos_from%8)+'a', (pos_from/8)+'1', (pos_to%8)+'a', (pos_to/8)+'1');
+        fprintf(f, "bestmove %c%c%c%c\n", (pos_from%8)+'a', (pos_from/8)+'1', (pos_to%8)+'a', (pos_to/8)+'1');
     }
 }
 
@@ -157,6 +159,11 @@ int parse_int(const char *s)
         v += (*(s++)) - '0';
     }
 
+    if(*s != ' ' && *s != '\n') {
+        fprintf(f, "PARSE ERROR: %d\n", *s);
+        exit(2);
+    }
+
     return v;
 }
 
@@ -214,9 +221,11 @@ void parse_position(state_t *state, const char *position)
         do {
             int pos_from, pos_to, promotion_type;
             parse_move(++position, &pos_from, &pos_to, &promotion_type);
-            fprintf(f, "Applying move from %d to %d, promotion %d\n", pos_from, pos_to, promotion_type);
             int result = ENGINE_apply_move(state->engine, pos_from, pos_to, promotion_type);
-            fprintf(f, "move result %d\n", result);
+            if(result != 0) {
+                fprintf(f, "Applying move from %d to %d, promotion %d\n", pos_from, pos_to, promotion_type);
+                fprintf(f, "move result %d\n", result);
+            }
         } while(position = strchr(++position, ' '));
     }
 }
@@ -232,31 +241,27 @@ void parse_go(state_t *state, const char *parameters)
     state->time_incremental_ms = 0;
 
     while(parameters = strchr(parameters, ' ')) {
+        parameters++;
+
         if(strncmp(parameters, "searchmoves ", 12) == 0) {
             parameters += 12;
             /* TODO */
         }
         if(strncmp(parameters, "wtime ", 6) == 0) {
             parameters += 6;
-            fprintf(f, "start parse wtime\n");
-            if(side == 0) state->time_left_ms = parse_int(parameters+1);
-            fprintf(f, "time_left_ms is %d\n", state->time_left_ms);
-            fprintf(f, "end parse wtime\n");
+            if(side == 0) state->time_left_ms = parse_int(parameters);
         }
         else if(strncmp(parameters, "btime ", 6) == 0) {
             parameters += 6;
             if(side == 1) state->time_left_ms = parse_int(parameters);
-            fprintf(f, "time_left_ms is %d\n", state->time_left_ms);
         }
         else if(strncmp(parameters, "winc ", 5) == 0) {
             parameters += 5;
             if(side == 0) state->time_incremental_ms = parse_int(parameters);
-            fprintf(f, "time_incremental_ms is %d\n", state->time_incremental_ms);
         }
         else if(strncmp(parameters, "binc ", 5) == 0) {
             parameters += 5;
             if(side == 1) state->time_incremental_ms = parse_int(parameters);
-            fprintf(f, "time_incremental_ms is %d\n", state->time_incremental_ms);
         }
         else if(strncmp(parameters, "movestogo ", 10) == 0) {
             parameters += 10;
@@ -285,9 +290,6 @@ void parse_go(state_t *state, const char *parameters)
             state->moves_left_in_period = 1;
             state->time_left_ms = 2000000000;
             state->time_incremental_ms = 0;
-        }
-        else {
-            parameters++;
         }
     }
 
@@ -491,6 +493,8 @@ void search(state_t *state)
 
     /* Start searching */
     ENGINE_search(state->engine, state->moves_left_in_period, state->time_left_ms, state->time_incremental_ms, 100, &pos_from, &pos_to, &promotion_type);
+
+    fprintf(f, "END SEARCH\n");
 
     /* Handle result */
     send_move(pos_from, pos_to, promotion_type);
