@@ -6,15 +6,12 @@
 
 #define COMMAND_BUFFER_SIZE 10240
 
-FILE *f; // DEBUG CODE!
-
 typedef struct {
     engine_state_t *engine;
     mutex_t mtx_engine;
     cond_t cv;
     int flag_quit;              /* Quit as soon as possible                         */
     int flag_searching;         /* Is currently searching for a move                */
-    int flag_pondering;         /* Ponder between moves                             */
     int moves_left_in_period;   /* Moves to go in current time control period       */
     int time_incremental_ms;    /* Seconds added per turn                           */
     int time_left_ms;           /* Time left in current control period (10^-2 sec)  */
@@ -26,7 +23,6 @@ void state_clear(state_t *state)
     state->engine = NULL;
     state->flag_quit = 0;
     state->flag_searching = 0;
-    state->flag_pondering = 0;
     state->moves_left_in_period = 0;
     state->time_incremental_ms = 0;
     state->time_left_ms = 0;
@@ -72,8 +68,7 @@ void send_search_output(int ply, int score, int time_ms, unsigned int nodes, int
     uint64_t nps = nodes;
     if(time_ms) nps = 1000 * nps / time_ms;
 
-    fprintf(stdout, "info depth %d score cp %d time %d nodes %d nps %d pv", ply, score, time_ms, nodes, nps);
-    fprintf(f, "info depth %d score %d time %d nodes %d nps %d pv", ply, score, time_ms, nodes, nps);
+    fprintf(stdout, "info depth %d score cp %d time %d nodes %d nps %ld pv", ply, score, time_ms, nodes, nps);
     for(i = 0; i < pv_length; i++) {
         int from = pos_from[i];
         int to = pos_to[i];
@@ -86,14 +81,11 @@ void send_search_output(int ply, int score, int time_ms, unsigned int nodes, int
             else if(promotion == 3) pt = 'r';
             else if(promotion == 4) pt = 'q';
             fprintf(stdout, " %c%c%c%c%c", (from%8)+'a', (from/8)+'1', (to%8)+'a', (to/8)+'1', pt);
-            fprintf(f, " %c%c%c%c%c", (from%8)+'a', (from/8)+'1', (to%8)+'a', (to/8)+'1', pt);
         } else {
             fprintf(stdout, " %c%c%c%c", (from%8)+'a', (from/8)+'1', (to%8)+'a', (to/8)+'1');
-            fprintf(f, " %c%c%c%c", (from%8)+'a', (from/8)+'1', (to%8)+'a', (to/8)+'1');
         }
     }
     fprintf(stdout, "\n");
-    fprintf(f, "\n");
 }
 
 /* Parse a move of the form e7e8q */
@@ -142,22 +134,17 @@ void parse_position(state_t *state, const char *position)
         ENGINE_reset(state->engine);
     } else if(strncmp(position, "fen ", 4) == 0) {
         /* FEN position */
-        int result = ENGINE_set_board(state->engine, position+4);
-        fprintf(f, "FEN result %d\n", result);
+        ENGINE_set_board(state->engine, position+4);
     }
 
     /* Apply additional moves */
-    if(position = strstr(position, "moves ")) {
+    if((position = strstr(position, "moves "))) {
         position += 5;
         do {
             int pos_from, pos_to, promotion_type;
             parse_move(++position, &pos_from, &pos_to, &promotion_type);
-            int result = ENGINE_apply_move(state->engine, pos_from, pos_to, promotion_type);
-            if(result != 0) {
-                fprintf(f, "Applying move from %d to %d, promotion %d\n", pos_from, pos_to, promotion_type);
-                fprintf(f, "move result %d\n", result);
-            }
-        } while(position = strchr(++position, ' '));
+            ENGINE_apply_move(state->engine, pos_from, pos_to, promotion_type);
+        } while((position = strchr(++position, ' ')));
     }
 }
 
@@ -171,7 +158,7 @@ void parse_go(state_t *state, const char *parameters)
     state->time_left_ms = 100;
     state->time_incremental_ms = 0;
 
-    while(parameters = strchr(parameters, ' ')) {
+    while((parameters = strchr(parameters, ' '))) {
         parameters++;
 
         if(strncmp(parameters, "searchmoves ", 12) == 0) {
@@ -287,137 +274,18 @@ static void process_command(char *command, state_t *state)
         state->flag_quit = 1;
         search_stop(state);
     }
-#if 0 
-    /* new */
-    else if(strcmp(command, "new\n") == 0) {
-        search_stop(state);
-
-        /* Reset board */
-        ENGINE_reset(state->engine);
-        
-        /* Reset time control */
-        state_clear_time(state);
-
-        /* Leave force mode */
-        state->flag_forced = 0;
-    }
-    
-    /* usermove */
-    else if(strncmp(command, "usermove ", 9) == 0) {
-        cmd_usermove(state, command + 9, !state->flag_forced);
-    }
-    
-    /* go */
-    else if(strcmp(command, "go\n") == 0) {
-        /* Leave force mode */
-        state->flag_forced = 0;
-
-        /* Start searching */
-        search_stop(state);
-        search_start(state);
-    }
-    
-    /* exit */
-    else if(strcmp(command, "exit\n") == 0) {
-        search_stop(state);
-    }
-
-    /*  quit */
-    else if(strcmp(command, "quit\n") == 0) {
-        state->flag_quit = 1;
-        search_stop(state);
-    }
-    
-    /* force */
-    else if(strcmp(command, "force\n") == 0) {
-        /* Enter force mode */
-        state->flag_forced = 1;
-        search_stop(state);
-    }
-
-    /* level */
-    else if(strncmp(command, "level ", 6) == 0) {
-        parse_time_control(state, command + 6);
-    }
-
-    /* st */
-    else if(strncmp(command, "st ", 3) == 0) {
-        parse_time_control(state, command + 3);
-    }
-
-    /* time */
-    else if(strncmp(command, "time ", 5) == 0) {
-        int centiseconds = 0;
-        sscanf(command + 5, "%d\n", &centiseconds);
-        state->time_left_centiseconds = centiseconds;
-    }
-    
-    /* memory */
-    else if(strncmp(command, "memory ", 7) == 0) {
-        int hash_size_mb = 0;
-        sscanf(command + 7, "%d\n", &hash_size_mb);
-        search_stop(state);
-        ENGINE_resize_hashtable(state->engine, hash_size_mb);
-    }
-
-    /* setboard */
-    else if(strncmp(command, "setboard ", 9) == 0) {
-        search_stop(state);
-        if(ENGINE_set_board(state->engine, command + 9) != 0) {
-            fprintf(stdout, "tellusererror Illegal position\n");
-        }
-    }
-
-    /* easy */
-    else if(strcmp(command, "easy\n") == 0) {
-        state->flag_pondering = 0;
-    }
-
-    /* hard */
-    else if(strcmp(command, "hard\n") == 0) {
-        state->flag_pondering = 1;
-    }
-
-    /* result */
-    else if(strncmp(command, "result ", 7) == 0) {
-        search_stop(state);
-    }
-
-    /* ? (move now) */
-    else if(strncmp(command, "?\n", 2) == 0) {
-        /* Abort the search and send the move now */
-        search_stop(state);
-    }
-#endif 
 }
 
 void search(state_t *state)
 {
     int pos_from, pos_to, promotion_type;
 
-    fprintf(f, "STARTING SEARCH:\n\tmove left: %d\n\ttime left: %d\n\ttime increment: %d\n", state->moves_left_in_period, state->time_left_ms, state->time_incremental_ms);
-
     /* Start searching */
     ENGINE_search(state->engine, state->moves_left_in_period, state->time_left_ms, state->time_incremental_ms, 100, &pos_from, &pos_to, &promotion_type);
-
-    fprintf(f, "END SEARCH\n");
 
     /* Handle result */
     send_move(pos_from, pos_to, promotion_type);
 }
-
-#if 0
-void search_ponder(state_t *state)
-{
-    int time_left_ms = 3600000; /* 1 hour */
-    int time_incremental_ms = 0;
-    int moves_left_in_period = 1;
-
-    /* Start searching */
-    int pos_from, pos_to, promotion_type;
-    ENGINE_search(state->engine, moves_left_in_period, time_left_ms, time_incremental_ms, 100, &pos_from, &pos_to, &promotion_type);
-}
-#endif
 
 void *search_thread(void *arg)
 {
@@ -432,10 +300,6 @@ void *search_thread(void *arg)
 
         search(state);
 
-        if(state->flag_searching && state->flag_pondering) {
-            //search_ponder(state);
-        }
-
         state->flag_searching = 0;
     }
     MUTEX_unlock(&state->mtx_engine);
@@ -444,8 +308,6 @@ void *search_thread(void *arg)
 
 int main(int argc, char **argv)
 {
-    f = fopen("/tmp/debug.txt", "w"); // DEBUG CODE!
-
     char command_buffer[COMMAND_BUFFER_SIZE];
     int len = 0;
     thread_t thread_search;
@@ -454,7 +316,6 @@ int main(int argc, char **argv)
 
     /* Disable buffering for stdout */
     setbuf(stdout, NULL);
-    setbuf(f, NULL); // DEBUG CODE!
     
     /* Create engine instance */
     ENGINE_create(&state.engine);
@@ -475,7 +336,6 @@ int main(int argc, char **argv)
         /* Full command received. Take proper action */
         if(c == '\n') {
             command_buffer[len] = '\0';
-            fprintf(f, "%s", command_buffer); // DEBUG CODE!
             process_command(command_buffer, &state);
             len = 0;
         }
