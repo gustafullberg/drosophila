@@ -111,8 +111,9 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
 
             HISTORY_push(search_state->history, next_state.hash);
             if(HISTORY_is_repetition(search_state->history, next_state.halfmove_clock) || EVAL_insufficient_material(&next_state)) {
-                /* Repetition detected */
+                /* Repetition detected: Draw score and PV ends here */
                 score = 0;
+                search_state->pv_table[ply+1].size = 0;
             } else {
                 /* Late move reduction */
                 if( num_legal_moves > 4                     && /* Four moves have been searched at full depth   */
