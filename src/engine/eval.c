@@ -183,9 +183,9 @@ void EVAL_pawn_types(const chess_state_t *s, bitboard_t attack[NUM_COLORS], bitb
 
 static short EVAL_pawn_shield(const chess_state_t *s)
 {
-    const bitboard_t white_queenside = 0x0000000000000006;
+    const bitboard_t white_queenside = 0x000000000000000E;
     const bitboard_t white_kingside  = 0x00000000000000E0;
-    const bitboard_t black_queenside = 0x0600000000000000;
+    const bitboard_t black_queenside = 0x0E00000000000000;
     const bitboard_t black_kingside  = 0xE000000000000000;
     short score = 0;
 
