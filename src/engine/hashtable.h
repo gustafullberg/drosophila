@@ -5,11 +5,11 @@
 #include "state.h"
 
 typedef struct {
-    bitboard_t      hash;
+    unsigned int    hash;
     move_t          best_move;
-    short           score;
+    short           score_low;
+    short           score_high;
     unsigned char   depth;
-    unsigned char   type;
 } transposition_entry_t;
 
 typedef struct {
