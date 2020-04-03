@@ -49,12 +49,14 @@ void HASHTABLE_transition_store(hashtable_t *h, const bitboard_t hash, const uns
         if(type == TTABLE_TYPE_LOWER_BOUND) {
             entry->score_low = score;
             entry->score_high = SEARCH_MAX_RESULT(MAX_SEARCH_DEPTH);
+            entry->depth_low = depth;
+            entry->depth_high = 0;
         } else {
             entry->score_low = SEARCH_MIN_RESULT(MAX_SEARCH_DEPTH);
             entry->score_high = score;
+            entry->depth_low = 0;
+            entry->depth_high = depth;
         }
-        entry->depth_low = depth;
-        entry->depth_high = depth;
     }
 }
 
