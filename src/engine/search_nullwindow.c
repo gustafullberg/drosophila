@@ -245,18 +245,20 @@ static inline short SEARCH_transpositiontable_retrieve(const hashtable_t *hashta
     if(ttentry) {
         *best_move = ttentry->best_move;
 
-        if(ttentry->depth >= depth) {
-            short score_low = ttentry->score_low;
+        if(ttentry->depth_high >= depth) {
             short score_high = ttentry->score_high;
             if(score_high < beta) {
                 short min = SEARCH_MIN_RESULT(0);
                 *cutoff = 1;
-                return (score_high <= min) ? score_high + ttentry->depth - depth : score_high;
+                return (score_high <= min) ? score_high + ttentry->depth_high - depth : score_high;
             }
+        }
+        if(ttentry->depth_low >= depth) {
+            short score_low = ttentry->score_low;
             if(score_low >= beta) {
                 short max = SEARCH_MAX_RESULT(0);
                 *cutoff = 1;
-                return (score_low >= max) ? score_low - ttentry->depth + depth : score_low;
+                return (score_low >= max) ? score_low - ttentry->depth_low + depth : score_low;
             }
         }
 

@@ -32,15 +32,16 @@ void HASHTABLE_transition_store(hashtable_t *h, const bitboard_t hash, const uns
     int index = (int)(hash & h->key_mask);
     transposition_entry_t *entry = &h->entries[index];
 
-    if(entry->hash == (hash >> 32) && entry->depth >= depth) {
+    if(entry->hash == (hash >> 32)) {
         /* Update existing entry */
         entry->best_move = best_move;
         if(type == TTABLE_TYPE_LOWER_BOUND) {
             entry->score_low = score;
+            entry->depth_low = depth;
         } else {
             entry->score_high = score;
+            entry->depth_high = depth;
         }
-        entry->depth = depth;
     } else { 
         /* New entry */
         entry->hash = hash >> 32;
@@ -52,7 +53,8 @@ void HASHTABLE_transition_store(hashtable_t *h, const bitboard_t hash, const uns
             entry->score_low = SEARCH_MIN_RESULT(MAX_SEARCH_DEPTH);
             entry->score_high = score;
         }
-        entry->depth = depth;
+        entry->depth_low = depth;
+        entry->depth_high = depth;
     }
 }
 

@@ -9,7 +9,8 @@ typedef struct {
     move_t          best_move;
     short           score_low;
     short           score_high;
-    unsigned char   depth;
+    unsigned char   depth_low;
+    unsigned char   depth_high;
 } transposition_entry_t;
 
 typedef struct {
