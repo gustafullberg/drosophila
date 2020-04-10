@@ -86,7 +86,8 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
 
         /* Check if node is eligible for futility pruning */
         if(depth <= 3 && !num_checkers) {
-            if(beta > EVAL_evaluate_board(state) + 25) {
+            const int margin[4] = { 0, 20, 25, 30 };
+            if(beta > EVAL_evaluate_board(state) + margin[depth]) {
                 do_futility_pruning = 1;
             }
         }
