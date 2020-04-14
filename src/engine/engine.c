@@ -58,34 +58,10 @@ void ENGINE_reset(engine_state_t *state)
     HISTORY_reset(state->history);
 }
 
-static int ENGINE_result(const engine_state_t *state)
-{
-    if(SEARCH_is_mate(state->chess_state)) {
-        if(SEARCH_is_check(state->chess_state, state->chess_state->player)) {
-            if(state->chess_state->player == WHITE) {
-                return ENGINE_RESULT_BLACK_MATES;
-            } else {
-                return ENGINE_RESULT_WHITE_MATES;
-            }
-        } else {
-            return ENGINE_RESULT_DRAW_STALE_MATE;
-        }
-    } else if(EVAL_insufficient_material(state->chess_state)) {
-        return ENGINE_RESULT_DRAW_INSUFFICIENT_MATERIAL;
-    } else if(EVAL_fifty_move_rule(state->chess_state)) {
-        return ENGINE_RESULT_DRAW_FIFTY_MOVE;
-    } else if(HISTORY_is_threefold_repetition(state->history, state->chess_state->halfmove_clock)) {
-        return ENGINE_RESULT_DRAW_REPETITION;
-    }
-
-    return ENGINE_RESULT_NONE;
-}
-
 int ENGINE_apply_move(engine_state_t *state, const int pos_from, const int pos_to, const int promotion_type)
 {
     int num_moves;
     int i;
-    chess_state_t temporary_state;
     move_t moves[256];
     
     /* Generate all possible moves */
@@ -98,20 +74,10 @@ int ENGINE_apply_move(engine_state_t *state, const int pos_from, const int pos_t
         if(MOVE_GET_POS_TO(move) != pos_to) continue;
         if(MOVE_PROMOTION_TYPE(move) != promotion_type) continue;
         
-        /* Pseudo legal move found: Apply to state */
-        temporary_state = *state->chess_state;
-        STATE_apply_move(&temporary_state, move);
-        
-        /* Check if the move is legal */
-        if(SEARCH_is_check(&temporary_state, state->chess_state->player)) {
-            /* Not legal */
-            break;
-        }
-        
-        /* Legal */
-        *state->chess_state = temporary_state;
+        /* Move found: Apply to state */
+        STATE_apply_move(state->chess_state, move);
         HISTORY_push(state->history, state->chess_state->hash);
-        return ENGINE_result(state);
+        return ENGINE_RESULT_NONE;
     }
     
     /* No valid move found: Illegal move */
@@ -127,7 +93,7 @@ int ENGINE_apply_move_san(engine_state_t *state, const char *san)
         /* Legal move found: Apply to state */
         STATE_apply_move(state->chess_state, move);
         HISTORY_push(state->history, state->chess_state->hash);
-        return ENGINE_result(state);
+        return ENGINE_RESULT_NONE;
     }
 
     /* No valid move found: Illegal move */

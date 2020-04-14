@@ -2,12 +2,6 @@
 #define ENGINE_H
 
 #define ENGINE_RESULT_NONE                          0
-#define ENGINE_RESULT_WHITE_MATES                   1
-#define ENGINE_RESULT_BLACK_MATES                   2
-#define ENGINE_RESULT_DRAW_STALE_MATE               3
-#define ENGINE_RESULT_DRAW_INSUFFICIENT_MATERIAL    4
-#define ENGINE_RESULT_DRAW_FIFTY_MOVE               5
-#define ENGINE_RESULT_DRAW_REPETITION               6
 #define ENGINE_RESULT_ILLEGAL_MOVE                 -1
 
 #define ENGINE_PROMOTION_NONE       0

@@ -229,6 +229,8 @@ short EVAL_evaluate_board(const chess_state_t *s)
     bitboard_t king_zone[NUM_COLORS];
     bitboard_t mobility_moves;
 
+    if(EVAL_draw(s)) return 0;
+
     rearmost_pawn[WHITE] = s->bitboard[WHITE_PIECES+PAWN] ? BITBOARD_GET_RANK(BITBOARD_find_bit(s->bitboard[WHITE_PIECES+PAWN])) : -1;
     rearmost_pawn[BLACK] = s->bitboard[BLACK_PIECES+PAWN] ? BITBOARD_GET_RANK(BITBOARD_find_bit_reversed(s->bitboard[BLACK_PIECES+PAWN])) : -1;
 
@@ -473,8 +475,8 @@ int EVAL_position_is_attacked(const chess_state_t *s, const int color, const int
     return 0;
 }
 
-/* Returns non-zero if draw may be claimed due to insufficient material */
-int EVAL_insufficient_material(const chess_state_t *s)
+/* Returns non-zero if draw may be claimed due to insufficient material or fifty move rule */
+int EVAL_draw(const chess_state_t *s)
 {
     int num_pieces = BITBOARD_count_bits(s->bitboard[OCCUPIED]);
 
@@ -501,11 +503,5 @@ int EVAL_insufficient_material(const chess_state_t *s)
         break;
     }
 
-    return 0;
-}
-
-/* Returns non-zero if draw may be claimed due to the fifty move rule */
-int EVAL_fifty_move_rule(const chess_state_t *s)
-{
     return (s->halfmove_clock >= 100);
 }
