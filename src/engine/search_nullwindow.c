@@ -121,7 +121,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
                     /* Search at reduced depth */
                     unsigned char R_plus_1 = (i >= 15 && depth > 3) ? 3 : 2;
                     score = -SEARCH_nullwindow(&next_state, search_state, depth-R_plus_1, ply+1, &next_move, -beta+1);
-                    if(score >= beta) {
+                    if(score > best_score) {
                         /* If reduced yields interesting results, do a full search */
                         score = -SEARCH_nullwindow(&next_state, search_state, depth-1, ply+1, &next_move, -beta+1);
                     }
