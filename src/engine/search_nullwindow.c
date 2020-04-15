@@ -9,21 +9,53 @@
 static inline short SEARCH_transpositiontable_retrieve(const hashtable_t *hashtable, const bitboard_t hash, const unsigned char depth, short beta, move_t *best_move, int *cutoff);
 static inline void SEARCH_transpositiontable_store(hashtable_t *hashtable, const bitboard_t hash, const unsigned char depth, const short best_score, move_t best_move, const short beta);
 
+static short SEARCH_move(const chess_state_t *state, search_state_t *search_state, unsigned char depth, unsigned char ply, move_t move, int move_number, int do_futility_pruning, short best_score, short beta)
+{
+    short score;
+    move_t next_move;
+
+    /* Apply move */
+    chess_state_t next_state = *state;
+    STATE_apply_move(&next_state, move);
+
+    /* Futility pruning */
+    if(do_futility_pruning) {
+        if(move_number > 1 && !MOVE_IS_CAPTURE_OR_PROMOTION(move) && !SEARCH_is_check(&next_state, next_state.player)) {
+            return best_score;
+        }
+    }
+
+    HISTORY_push(search_state->history, next_state.hash);
+    if(HISTORY_is_repetition(search_state->history, next_state.halfmove_clock) || EVAL_draw(&next_state)) {
+        /* Draw detected */
+        score = 0;
+        search_state->pv_table[ply+1].size = 0;
+    } else {
+        /* Late move reduction */
+        unsigned char R;
+        if(move_number < 4 || depth < 3 || MOVE_IS_CAPTURE_OR_PROMOTION(move)) R = 0;
+        else if(move_number < 12 || depth <= 3) R = 1;
+        else if(move_number < 18 || depth <= 4) R = 2;
+        else R = 3;
+
+        /* Reduced search */
+        if(R) {
+            score = -SEARCH_nullwindow(&next_state, search_state, depth-1-R, ply+1, &next_move, -beta+1);
+        }
+
+        /* Full search */
+        if(!R || score > best_score) {
+            score = -SEARCH_nullwindow(&next_state, search_state, depth-1, ply+1, &next_move, -beta+1);
+        }
+    }
+    HISTORY_pop(search_state->history);
+
+    return score;
+}
+
 /* Alpha-Beta search with Nega Max and null-window */
 short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state, unsigned char depth, unsigned char ply, move_t *move, short beta)
 {
-    int num_moves;
-    int i;
-    short score;
-    short best_score = SEARCH_MIN_RESULT(depth);
-    int skip_move_generation = 0;
-    move_t next_move;
-    chess_state_t next_state;
-    move_t moves[256];
-    short ttable_score;
-    int cutoff = 0;
-    int do_futility_pruning = 0;
-
     *move = 0;
     search_state->pv_table[ply].size = 0;
 
@@ -59,31 +91,36 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
     }
 
     /* Query the transposition table */
-    ttable_score = SEARCH_transpositiontable_retrieve(search_state->hashtable, state->hash, depth, beta, move, &cutoff);
+    int cutoff = 0;
+    short ttable_score = SEARCH_transpositiontable_retrieve(search_state->hashtable, state->hash, depth, beta, move, &cutoff);
     if(cutoff) {
         if(*move || state->last_move) {
             return ttable_score;
         }
     }
 
+    short best_score = SEARCH_MIN_RESULT(depth);
+
     /* Null move pruning */
     if(depth > 4 && state->last_move && !num_checkers && !STATE_risk_zugzwang(state)) {
         unsigned char R_plus_1 = ((depth > 5) ? 4 : 3);
-        next_state = *state;
+        chess_state_t next_state = *state;
         STATE_apply_move(&next_state, 0);
-        score = -SEARCH_nullwindow(&next_state, search_state, depth-R_plus_1, ply+1, &next_move, -beta+1);
+        move_t next_move;
+        short score = -SEARCH_nullwindow(&next_state, search_state, depth-R_plus_1, ply+1, &next_move, -beta+1);
         if(score >= beta) {
             best_score = beta;
-            skip_move_generation = 1;
         }
     }
 
-    if(!skip_move_generation) {
+    if(best_score < beta) {
         /* Generate and rate moves */
-        num_moves = STATE_generate_moves(state, num_checkers, block_check, pinners, pinned, moves);
+        move_t moves[256];
+        int num_moves = STATE_generate_moves(state, num_checkers, block_check, pinners, pinned, moves);
         MOVEORDER_rate_moves(state, moves, num_moves, *move, search_state->killer_move[ply], search_state->history_heuristic[state->player]);
 
         /* Check if node is eligible for futility pruning */
+        int do_futility_pruning = 0;
         if(depth <= 3 && !num_checkers) {
             const int margin[4] = { 0, 20, 25, 30 };
             if(beta > EVAL_evaluate_board(state) + margin[depth]) {
@@ -92,45 +129,11 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
         }
 
         /* Iterate over all moves */
-        for(i = 0; i < num_moves; i++) {
+        for(int i = 0; i < num_moves; i++) {
             /* Pick move with the highest score */
             MOVEORDER_best_move_first(&moves[i], num_moves - i);
 
-            /* Apply move */
-            next_state = *state;
-            STATE_apply_move(&next_state, moves[i]);
-
-            /* Futility pruning */
-            if(do_futility_pruning) {
-                if(i > 1 && !MOVE_IS_CAPTURE_OR_PROMOTION(moves[i]) && !SEARCH_is_check(&next_state, next_state.player)) {
-                    continue;
-                }
-            }
-
-            HISTORY_push(search_state->history, next_state.hash);
-            if(HISTORY_is_repetition(search_state->history, next_state.halfmove_clock) || EVAL_draw(&next_state)) {
-                /* Draw detected */
-                score = 0;
-                search_state->pv_table[ply+1].size = 0;
-            } else {
-                /* Late move reduction */
-                if( i >= 4                                  && /* Four moves have been searched at full depth   */
-                    depth >= 3                              && /* No LMR in the last plies                      */
-                    !MOVE_IS_CAPTURE_OR_PROMOTION(moves[i]))   /* No LMR if capture / promotion                 */
-                {
-                    /* Search at reduced depth */
-                    unsigned char R_plus_1 = (i >= 15 && depth > 3) ? 3 : 2;
-                    score = -SEARCH_nullwindow(&next_state, search_state, depth-R_plus_1, ply+1, &next_move, -beta+1);
-                    if(score > best_score) {
-                        /* If reduced yields interesting results, do a full search */
-                        score = -SEARCH_nullwindow(&next_state, search_state, depth-1, ply+1, &next_move, -beta+1);
-                    }
-                } else {
-                    /* Normal search */
-                    score = -SEARCH_nullwindow(&next_state, search_state, depth-1, ply+1, &next_move, -beta+1);
-                }
-            }
-            HISTORY_pop(search_state->history);
+            short score = SEARCH_move(state, search_state, depth, ply, moves[i], i, do_futility_pruning, best_score, beta);
 
             /* Check if score improved by this move */
             if(score > best_score) {
@@ -143,7 +146,6 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
 
                 /* Beta-cuttoff */
                 if(best_score >= beta) {
-
                     if(!MOVE_IS_CAPTURE_OR_PROMOTION(*move)) {
                         /* Killer move */
                         if(*move != search_state->killer_move[ply][0]) {
