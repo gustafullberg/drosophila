@@ -118,6 +118,8 @@ eval_param_t param =
         .rook_halfopen_file_e          = 3,
         .rook_rearmost_pawn_o          = -1,
         .rook_rearmost_pawn_e          = 2,
+        .threat_valuable_o             = 3,
+        .threat_valuable_e             = 3,
         .tempo                         = 1,
         .pawn_passed_scaling = {  0, 13, 28, 63, 115, 177, 255,  0 },
     }
@@ -246,15 +248,17 @@ short EVAL_evaluate_board(const chess_state_t *s)
 
     for(color = WHITE; color <= BLACK; color++) {
         int pos_mask = color * 0x38;
-        bitboard_t own_pieces = s->bitboard[NUM_TYPES*color + ALL];
-        bitboard_t opp_pieces = s->bitboard[NUM_TYPES*(color^1) + ALL];
-        bitboard_t diagonal_sliders = s->bitboard[NUM_TYPES*color + BISHOP] | s->bitboard[NUM_TYPES*color + QUEEN];
-        bitboard_t straight_sliders = s->bitboard[NUM_TYPES*color + ROOK] | s->bitboard[NUM_TYPES*color + QUEEN];
+        const bitboard_t *own = &s->bitboard[NUM_TYPES*color];
+        const bitboard_t *opp = &s->bitboard[NUM_TYPES*(color^1)];
+        bitboard_t own_pieces = own[ALL];
+        bitboard_t opp_pieces = opp[ALL];
+        bitboard_t diagonal_sliders = own[BISHOP] | own[QUEEN];
+        bitboard_t straight_sliders = own[ROOK] | own[QUEEN];
         int num_king_attackers = 0;
         int king_pressure = 0;
 
         /* Pawns */
-        pieces = s->bitboard[NUM_TYPES*color + PAWN];
+        pieces = own[PAWN];
         while(pieces) {
             int rank;
             pos = BITBOARD_find_bit(pieces);
@@ -263,6 +267,10 @@ short EVAL_evaluate_board(const chess_state_t *s)
             pawn_material_score[color] += PAWN_VALUE;
             positional_score[color] += param.psq.pawn[pos^pos_mask];
             positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? param.positional.pawn_guards_pawn : 0; /* Guarded by other pawn */
+
+            int threats = BITBOARD_count_bits(pawnAttacks[color] & (opp[KNIGHT] | opp[BISHOP] | opp[ROOK] | opp[QUEEN]));
+            positional_score_o[color] += param.positional.threat_valuable_o * threats;
+            positional_score_e[color] += param.positional.threat_valuable_e * threats;
 
             /* Passed pawn */
             if(pos_bitboard & passedPawns) {
@@ -303,8 +311,8 @@ short EVAL_evaluate_board(const chess_state_t *s)
         }
 
         /* Knights */
-        pieces = s->bitboard[NUM_TYPES*color + KNIGHT];
-        int num_opp_pawns = BITBOARD_count_bits(s->bitboard[NUM_TYPES*(color^1) + PAWN]);
+        pieces = own[KNIGHT];
+        int num_opp_pawns = BITBOARD_count_bits(opp[PAWN]);
         while(pieces) {
             pos = BITBOARD_find_bit(pieces);
             pos_bitboard = BITBOARD_POSITION(pos);
@@ -314,6 +322,9 @@ short EVAL_evaluate_board(const chess_state_t *s)
             piece_mobility = BITBOARD_count_bits(mobility_moves);
             positional_score[color] += param.mobility.knight[piece_mobility];
             positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? param.positional.pawn_guards_minor : 0; /* Guarded by pawn */
+            int threats = BITBOARD_count_bits(bitboard_knight[pos] & (opp[ROOK] | opp[QUEEN]));
+            positional_score_o[color] += param.positional.threat_valuable_o * threats;
+            positional_score_e[color] += param.positional.threat_valuable_e * threats;
             if(mobility_moves & king_zone[color^1]) {
                 king_pressure += param.pressure.knight[(int)distance[king_pos[color^1]][pos]];
                 ++num_king_attackers;
@@ -322,7 +333,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
         }
 
         /* Bishops */
-        pieces = s->bitboard[NUM_TYPES*color + BISHOP];
+        pieces = own[BISHOP];
         if((pieces & BITBOARD_BLACK_SQ) && (pieces & BITBOARD_WHITE_SQ)) {
             /* Bishops on white/black squares => pair bonus */
             material_score[color] += BISHOP_PAIR;
@@ -337,6 +348,9 @@ short EVAL_evaluate_board(const chess_state_t *s)
             piece_mobility = BITBOARD_count_bits(mobility_moves);
             positional_score[color] += param.mobility.bishop[piece_mobility];
             positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? param.positional.pawn_guards_minor : 0; /* Guarded by pawn */
+            int threats = BITBOARD_count_bits(captures & (opp[ROOK] | opp[QUEEN]));
+            positional_score_o[color] += param.positional.threat_valuable_o * threats;
+            positional_score_e[color] += param.positional.threat_valuable_e * threats;
             if(mobility_moves & king_zone[color^1]) {
                 king_pressure += param.pressure.bishop[(int)distance[king_pos[color^1]][pos]];
                 ++num_king_attackers;
@@ -345,7 +359,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
         }
 
         /* Rooks */
-        pieces = s->bitboard[NUM_TYPES*color + ROOK];
+        pieces = own[ROOK];
         while(pieces) {
             bitboard_t file;
             pos = BITBOARD_find_bit(pieces);
@@ -356,6 +370,9 @@ short EVAL_evaluate_board(const chess_state_t *s)
             piece_mobility = BITBOARD_count_bits(mobility_moves);
             positional_score_o[color] += param.mobility.rook_o[piece_mobility];
             positional_score_e[color] += param.mobility.rook_e[piece_mobility];
+            int threats = BITBOARD_count_bits(captures & opp[QUEEN]);
+            positional_score_o[color] += param.positional.threat_valuable_o * threats;
+            positional_score_e[color] += param.positional.threat_valuable_e * threats;
             if(mobility_moves & king_zone[color^1]) {
                 king_pressure += param.pressure.rook[(int)distance[king_pos[color^1]][pos]];
                 ++num_king_attackers;
@@ -363,8 +380,8 @@ short EVAL_evaluate_board(const chess_state_t *s)
 
             /* Check for (half-)open files */
             file = (BITBOARD_FILE << BITBOARD_GET_FILE(pos));
-            if((file & s->bitboard[NUM_TYPES*color + PAWN]) == 0) {
-                if((file & s->bitboard[NUM_TYPES*(color^1) + PAWN]) == 0) {
+            if((file & own[PAWN]) == 0) {
+                if((file & opp[PAWN]) == 0) {
                     /* Open file */
                     positional_score_o[color] += param.positional.rook_open_file_o;
                     positional_score_e[color] += param.positional.rook_open_file_e;
@@ -385,7 +402,7 @@ short EVAL_evaluate_board(const chess_state_t *s)
         }
 
         /* Queens */
-        pieces = s->bitboard[NUM_TYPES*color + QUEEN];
+        pieces = own[QUEEN];
         while(pieces) {
             bitboard_t moves_b, captures_b, moves_r, captures_r;
             pos = BITBOARD_find_bit(pieces);

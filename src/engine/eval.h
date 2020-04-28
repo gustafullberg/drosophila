@@ -59,6 +59,8 @@ typedef struct {
         int rook_halfopen_file_e;
         int rook_rearmost_pawn_o;
         int rook_rearmost_pawn_e;
+        int threat_valuable_o;
+        int threat_valuable_e;
         int tempo;
         int pawn_passed_scaling[8];
     } positional;

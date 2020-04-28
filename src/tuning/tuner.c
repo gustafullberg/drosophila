@@ -295,6 +295,8 @@ void print_params()
     printf("        .rook_halfopen_file_e          = %d,\n", param.positional.rook_halfopen_file_e);
     printf("        .rook_rearmost_pawn_o          = %d,\n", param.positional.rook_rearmost_pawn_o);
     printf("        .rook_rearmost_pawn_e          = %d,\n", param.positional.rook_rearmost_pawn_e);
+    printf("        .threat_valuable_o             = %d,\n", param.positional.threat_valuable_o);
+    printf("        .threat_valuable_e             = %d,\n", param.positional.threat_valuable_e);
     printf("        .tempo                         = %d,\n", param.positional.tempo);
     print_mob("pawn_passed_scaling ", param.positional.pawn_passed_scaling, sizeof(param.positional.pawn_passed_scaling));
     printf("    }\n");
