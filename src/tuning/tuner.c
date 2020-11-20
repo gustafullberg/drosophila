@@ -267,6 +267,12 @@ void print_params()
     print_mob("queen_o", param.mobility.queen_o, sizeof(param.mobility.queen_o));
     print_mob("queen_e", param.mobility.queen_e, sizeof(param.mobility.queen_e));
     printf("    },\n");
+    printf("    .threat = {\n");
+    print_mob("pawn", param.threat.pawn, sizeof(param.threat.pawn));
+    print_mob("knight", param.threat.knight, sizeof(param.threat.knight));
+    print_mob("bishop", param.threat.bishop, sizeof(param.threat.bishop));
+    print_mob("rook", param.threat.rook, sizeof(param.threat.rook));
+    printf("    },\n");
     printf("    .pressure = {\n");
     print_mob("knight", param.pressure.knight, sizeof(param.pressure.knight));
     print_mob("bishop", param.pressure.bishop, sizeof(param.pressure.bishop));
@@ -295,8 +301,6 @@ void print_params()
     printf("        .rook_halfopen_file_e          = %d,\n", param.positional.rook_halfopen_file_e);
     printf("        .rook_rearmost_pawn_o          = %d,\n", param.positional.rook_rearmost_pawn_o);
     printf("        .rook_rearmost_pawn_e          = %d,\n", param.positional.rook_rearmost_pawn_e);
-    printf("        .threat_valuable_o             = %d,\n", param.positional.threat_valuable_o);
-    printf("        .threat_valuable_e             = %d,\n", param.positional.threat_valuable_e);
     printf("        .tempo                         = %d,\n", param.positional.tempo);
     print_mob("pawn_passed_scaling ", param.positional.pawn_passed_scaling, sizeof(param.positional.pawn_passed_scaling));
     printf("    }\n");
@@ -332,11 +336,15 @@ int main(int argc, char **argv)
     fprintf(stderr, "Initial => %f\n", mse_initial);
 
     for(int iter = 0; iter < 10; iter++) {
-#if 1
+#if 0
         fprintf(stderr, "Optimizing mobility\n");
         mse_best = tune_array(buf, (int*)&param.mobility, sizeof(param.mobility)/sizeof(int), mse_best, -10, 10);
 #endif
 #if 1
+        fprintf(stderr, "Optimizing threat\n");
+        mse_best = tune_array(buf, (int*)&param.threat, sizeof(param.threat)/sizeof(int), mse_best, -10, 10);
+#endif
+#if 0
         fprintf(stderr, "Optimizing king pressure\n");
         mse_best = tune_array(buf, (int*)&param.pressure.knight, sizeof(param.pressure.knight)/sizeof(int), mse_best, 0, 15);
         mse_best = tune_array(buf, (int*)&param.pressure.bishop, sizeof(param.pressure.bishop)/sizeof(int), mse_best, 0, 15);
@@ -345,11 +353,11 @@ int main(int argc, char **argv)
         mse_best = tune_array(buf, (int*)&param.pressure.scaling_midgame, sizeof(param.pressure.scaling_midgame)/sizeof(int), mse_best, 0, 64);
         mse_best = tune_array(buf, (int*)&param.pressure.scaling_endgame, sizeof(param.pressure.scaling_endgame)/sizeof(int), mse_best, 0, 64);
 #endif
-#if 1
+#if 0
         fprintf(stderr, "Optimizing positional parameters\n");
         mse_best = tune_array(buf, (int*)&param.positional, sizeof(param.positional)/sizeof(int), mse_best, -25, 300);
 #endif
-#if 1
+#if 0
         fprintf(stderr, "Optimizing PSQ pawn\n");
         mse_best = tune_array(buf, param.psq.pawn, 64, mse_best, -10, 20);
         fprintf(stderr, "Optimizing PSQ knight\n");

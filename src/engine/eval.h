@@ -32,6 +32,12 @@ typedef struct {
         int queen_e[28];
     } mobility;
     struct {
+        int pawn[5];
+        int knight[5];
+        int bishop[5];
+        int rook[5];
+    } threat;
+    struct {
         int knight[8];
         int bishop[8];
         int rook[8];
@@ -59,8 +65,6 @@ typedef struct {
         int rook_halfopen_file_e;
         int rook_rearmost_pawn_o;
         int rook_rearmost_pawn_e;
-        int threat_valuable_o;
-        int threat_valuable_e;
         int tempo;
         int pawn_passed_scaling[8];
     } positional;

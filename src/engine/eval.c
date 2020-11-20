@@ -90,6 +90,12 @@ eval_param_t param =
         .queen_o = { -3, -5, -5, -5, -2, -3, -3, -3, -3,  0, -2, -1,  1,  1,  2,  3,  3,  2,  3,  5,  5,  6,  8,  6,  7,  6,  7,  7 },
         .queen_e = {-13,-13,-12,-10,-10, -9, -7, -4,  3,  3,  5,  7,  8,  8,  9, 10, 10, 10, 10, 15, 14, 14, 15, 15, 16, 16, 18, 18 },
     },
+    .threat = {
+        .pawn    = {  0,  1,  1,  1,  1 },
+        .knight  = {  0,  0,  2,  5,  5 },
+        .bishop  = {  0,  0,  0,  5,  5 },
+        .rook    = {  0,  1,  0, -2,  5 },
+    },
     .pressure = {
         .knight  = {  0,  3,  5,  3,  3,  0,  0,  0 },
         .bishop  = {  0,  0,  2,  1,  1,  0,  2,  1 },
@@ -118,8 +124,6 @@ eval_param_t param =
         .rook_halfopen_file_e          = 3,
         .rook_rearmost_pawn_o          = -1,
         .rook_rearmost_pawn_e          = 2,
-        .threat_valuable_o             = 3,
-        .threat_valuable_e             = 3,
         .tempo                         = 1,
         .pawn_passed_scaling = {  0, 13, 28, 63, 115, 177, 255,  0 },
     }
@@ -267,10 +271,9 @@ short EVAL_evaluate_board(const chess_state_t *s)
             pawn_material_score[color] += PAWN_VALUE;
             positional_score[color] += param.psq.pawn[pos^pos_mask];
             positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? param.positional.pawn_guards_pawn : 0; /* Guarded by other pawn */
-
-            int threats = BITBOARD_count_bits(pawnAttacks[color] & (opp[KNIGHT] | opp[BISHOP] | opp[ROOK] | opp[QUEEN]));
-            positional_score_o[color] += param.positional.threat_valuable_o * threats;
-            positional_score_e[color] += param.positional.threat_valuable_e * threats;
+            for(int type = PAWN; type <= QUEEN; type++) {
+                positional_score[color] += param.threat.pawn[type] * BITBOARD_count_bits(pawnAttacks[color] & opp[type]);
+            }
 
             /* Passed pawn */
             if(pos_bitboard & passedPawns) {
@@ -322,9 +325,9 @@ short EVAL_evaluate_board(const chess_state_t *s)
             piece_mobility = BITBOARD_count_bits(mobility_moves);
             positional_score[color] += param.mobility.knight[piece_mobility];
             positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? param.positional.pawn_guards_minor : 0; /* Guarded by pawn */
-            int threats = BITBOARD_count_bits(bitboard_knight[pos] & (opp[ROOK] | opp[QUEEN]));
-            positional_score_o[color] += param.positional.threat_valuable_o * threats;
-            positional_score_e[color] += param.positional.threat_valuable_e * threats;
+            for(int type = PAWN; type <= QUEEN; type++) {
+                positional_score[color] += param.threat.knight[type] * BITBOARD_count_bits(bitboard_knight[pos] & opp[type]);
+            }
             if(mobility_moves & king_zone[color^1]) {
                 king_pressure += param.pressure.knight[(int)distance[king_pos[color^1]][pos]];
                 ++num_king_attackers;
@@ -348,9 +351,9 @@ short EVAL_evaluate_board(const chess_state_t *s)
             piece_mobility = BITBOARD_count_bits(mobility_moves);
             positional_score[color] += param.mobility.bishop[piece_mobility];
             positional_score_o[color] += (pos_bitboard & pawnAttacks[color]) ? param.positional.pawn_guards_minor : 0; /* Guarded by pawn */
-            int threats = BITBOARD_count_bits(captures & (opp[ROOK] | opp[QUEEN]));
-            positional_score_o[color] += param.positional.threat_valuable_o * threats;
-            positional_score_e[color] += param.positional.threat_valuable_e * threats;
+            for(int type = PAWN; type <= QUEEN; type++) {
+                positional_score[color] += param.threat.bishop[type] * BITBOARD_count_bits(captures & opp[type]);
+            }
             if(mobility_moves & king_zone[color^1]) {
                 king_pressure += param.pressure.bishop[(int)distance[king_pos[color^1]][pos]];
                 ++num_king_attackers;
@@ -370,9 +373,9 @@ short EVAL_evaluate_board(const chess_state_t *s)
             piece_mobility = BITBOARD_count_bits(mobility_moves);
             positional_score_o[color] += param.mobility.rook_o[piece_mobility];
             positional_score_e[color] += param.mobility.rook_e[piece_mobility];
-            int threats = BITBOARD_count_bits(captures & opp[QUEEN]);
-            positional_score_o[color] += param.positional.threat_valuable_o * threats;
-            positional_score_e[color] += param.positional.threat_valuable_e * threats;
+            for(int type = PAWN; type <= QUEEN; type++) {
+                positional_score[color] += param.threat.rook[type] * BITBOARD_count_bits(captures & opp[type]);
+            }
             if(mobility_moves & king_zone[color^1]) {
                 king_pressure += param.pressure.rook[(int)distance[king_pos[color^1]][pos]];
                 ++num_king_attackers;
