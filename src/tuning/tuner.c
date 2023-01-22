@@ -279,7 +279,6 @@ void print_params()
     print_mob("rook", param.pressure.rook, sizeof(param.pressure.rook));
     print_mob("queen", param.pressure.queen, sizeof(param.pressure.queen));
     print_mob("scaling_midgame", param.pressure.scaling_midgame, sizeof(param.pressure.scaling_midgame));
-    print_mob("scaling_endgame", param.pressure.scaling_endgame, sizeof(param.pressure.scaling_endgame));
     printf("    },\n");
     printf("    .positional = {\n");
     printf("        .pawn_guards_minor             = %d,\n", param.positional.pawn_guards_minor);
@@ -351,7 +350,6 @@ int main(int argc, char **argv)
         mse_best = tune_array(buf, (int*)&param.pressure.rook, sizeof(param.pressure.rook)/sizeof(int), mse_best, 0, 15);
         mse_best = tune_array(buf, (int*)&param.pressure.queen, sizeof(param.pressure.queen)/sizeof(int), mse_best, 0, 15);
         mse_best = tune_array(buf, (int*)&param.pressure.scaling_midgame, sizeof(param.pressure.scaling_midgame)/sizeof(int), mse_best, 0, 64);
-        mse_best = tune_array(buf, (int*)&param.pressure.scaling_endgame, sizeof(param.pressure.scaling_endgame)/sizeof(int), mse_best, 0, 64);
 #endif
 #if 0
         fprintf(stderr, "Optimizing positional parameters\n");

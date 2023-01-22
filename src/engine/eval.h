@@ -43,7 +43,6 @@ typedef struct {
         int rook[8];
         int queen[8];
         int scaling_midgame[5];
-        int scaling_endgame[5];
     } pressure;
     struct {
         int pawn_guards_minor;

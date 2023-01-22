@@ -102,7 +102,6 @@ eval_param_t param =
         .rook    = {  0,  7,  5,  4,  4,  1,  1,  2 },
         .queen   = {  0, 15, 14,  6,  2,  1,  0,  0 },
         .scaling_midgame= {  0, 10, 26, 39, 55 },
-        .scaling_endgame= {  0,  6,  9, 15,  4 },
     },
     .positional = {
         .pawn_guards_minor             = 1,
@@ -425,7 +424,6 @@ short EVAL_evaluate_board(const chess_state_t *s)
 
         if(num_king_attackers > 4) num_king_attackers = 4;
         positional_score_o[color] += king_pressure * param.pressure.scaling_midgame[num_king_attackers] >> 4;
-        positional_score_e[color] += king_pressure * param.pressure.scaling_endgame[num_king_attackers] >> 4;
     }
 
     short score = 0;
