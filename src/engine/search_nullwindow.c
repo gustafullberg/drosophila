@@ -35,7 +35,7 @@ static short SEARCH_move(const chess_state_t *state, search_state_t *search_stat
         unsigned char R;
         if(move_number < 4 || depth < 3 || MOVE_IS_CAPTURE_OR_PROMOTION(move)) R = 0;
         else if(move_number < 12 || depth <= 3) R = 1;
-        else if(move_number < 18 || depth <= 4) R = 2;
+        else if(move_number < 16 || depth <= 4) R = 2;
         else R = 3;
 
         /* Reduced search */
