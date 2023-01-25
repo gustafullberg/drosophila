@@ -9,7 +9,7 @@
 static inline short SEARCH_transpositiontable_retrieve(const hashtable_t *hashtable, const bitboard_t hash, const unsigned char depth, short beta, move_t *best_move, int *cutoff);
 static inline void SEARCH_transpositiontable_store(hashtable_t *hashtable, const bitboard_t hash, const unsigned char depth, const short best_score, move_t best_move, const short beta);
 
-static short SEARCH_move(const chess_state_t *state, search_state_t *search_state, unsigned char depth, unsigned char ply, move_t move, int move_number, int do_futility_pruning, short best_score, short beta)
+static short SEARCH_move(const chess_state_t *state, search_state_t *search_state, unsigned char depth, unsigned char ply, move_t move, int move_number, int do_futility_pruning, int num_checkers, short best_score, short beta)
 {
     short score;
     move_t next_move;
@@ -33,7 +33,7 @@ static short SEARCH_move(const chess_state_t *state, search_state_t *search_stat
     } else {
         /* Late move reduction */
         unsigned char R;
-        if(move_number < 4 || depth < 3 || MOVE_IS_CAPTURE_OR_PROMOTION(move)) R = 0;
+        if(move_number < 4 || depth < 3 || MOVE_IS_CAPTURE_OR_PROMOTION(move) || num_checkers) R = 0;
         else if(move_number < 12 || depth <= 3) R = 1;
         else if(move_number < 16 || depth <= 4) R = 2;
         else R = 3;
@@ -133,7 +133,7 @@ short SEARCH_nullwindow(const chess_state_t *state, search_state_t *search_state
             /* Pick move with the highest score */
             MOVEORDER_best_move_first(&moves[i], num_moves - i);
 
-            short score = SEARCH_move(state, search_state, depth, ply, moves[i], i, do_futility_pruning, best_score, beta);
+            short score = SEARCH_move(state, search_state, depth, ply, moves[i], i, do_futility_pruning, num_checkers, best_score, beta);
 
             /* Check if score improved by this move */
             if(score > best_score) {
