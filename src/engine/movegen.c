@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <immintrin.h>
 #include <stdio.h>
 #include "defines.h"
 #include "movegen.h"
@@ -38,6 +39,7 @@ void MOVEGEN_knight(const int position, const bitboard_t own, const bitboard_t o
 
 void MOVEGEN_bishop(const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
+#if 0
     bitboard_t occupied;
     bitboard_t ul_moves, ur_moves, dl_moves, dr_moves;
     bitboard_t bishop_moves;
@@ -74,10 +76,17 @@ void MOVEGEN_bishop(const int position, const bitboard_t own, const bitboard_t o
     
     *moves = bishop_moves & ~occupied;
     *captures = bishop_moves & opponent;
+#else
+    bitboard_t occupied = own | opponent;
+    bitboard_t all_moves = bitboard_bishop_attacks[bishop_attacks_offset[position] + _pext_u64(occupied, bitboard_bishop_inner[position])];
+    *moves = all_moves & ~occupied;
+    *captures = all_moves & opponent;
+#endif
 }
 
 void MOVEGEN_rook(const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)
 {
+#if 0
     bitboard_t occupied;
     bitboard_t left_moves, right_moves, up_moves, down_moves;
     bitboard_t rook_moves;
@@ -113,6 +122,12 @@ void MOVEGEN_rook(const int position, const bitboard_t own, const bitboard_t opp
     rook_moves = left_moves | right_moves | up_moves | down_moves;
     *moves = rook_moves & ~occupied;
     *captures = rook_moves & opponent;
+#else
+    bitboard_t occupied = own | opponent;
+    bitboard_t all_moves = bitboard_rook_attacks[rook_attacks_offset[position] + _pext_u64(occupied, bitboard_rook_inner[position])];
+    *moves = all_moves & ~occupied;
+    *captures = all_moves & opponent;
+#endif
 }
 
 void MOVEGEN_queen(const int position, const bitboard_t own, const bitboard_t opponent, bitboard_t *moves, bitboard_t *captures)

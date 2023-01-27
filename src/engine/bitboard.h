@@ -53,6 +53,12 @@ extern const bitboard_t bitboard_zobrist[NUM_COLORS][NUM_TYPES-1][NUM_POSITIONS]
 extern const bitboard_t bitboard_zobrist_color;
 extern const bitboard_t bitboard_zobrist_ep[NUM_FILES+1];
 extern const bitboard_t bitboard_zobrist_castling[NUM_COLORS][4];
+extern bitboard_t bitboard_rook_inner[NUM_POSITIONS];
+extern bitboard_t bitboard_bishop_inner[NUM_POSITIONS];
+extern bitboard_t bitboard_rook_attacks[102400];
+extern bitboard_t bitboard_bishop_attacks[5248];
+extern int rook_attacks_offset[NUM_POSITIONS];
+extern int bishop_attacks_offset[NUM_POSITIONS];
 extern char       distance[NUM_POSITIONS][NUM_POSITIONS];
 
 void BITBOARD_init();

@@ -1,4 +1,5 @@
 #include "bitboard.h"
+#include <immintrin.h>
 #include <stdio.h>
 
 bitboard_t bitboard_file[NUM_POSITIONS];
@@ -23,6 +24,12 @@ bitboard_t bitboard_rook[NUM_POSITIONS];
 bitboard_t bitboard_king_castle_empty[NUM_COLORS];
 bitboard_t bitboard_queen_castle_empty[NUM_COLORS];
 bitboard_t bitboard_start_position[NUM_COLORS][NUM_TYPES-1];
+bitboard_t bitboard_rook_inner[NUM_POSITIONS];
+bitboard_t bitboard_bishop_inner[NUM_POSITIONS];
+bitboard_t bitboard_rook_attacks[102400];
+bitboard_t bitboard_bishop_attacks[5248];
+int rook_attacks_offset[NUM_POSITIONS];
+int bishop_attacks_offset[NUM_POSITIONS];
 char       distance[NUM_POSITIONS][NUM_POSITIONS];
 
 void BITBOARD_init()
@@ -228,6 +235,57 @@ void BITBOARD_init()
     bitboard_start_position[BLACK][ROOK]    = 0x8100000000000000;
     bitboard_start_position[BLACK][QUEEN]   = 0x0800000000000000;
     bitboard_start_position[BLACK][KING]    = 0x1000000000000000;
+
+    for(i = 0; i < NUM_POSITIONS; i++) {
+        bitboard_rook_inner[i] = (bitboard_up[i] & ~bitboard_rank[63]) |
+            (bitboard_down[i] & ~bitboard_rank[0]) |
+            (bitboard_left[i] & ~bitboard_file[0]) |
+            (bitboard_right[i] & ~bitboard_file[63]);
+    }
+
+    for(i = 0; i < NUM_POSITIONS; i++) {
+        bitboard_bishop_inner[i] = bitboard_bishop[i] & 0x007E7E7E7E7E7E00;
+    }
+
+    int rook_offset = 0;
+    for(i = 0; i < NUM_POSITIONS; i++) {
+        rook_attacks_offset[i] = rook_offset;
+        const int num_inner_bits = BITBOARD_count_bits(bitboard_rook_inner[i]);
+        const int num_permutations = 1 << num_inner_bits;
+
+        for(j = 0; j < num_permutations; j++) {
+            const bitboard_t occ = _pdep_u64(j, bitboard_rook_inner[i]);
+            bitboard_t moves_to_test = bitboard_rook[i];
+            bitboard_t possible_moves = 0;
+            while(moves_to_test) {
+                const int pos = BITBOARD_find_bit(moves_to_test);
+                const bitboard_t pos_bitboard = BITBOARD_POSITION(pos);
+                moves_to_test ^= pos_bitboard;
+                if((bitboard_between[i][pos] & occ) == 0) possible_moves |= pos_bitboard;
+            }
+            bitboard_rook_attacks[rook_offset++] = possible_moves;
+        }
+    }
+
+    int bishop_offset = 0;
+    for(i = 0; i < NUM_POSITIONS; i++) {
+        bishop_attacks_offset[i] = bishop_offset;
+        const int num_inner_bits = BITBOARD_count_bits(bitboard_bishop_inner[i]);
+        const int num_permutations = 1 << num_inner_bits;
+
+        for(j = 0; j < num_permutations; j++) {
+            const bitboard_t occ = _pdep_u64(j, bitboard_bishop_inner[i]);
+            bitboard_t moves_to_test = bitboard_bishop[i];
+            bitboard_t possible_moves = 0;
+            while(moves_to_test) {
+                const int pos = BITBOARD_find_bit(moves_to_test);
+                const bitboard_t pos_bitboard = BITBOARD_POSITION(pos);
+                moves_to_test ^= pos_bitboard;
+                if((bitboard_between[i][pos] & occ) == 0) possible_moves |= pos_bitboard;
+            }
+            bitboard_bishop_attacks[bishop_offset++] = possible_moves;
+        }
+    }
 
     for(i = 0; i < NUM_POSITIONS; i++) {
         for(j = 0; j < NUM_POSITIONS; j++) {
