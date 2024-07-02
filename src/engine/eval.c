@@ -110,6 +110,8 @@ eval_param_t param =
         .pawn_shield_2                 = 1,
         .pawn_passed_o                 = 11,
         .pawn_passed_e                 = 10,
+        .pawn_passed_protected_o       = 9,
+        .pawn_passed_protected_e       = 0,
         .pawn_passed_dist_kings_diff_e = 7,
         .pawn_passed_dist_own_king_e   = 1,
         .pawn_passed_unblocked         = 10,
@@ -272,6 +274,11 @@ short EVAL_evaluate_board(const chess_state_t *s)
                 /* Initial bonus for passed pawn */
                 short bonus_o = (short)param.positional.pawn_passed_o;
                 short bonus_e = (short)param.positional.pawn_passed_e;
+
+                if(pos_bitboard & pawnAttacks[color]) {
+                    bonus_o += (short)param.positional.pawn_passed_protected_o;
+                    bonus_e += (short)param.positional.pawn_passed_protected_e;
+                }
 
                 /* Distance to kings */
                 int dist_own_king = distance[king_pos[color]][pos];

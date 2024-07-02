@@ -287,6 +287,8 @@ void print_params()
     printf("        .pawn_shield_2                 = %d,\n", param.positional.pawn_shield_2);
     printf("        .pawn_passed_o                 = %d,\n", param.positional.pawn_passed_o);
     printf("        .pawn_passed_e                 = %d,\n", param.positional.pawn_passed_e);
+    printf("        .pawn_passed_protected_o       = %d,\n", param.positional.pawn_passed_protected_o);
+    printf("        .pawn_passed_protected_e       = %d,\n", param.positional.pawn_passed_protected_e);
     printf("        .pawn_passed_dist_kings_diff_e = %d,\n", param.positional.pawn_passed_dist_kings_diff_e);
     printf("        .pawn_passed_dist_own_king_e   = %d,\n", param.positional.pawn_passed_dist_own_king_e);
     printf("        .pawn_passed_unblocked         = %d,\n", param.positional.pawn_passed_unblocked);
@@ -339,7 +341,7 @@ int main(int argc, char **argv)
         fprintf(stderr, "Optimizing mobility\n");
         mse_best = tune_array(buf, (int*)&param.mobility, sizeof(param.mobility)/sizeof(int), mse_best, -10, 10);
 #endif
-#if 1
+#if 0
         fprintf(stderr, "Optimizing threat\n");
         mse_best = tune_array(buf, (int*)&param.threat, sizeof(param.threat)/sizeof(int), mse_best, -10, 10);
 #endif

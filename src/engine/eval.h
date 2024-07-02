@@ -51,6 +51,8 @@ typedef struct {
         int pawn_shield_2;
         int pawn_passed_o;
         int pawn_passed_e;
+        int pawn_passed_protected_o;
+        int pawn_passed_protected_e;
         int pawn_passed_dist_kings_diff_e;
         int pawn_passed_dist_own_king_e;
         int pawn_passed_unblocked;
